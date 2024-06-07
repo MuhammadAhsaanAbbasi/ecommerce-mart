@@ -18,4 +18,10 @@ done
 
 # Register services and add JWT plugin to each service
 # Service: user-service
-curl -i 
+curl -i -X POST $KONG_ADMIN_URL/services \
+    --data "name=user-service" \
+    --data "url=http://host.docker.internal:8081"
+
+curl -i -X POST $KONG_ADMIN_URL/services/user-service/routes \
+    --data "paths[]=user-service" \
+    --data "strip_path=true" \
