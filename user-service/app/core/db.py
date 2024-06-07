@@ -1,7 +1,7 @@
-from ..setting import DATABASE_URL
+from university_gpt import setting
 from sqlmodel import SQLModel, create_engine, Session
 
-connectionstring = str(DATABASE_URL).replace(
+connectionstring = str(setting.DATABASE_URL).replace(
     "postgresql", "postgresql+psycopg2"
 )
 

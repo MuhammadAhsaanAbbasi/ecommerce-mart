@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from starlette.middleware.sessions import SessionMiddleware
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
-# from .web.route  import router
+from .web.route  import router
 from .core.db import create_db_and_tables
 from .model.models import Users
 
@@ -21,7 +21,7 @@ app = FastAPI(
     lifespan=life_span,
     contact={
         "name": "Muhammad Ahsaan Abbasi",
-        "url": "http://localhost:8081/contact/",
+        "url": "http://localhost:8000/contact/",
         "email": "mahsaanabbasi@gmail.com",
     },
     license_info={
@@ -32,7 +32,6 @@ app = FastAPI(
     root_path_in_servers=True,
     docs_url="/docs"
 )
-
 
 # SessionMiddleware must be installed to access request.session
 app.add_middleware(
@@ -46,7 +45,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# app.router.include_router(router, tags=["OAuth2 Authentication"])
+app.router.include_router(router, tags=["OAuth2 Authentication"])
 
 @app.get("/")
 def get_root():

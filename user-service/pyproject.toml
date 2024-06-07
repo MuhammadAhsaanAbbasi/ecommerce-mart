@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "user-service"
+name = "university-gpt"
 version = "0.1.0"
 description = ""
 authors = ["MuhammadAhsaanAbbasi <mahsaanabbasi@gmail.com>"]
@@ -28,7 +28,6 @@ numpy = "^1.26.4"
 tenacity = "^8.2.3"
 psycopg2-binary = "^2.9.9"
 resend = "^0.8.0"
-
 
 [build-system]
 requires = ["poetry-core"]
