@@ -14,14 +14,14 @@ async def life_span(app: FastAPI):
     yield
 
 app = FastAPI(
-    title="University GPT",
-    description="A GPT University or Program that will help to create whole university program with GPT and also help to create a Quizz for Students!",
+    title="User Service",
+    description="User Micro-Service that authenticate and authorize user for authentication & authorization & return access token to access other Micro-Services",
     version="1.0.0",
     terms_of_service="https://caxgpt.vercel.app/terms/",
     lifespan=life_span,
     contact={
         "name": "Muhammad Ahsaan Abbasi",
-        "url": "http://localhost:8000/contact/",
+        "phone": "+92 349-204-7381",
         "email": "mahsaanabbasi@gmail.com",
     },
     license_info={
