@@ -21,19 +21,15 @@ app = FastAPI(
     lifespan=life_span,
     contact={
         "name": "Muhammad Ahsaan Abbasi",
-        "url": "http://localhost:8000/contact/",
+        "url": "http://localhost:8081/contact/",
         "email": "mahsaanabbasi@gmail.com",
     },
     license_info={
         "name": "Apache 2.0",
         "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
     },
-    servers=[
-        {
-            "url": "http://localhost:8000",
-            "description": "Local server"
-        },
-    ],
+    root_path="/user-service",
+    root_path_in_servers=True,
     docs_url="/docs"
 )
 
