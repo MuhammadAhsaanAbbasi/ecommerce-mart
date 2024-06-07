@@ -2,10 +2,10 @@ from typing import Annotated, Optional
 from sqlmodel import  Session, select
 from fastapi import Depends, HTTPException, Form
 from ..core.db import get_session
-from ..model.models import Users, Token, Admin, UserBase, University, UniversityBase
+from ..model.models import Users, Token, Admin, UserBase
 from fastapi.security.oauth2 import OAuth2PasswordRequestForm
 from fastapi.responses import RedirectResponse
-from ..utils.auth import authenticate_user, create_access_token, create_refresh_token, faculty_authenticate_user, generate_and_send_otp, REFRESH_TOKEN_EXPIRE_MINUTES, ACCESS_TOKEN_EXPIRE_MINUTES
+from ..utils.auth import authenticate_user, create_access_token, create_refresh_token, generate_and_send_otp, REFRESH_TOKEN_EXPIRE_MINUTES, ACCESS_TOKEN_EXPIRE_MINUTES
 from datetime import timedelta
 import string
 import secrets
@@ -47,6 +47,7 @@ def verify_and_generate_tokens(user_otp: str, user: Users, session: Session):
         refresh_token=refresh_token,
     )
 
+
 #  Create user 
 def create_user(user: UserBase, session: Annotated[Session, Depends(get_session)], isGoogle: bool = False):
     existing_user = session.exec(select(Users).where(Users.email == user.email)).first()
@@ -59,7 +60,7 @@ def create_user(user: UserBase, session: Annotated[Session, Depends(get_session)
         session.commit()
         return {"detail": "User created successfully"}
 
-     # Generate and send OTP
+    # Generate and send OTP
     generate_and_send_otp(user, session, isAdmin=False)
 
     # Return success response
@@ -67,57 +68,24 @@ def create_user(user: UserBase, session: Annotated[Session, Depends(get_session)
 
 
 # Create Admin 
-def create_admin(user: UserBase, session: Session, uni: UniversityBase):
+def create_admin(user: UserBase, session: Annotated[Session, Depends(get_session)]):
     existing_user = session.exec(select(Users).where(Users.email == user.email)).first()
+    user_id = None
+    is_verified = True
     if existing_user:
-        existing_user.role = "admin"  # Update the role to admin
+        existing_user.role = "admin" # Update the role to admin
         session.commit()
-        generate_and_send_otp(user, session, user_id=existing_user.id)
-        return {"detail": "OTP sent successfully"}
+        user_id = existing_user.id
     else:
         existing_admin = session.exec(select(Admin).where(Admin.email == user.email)).first()
         if existing_admin:
             raise HTTPException(status_code=400, detail="Admin already exists")
-
-        # Generate and send OTP
-        generate_and_send_otp(user, session)
-        return {"detail": "OTP sent successfully"}
-
-# verify , create university and generate token
-def verify_otp_and_create_university(admin_otp: str, user: Admin, uni: UniversityBase, session:Annotated[Session, Depends(get_session)]):
-    # Verify OTP
-    existing_admin = session.exec(select(Admin).where(Admin.email == user.email)).first()
-    if not existing_admin:
-        raise HTTPException(status_code=404, detail="Admin not found")
-
-    valid_otp = pwd_context.verify(admin_otp, existing_admin.otp)
-    if not valid_otp:
-        raise HTTPException(status_code=400, detail="Invalid OTP")
-
-    # If OTP is valid, update is_verified field
-    existing_admin.is_verified = True
-    existing_university = session.exec(select(University).where(University.university_name == uni.university_name)).first()
-    if existing_university:
-        raise HTTPException(status_code=400, detail="University already exists")
-    university_data = uni.dict()
-    university_data["admins"] = existing_admin
-    university = University(**university_data)
-    session.add(university)
+    
+    admin = Admin(user_id=user_id, is_verified=is_verified, *UserBase)
+    session.add(admin)
     session.commit()
-
-    # Return tokens
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(data={"sub": user.email}, expires_delta=access_token_expires)
-    refresh_token_expires = timedelta(minutes=float(REFRESH_TOKEN_EXPIRE_MINUTES))
-    refresh_token = create_refresh_token(data={"email": user.email}, expires_delta=refresh_token_expires)
-
-    return Token(
-        access_token=access_token,
-        token_type="bearer",
-        access_expires_in=int(access_token_expires.total_seconds()),
-        refresh_token_expires_in=int(refresh_token_expires.total_seconds()),
-        refresh_token=refresh_token,
-    )
+    session.refresh(admin)
+    return {"message" : "Admin Created Successfully", "data": admin}
 
 
 #  Login for access Token
@@ -144,32 +112,6 @@ async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm,
         refresh_token=refresh_token,
         )
 
-
-# Login for access token for faculty
-async def login_access_token_for_faculty(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], session: Annotated[Session, Depends(get_session)])->Token:
-    user = faculty_authenticate_user(Users, form_data.username, form_data.password, session)
-    if not user:
-        raise HTTPException(
-            status_code=400,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": user.email}, expires_delta=access_token_expires
-    )
-
-        # Generate refresh token (you might want to set a longer expiry for this)
-    refresh_token_expires = timedelta(minutes=float(REFRESH_TOKEN_EXPIRE_MINUTES))
-    refresh_token = create_refresh_token(data={"email": user.email}, expires_delta=refresh_token_expires)
-    print(ACCESS_TOKEN_EXPIRE_MINUTES)
-    return Token(
-        access_token=access_token, 
-        token_type="bearer", 
-        access_expires_in= int(access_token_expires.total_seconds()), 
-        refresh_token_expires_in= int(refresh_token_expires.total_seconds()),
-        refresh_token=refresh_token,
-        )
 
 async def login_access_token_for_admin(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], session: Annotated[Session, Depends(get_session)])->Token:
     user = authenticate_user(Admin, form_data.username, form_data.password, session)

@@ -163,6 +163,9 @@ services:
       - kafka
       - postgres_db
 
+####################################################################################################
+
+
   postgres_db:
     image: postgres:latest # Use the official PostgreSQL image
     restart: always

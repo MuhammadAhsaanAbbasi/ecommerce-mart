@@ -10,7 +10,7 @@ from ..model.models import Users, Token, TokenData, Admin, UserBase
 from passlib.context import CryptContext
 import resend # type: ignore 
 import numpy as np
- 
+
 # Set your API key
 resend.api_key = "re_K6Jhif6u_BVUGdYvzWjVjioaJR4Cpq28X"
 
@@ -40,16 +40,6 @@ def authenticate_user(db, email: str, password: str, session: Annotated[Session,
     else:
         return user
 
-def faculty_authenticate_user(db, email: str, password: str, session: Annotated[Session, Depends(get_session)]):
-    user = get_user(db, email, session)
-    if not user:
-        return False
-    if not verify_password(password, user.hashed_password):
-        return False
-    if user.role not in ["instructor", "student"]:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-    else:
-        return user
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode = data.copy()
@@ -99,18 +89,6 @@ async def get_current_active_user(current_user: Annotated[Users, Depends(get_cur
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-
-async def get_current_active_instructor_user(current_user: Annotated[Users, Depends(get_current_user)]):
-    if current_user.is_verified and current_user.role == "instructor":
-        print(current_user.id)
-        return current_user
-    else:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Authorized user or not an instructor",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
 async def get_current_admin(token: Annotated[str, Depends(oauth2_scheme)], session: Annotated[Session, Depends(get_session)]):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -140,7 +118,6 @@ async def get_current_active_admin_user(current_user: Annotated[Admin, Depends(g
             detail="Inactive user or not an instructor",
             headers={"WWW-Authenticate": "Bearer"},
         )
-
 
 def create_refresh_token(data: dict, expires_delta: Union[timedelta, None] = None):
     to_encode = data.copy()

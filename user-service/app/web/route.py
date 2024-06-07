@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends,  Form, Request, HTTPException, status
 from fastapi.responses import RedirectResponse, JSONResponse, Response
-from ..service.auth import create_user, login_for_access_token, google_user, create_admin, login_access_token_for_faculty, verify_and_generate_tokens, login_access_token_for_admin, verify_otp_and_create_university
-from ..model.models import Users, Token, Program, ProgramBase, University, UniversityBase, Course, CourseBase, Admin
+from ..service.auth import create_user, login_for_access_token, google_user, create_admin, verify_and_generate_tokens, login_access_token_for_admin
+from ..model.models import Users, Token, Admin
 from typing import Annotated, Any, Optional
 from sqlmodel import Session, select
 from ..core.db import get_session
-from ..utils.auth import get_current_active_user, tokens_service, oauth2_scheme, get_password_hash,  get_current_active_instructor_user, get_current_active_admin_user, create_access_token, create_refresh_token, REFRESH_TOKEN_EXPIRE_MINUTES, ACCESS_TOKEN_EXPIRE_MINUTES
+from ..utils.auth import get_current_active_user, tokens_service, oauth2_scheme, get_password_hash, get_current_active_admin_user, create_access_token, create_refresh_token, REFRESH_TOKEN_EXPIRE_MINUTES, ACCESS_TOKEN_EXPIRE_MINUTES
 from fastapi.security.oauth2 import OAuth2PasswordRequestForm
 import os
 import json
@@ -47,7 +47,7 @@ CLIENT_SECRET_FILE = os.path.join(BASE_DIR, 'client_secret.json')
 SCOPES = ['openid', 'https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile']
 
 # Router
-router = APIRouter(prefix="/api")
+router = APIRouter(prefix="/api/v1")
 
 # Google Login
 @router.get("/auth/google/login")
@@ -127,17 +127,6 @@ def verify_sign_up_otp(user_otp: str, user: Users, session:Annotated[Session, De
     tokens = verify_and_generate_tokens(user_otp, user, session)
     return tokens
 
-# Admin Signup
-@router.post("/admin/university")
-def create_uni_admin_sign_up(user: Admin, uni: UniversityBase, session: Annotated[Session, Depends(get_session)], current_user: Annotated[Users, Depends(get_current_active_user)]):
-    admin = create_admin(user, session, uni)
-    return admin
-
-@router.post("/admin/university/verify")
-def admin_verify_otp_university(admin_otp: str, user: Admin, uni: UniversityBase, session:Annotated[Session, Depends(get_session)]):
-    tokens = verify_otp_and_create_university(admin_otp, user, uni, session)
-    return tokens
-
 
 # Login Routes
 @router.post("/login", response_model=Token)
@@ -145,10 +134,6 @@ async def login_access_token(form_data: Annotated[OAuth2PasswordRequestForm, Dep
     token = await login_for_access_token(form_data, session)
     return token
 
-@router.post("/login/faculty", response_model=Token)
-async def login_access_token_faculty(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], session: Annotated[Session, Depends(get_session)]):
-    token = await login_access_token_for_faculty(form_data, session)
-    return token
 
 @router.post("/login/admin", response_model=Token)
 async def login_access_token_admin(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], session: Annotated[Session, Depends(get_session)]):
@@ -156,7 +141,7 @@ async def login_access_token_admin(form_data: Annotated[OAuth2PasswordRequestFor
     return token
 
 # token route
-@router.post("/token", response_model=Token)
+@router.post("/refresh_token", response_model=Token)
 async def get_tokens(session: Annotated[Session, Depends(get_session)], refresh_token:Annotated[str, Depends(oauth2_scheme)]): 
     tokens = await tokens_service(refresh_token=refresh_token, session=session)
     return tokens
@@ -166,10 +151,7 @@ async def get_tokens(session: Annotated[Session, Depends(get_session)], refresh_
 async def read_users_me(current_user: Annotated[Users, Depends(get_current_active_user)]):
     return current_user
 
-@router.get("/user/faculty", response_model=Users)
-async def read_users_faculty(current_user: Annotated[Users, Depends(get_current_active_instructor_user)]):
-    return current_user
-
+# admin routes
 @router.get("/user/admin", response_model=Admin)
 async def read_users_admin(current_user: Annotated[Admin, Depends(get_current_active_admin_user)]):
     return current_user

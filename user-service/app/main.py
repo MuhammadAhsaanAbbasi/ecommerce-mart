@@ -45,8 +45,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.router.include_router(router, tags=["OAuth2 Authentication"])
+app.router.include_router(router, tags=["User Authorize & Authentication"])
 
 @app.get("/")
 def get_root():
-    return {"message": "welcome to login System"}
+    return {"message": "welcome to login & Sign-up System & User Service"}
