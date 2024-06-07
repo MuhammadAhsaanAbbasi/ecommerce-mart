@@ -158,7 +158,7 @@ services:
     ports:
       - "8082:8082" 
     volumes:
-      - ./product-service:/code  # Sync local development directory with the container
+      - ./product-service:/code  # Sync  local development directory with the container
     depends_on:
       - kafka
       - postgres_db
