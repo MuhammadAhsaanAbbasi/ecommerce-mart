@@ -11,7 +11,7 @@ import string
 import secrets
 import resend # type: ignore
 import numpy as np
-# Set your API key
+# Set your API key 
 resend.api_key = "re_K6Jhif6u_BVUGdYvzWjVjioaJR4Cpq28X"
 from passlib.context import CryptContext
 
@@ -61,7 +61,7 @@ def create_user(user: UserBase, session: Annotated[Session, Depends(get_session)
         return {"detail": "User created successfully"}
 
     # Generate and send OTP
-    generate_and_send_otp(user, session, isAdmin=False)
+    generate_and_send_otp(user, session)
 
     # Return success response
     return {"detail": "OTP sent successfully"}

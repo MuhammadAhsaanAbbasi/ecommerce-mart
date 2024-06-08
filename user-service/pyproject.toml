@@ -29,6 +29,7 @@ tenacity = "^8.2.3"
 psycopg2-binary = "^2.9.9"
 resend = "^0.8.0"
 types-requests = "^2.32.0.20240602"
+protobuf = "^5.27.1"
 
 [build-system]
 requires = ["poetry-core"]

@@ -1,4 +1,4 @@
-from university_gpt import setting
+from app import setting
 from sqlmodel import SQLModel, create_engine, Session
 
 connectionstring = str(setting.DATABASE_URL).replace(
