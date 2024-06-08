@@ -237,7 +237,7 @@ services:
     environment:
       - POSTGRES_USER=Genai_owner
       - POSTGRES_PASSWORD=G9I5dygjLNVM
-      - POSTGRES_DB=SqlModel
+      - POSTGRES_DB=abbasi-mart
     ports:
       - "5433:5432"
     volumes:
@@ -281,7 +281,7 @@ services:
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: "kafka:19092"
       DYNAMIC_CONFIG_ENABLED: "true"
     depends_on:
-      - broker
+      - kafka
 
 ####################################################################################################
 
