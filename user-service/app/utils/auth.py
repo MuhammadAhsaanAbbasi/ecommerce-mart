@@ -188,7 +188,7 @@ def generate_otp():
     return ''.join(np.random.choice([str(i) for i in range(10)], size=6))
 
 
-def generate_and_send_otp(user: UserBase, session: Session, user_id: int | None = None, image_url: str | None = None, isAdmin: bool = True,):
+def generate_and_send_otp(user: UserBase, session: Session, user_id: int | None = None, image_url: str | None = None):
     # Generate OTP
     otp = generate_otp()
     print(otp)
@@ -197,18 +197,10 @@ def generate_and_send_otp(user: UserBase, session: Session, user_id: int | None 
     user.otp = get_password_hash(otp)
     user.hashed_password = get_password_hash(user.hashed_password)
     user.imageUrl = image_url
-    if isAdmin:
-        admin_data = user.dict()
-        admin_data["user_id"] = user_id
-        admin_user = Admin(**admin_data)
-        session.add(admin_user)
-        session.commit()
-        session.refresh(admin_user)
-    else:
-        normal_user = Users(**user.model_dump())
-        session.add(normal_user)
-        session.commit()
-        session.refresh(normal_user)
+    normal_user = Users(**user.model_dump())
+    session.add(normal_user)
+    session.commit()
+    session.refresh(normal_user)
 
     # Send OTP to user
     params = {

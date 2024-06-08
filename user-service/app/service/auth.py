@@ -113,6 +113,7 @@ async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm,
         )
 
 
+# Login Access Token for Admin
 async def login_access_token_for_admin(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], session: Annotated[Session, Depends(get_session)])->Token:
     user = authenticate_user(Admin, form_data.username, form_data.password, session)
     if not user:
@@ -173,3 +174,4 @@ async def google_user(session: Annotated[Session, Depends(get_session)], usernam
     except Exception as e:
         # Re-raise general exceptions to be handled in the web layer
         raise e
+

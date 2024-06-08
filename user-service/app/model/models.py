@@ -21,6 +21,7 @@ class Users(UserBase, BaseIdModel, table=True):
 
 # Admin Model
 class Admin(UserBase, BaseIdModel, table=True):
+    role: str = Field(default="admin")
     user_id: Optional[int] = Field(default=None, foreign_key="users.id")
 
 # class Secretkey(SQLModel, table=True):
