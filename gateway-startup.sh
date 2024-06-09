@@ -23,5 +23,5 @@ curl -i -X POST $KONG_ADMIN_URL/services \
     --data "url=http://host.docker.internal:8081"
 
 curl -i -X POST $KONG_ADMIN_URL/services/user-service/routes \
-    --data "paths[]=user-service" \
-    --data "strip_path=true" \
+    --data "paths[]=/user-service" \
+    --data "strip_path=true"

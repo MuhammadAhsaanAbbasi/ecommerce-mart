@@ -128,24 +128,12 @@ def verify_sign_up_otp(user_otp: str, user: Users, session:Annotated[Session, De
     return tokens
 
 
-# Create Admin Routes
-@router.post("/signup/admin")
-async def sign_up_admin(admin: Admin, session: Annotated[Session, Depends(get_session)]):
-    admin = create_admin(admin, session)
-    return admin
-
-
 # Login Routes
 @router.post("/login", response_model=Token)
 async def login_access_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], session: Annotated[Session, Depends(get_session)]):
     token = await login_for_access_token(form_data, session)
     return token
 
-
-@router.post("/login/admin", response_model=Token)
-async def login_access_token_admin(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], session: Annotated[Session, Depends(get_session)]):
-    token = await login_access_token_for_admin(form_data, session)
-    return token
 
 # token route
 @router.post("/refresh_token", response_model=Token)
