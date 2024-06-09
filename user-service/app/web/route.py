@@ -121,6 +121,7 @@ async def sign_up(user: Users, session: Annotated[Session, Depends(get_session)]
     users  =  create_user(user, session)
     return users
 
+
 @router.post("/signup/verify")
 def verify_sign_up_otp(user_otp: str, user: Users, session:Annotated[Session, Depends(get_session)]):
     # Verify OTP
