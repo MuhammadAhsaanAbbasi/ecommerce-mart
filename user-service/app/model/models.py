@@ -3,9 +3,11 @@ from typing import Optional
 import datetime
 from pydantic import BaseModel, EmailStr
 from .base import BaseIdModel
+import uuid
 
 
 class UserBase(SQLModel):
+    kid: str = Field(default=lambda:uuid.uuid4().hex)
     username: str = Field(index=True)
     email: str = Field(index=True)
     hashed_password: Optional[str] = Field(default=None, index=True)
@@ -22,7 +24,6 @@ class Users(UserBase, BaseIdModel, table=True):
 # Admin Model
 class Admin(UserBase, BaseIdModel, table=True):
     role: str = Field(default="admin")
-    user_id: Optional[int] = Field(default=None, foreign_key="users.id")
 
 # class Secretkey(SQLModel, table=True):
 #     key: str = Field()

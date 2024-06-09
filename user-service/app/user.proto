@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+message User {
+    string username = 1;
+    string email = 2;
+    string hashed_password = 3;
+    string imageUrl = 4;
+    bool is_active = 5;
+    bool is_verified = 6;
+    string role = 7;
+}

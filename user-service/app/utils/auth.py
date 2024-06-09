@@ -1,4 +1,4 @@
-from ..setting import ALGORITHM, SECRET_KEY
+from ..setting import ALGORITHM, SECRET_KEY, ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_MINUTES
 from jose import jwt, JWTError
 from datetime import datetime, timedelta, timezone
 from fastapi.security.oauth2 import OAuth2PasswordBearer
@@ -16,9 +16,9 @@ resend.api_key = "re_K6Jhif6u_BVUGdYvzWjVjioaJR4Cpq28X"
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-ACCESS_TOKEN_EXPIRE_MINUTES = 3
-REFRESH_TOKEN_EXPIRE_MINUTES = 5
-def get_password_hash(password) -> str:
+# ACCESS_TOKEN_EXPIRE_MINUTES = 3
+# REFRESH_TOKEN_EXPIRE_MINUTES = 5
+def get_value_hash(password) -> str:
     return pwd_context.hash(password)
 
 def verify_password(plain_password: str, hashed_password:str):
@@ -194,8 +194,8 @@ def generate_and_send_otp(user: UserBase, session: Session, user_id: int | None 
     print(otp)
     
     # hashed otp
-    user.otp = get_password_hash(otp)
-    user.hashed_password = get_password_hash(user.hashed_password)
+    user.otp = get_value_hash(otp)
+    user.hashed_password = get_value_hash(user.hashed_password)
     user.imageUrl = image_url
     normal_user = Users(**user.model_dump())
     session.add(normal_user)
@@ -211,3 +211,5 @@ def generate_and_send_otp(user: UserBase, session: Session, user_id: int | None 
     }
     response = resend.Emails.send(params)
     print(response)
+
+    return normal_user

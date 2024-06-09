@@ -61,10 +61,10 @@ def create_user(user: UserBase, session: Annotated[Session, Depends(get_session)
         return {"detail": "User created successfully"}
 
     # Generate and send OTP
-    generate_and_send_otp(user, session)
+    data = generate_and_send_otp(user, session)
 
     # Return success response
-    return {"detail": "OTP sent successfully"}
+    return {"detail": "OTP sent successfully", "data" : data}
 
 
 # Create Admin 

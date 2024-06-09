@@ -1,16 +1,21 @@
 from fastapi import APIRouter, Depends,  Form, Request, HTTPException, status
 from fastapi.responses import RedirectResponse, JSONResponse, Response
-from ..service.auth import create_user, login_for_access_token, google_user, create_admin, verify_and_generate_tokens, login_access_token_for_admin
+from ..service.auth import create_user, login_for_access_token, google_user, verify_and_generate_tokens
+from ..utils.auth import get_current_active_user, tokens_service, oauth2_scheme, get_current_active_admin_user
+from ..setting import USER_GOOGLE_TOPIC, USER_OTP_TOPIC, USER_SIGNIN_TOPIC, USER_SIGNUP_TOPIC
+from fastapi.security.oauth2 import OAuth2PasswordRequestForm
 from ..model.models import Users, Token, Admin
+from ..kafka.user_producer import get_kafka_producer
+from aiokafka import AIOKafkaProducer # type: ignore
+from aiokafka.errors import KafkaTimeoutError # type: ignore
 from typing import Annotated, Any, Optional
+from passlib.context import CryptContext
 from sqlmodel import Session, select
 from ..core.db import get_session
-from ..utils.auth import get_current_active_user, tokens_service, oauth2_scheme, get_password_hash, get_current_active_admin_user, create_access_token, create_refresh_token, REFRESH_TOKEN_EXPIRE_MINUTES, ACCESS_TOKEN_EXPIRE_MINUTES
-from fastapi.security.oauth2 import OAuth2PasswordRequestForm
+from datetime import timedelta
+from app import user_pb2
 import os
 import json
-from datetime import timedelta
-from passlib.context import CryptContext
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -103,7 +108,7 @@ async def auth(request: Request, session: Annotated[Session, Depends(get_session
         # Log the exception for debugging
         print(f"HTTPException occurred: {http_exception.detail}")
 
-        # Append a failure reason to the redirect URL
+        # Append a failure reason to the redirect URL  
         failure_url = f"{FRONTEND_CLIENT_FAILURE_URI}?google_login_failed={http_exception.detail}"
         return RedirectResponse(url=failure_url)
 
@@ -117,9 +122,24 @@ async def auth(request: Request, session: Annotated[Session, Depends(get_session
 
 # Sign-up Routes
 @router.post("/signup")
-async def sign_up(user: Users, session: Annotated[Session, Depends(get_session)]):
-    users  =  create_user(user, session)
-    return users
+async def sign_up(user: Users, session: Annotated[Session, Depends(get_session)], aio_producer: Annotated[AIOKafkaProducer, Depends(get_kafka_producer)]):
+    try:
+        user_protobuf = user_pb2.User(username=user.username, email=user.email, hashed_password=user.hashed_password, imageUrl=user.imageUrl, is_active=user.is_active, is_verified=user.is_verified, role=user.role) # type: ignore
+        print(f"Todo Protobuf: {user_protobuf}")
+
+        # Serialize the message to a byte string
+        serialized_user = user_protobuf.SerializeToString()
+        print(f"Serialized data: {serialized_user}")
+
+        # Produce message
+        await aio_producer.send_and_wait(topic=USER_SIGNUP_TOPIC, value=serialized_user)
+    except KafkaTimeoutError as e:
+        print(f"Error In Print message...! {e}")
+    finally:
+        await aio_producer.stop()
+        return user
+    # users  =  create_user(user, session)
+    # return users
 
 
 @router.post("/signup/verify")
