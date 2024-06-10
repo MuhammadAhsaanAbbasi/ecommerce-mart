@@ -7,7 +7,7 @@ import uuid
 
 
 class UserBase(SQLModel):
-    kid: str = Field(default=lambda:uuid.uuid4().hex)
+    kid: Optional[str] = Field(default=lambda:uuid.uuid4().hex)
     username: str = Field(index=True)
     email: str = Field(index=True)
     hashed_password: Optional[str] = Field(default=None, index=True)
