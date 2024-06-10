@@ -1,15 +1,16 @@
 from ..setting import ALGORITHM, SECRET_KEY, ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_MINUTES
-from jose import jwt, JWTError
-from datetime import datetime, timedelta, timezone
+from ..model.models import Users, TokenData, Admin, UserBase
 from fastapi.security.oauth2 import OAuth2PasswordBearer
+from datetime import datetime, timedelta, timezone
 from fastapi import HTTPException, Depends, status
+from jose import jwt, JWTError
 from ..core.db import get_session
 from sqlmodel import select, Session
 from typing import Annotated, Union
-from ..model.models import Users, Token, TokenData, Admin, UserBase
 from passlib.context import CryptContext
 import resend # type: ignore 
 import numpy as np
+import json
 
 # Set your API key
 resend.api_key = "re_K6Jhif6u_BVUGdYvzWjVjioaJR4Cpq28X"
@@ -180,15 +181,18 @@ async def tokens_service(refresh_token: str, session: Annotated[Session, Depends
         "refresh_token": refresh_token
     }
 
-
+# Generate Otp
 def generate_otp():
     """
     Generate a random OTP using numpy.
     """
     return ''.join(np.random.choice([str(i) for i in range(10)], size=6))
 
-
+# Generate & Send Otp
 def generate_and_send_otp(user: UserBase, session: Session, user_id: int | None = None, image_url: str | None = None):
+    """
+    Generate a random OTP using generate_otp function and that add some info of user in db and send a otp on the email.
+    """
     # Generate OTP
     otp = generate_otp()
     print(otp)
@@ -212,4 +216,5 @@ def generate_and_send_otp(user: UserBase, session: Session, user_id: int | None 
     response = resend.Emails.send(params)
     print(response)
 
+    # user_json  = dict(normal_user)
     return normal_user

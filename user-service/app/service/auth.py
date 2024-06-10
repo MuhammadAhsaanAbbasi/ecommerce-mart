@@ -63,29 +63,24 @@ def create_user(user: UserBase, session: Annotated[Session, Depends(get_session)
     # Generate and send OTP
     data = generate_and_send_otp(user, session)
 
+    user_data = dict(data)
+
     # Return success response
-    return {"detail": "OTP sent successfully", "data" : data}
+    return {"detail": "OTP sent successfully", "data" : user_data}
 
 
 # Create Admin 
-def create_admin(user: UserBase, session: Annotated[Session, Depends(get_session)]):
-    existing_user = session.exec(select(Users).where(Users.email == user.email)).first()
-    user_id = None
+def create_admin(user: Admin, session: Annotated[Session, Depends(get_session)]):
     is_verified = True
-    if existing_user:
-        existing_user.role = "admin" # Update the role to admin
-        session.commit()
-        user_id = existing_user.id
-    else:
-        existing_admin = session.exec(select(Admin).where(Admin.email == user.email)).first()
-        if existing_admin:
+    existing_admin = session.exec(select(Admin).where(Admin.email == user.email)).first()
+    if existing_admin:
             raise HTTPException(status_code=400, detail="Admin already exists")
-    
-    admin = Admin(user_id=user_id, is_verified=is_verified, *UserBase)
-    session.add(admin)
+    user.is_verified=is_verified
+    session.add(user)
     session.commit()
-    session.refresh(admin)
-    return {"message" : "Admin Created Successfully", "data": admin}
+    session.refresh(user)
+
+    return {"message" : "Admin Created Successfully", "data": user}
 
 
 #  Login for access Token
@@ -152,7 +147,7 @@ async def google_user(session: Annotated[Session, Depends(get_session)], usernam
             
             new_user = create_user(user_data, session, isGoogle=True)
             return new_user
-        
+
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = create_access_token(
                     data={"sub": user.username}, expires_delta=access_token_expires)

@@ -25,7 +25,7 @@ async def get_kafka_consumer(topics: list[str]) -> AIOKafkaConsumer:
 ###################################################################################################################
 
 async def user_consumer():
-    consumer_kafka = await get_kafka_consumer(["signup"])
+    consumer_kafka = await get_kafka_consumer([USER_SIGNUP_TOPIC])
     try:
         async for msg in consumer_kafka:
             new_user = user_pb2.User()

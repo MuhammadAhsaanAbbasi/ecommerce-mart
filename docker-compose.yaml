@@ -197,10 +197,10 @@ services:
 
 ####################################################################################################
 
-# notification Service
-  # notification-service:
+# payment Service
+  # payment-service:
   #   build:
-  #     context: ./notification-services
+  #     context: ./payment-service
   #     dockerfile: Dockerfile
   #   restart: always
   #   ports:
@@ -213,10 +213,10 @@ services:
 
 ####################################################################################################
 
-# payment Service
-  # payment-service:
+# notification Service
+  # notification-service:
   #   build:
-  #     context: ./payment-service
+  #     context: ./notification-services
   #     dockerfile: Dockerfile
   #   restart: always
   #   ports:
