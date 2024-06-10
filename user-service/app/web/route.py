@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends,  Form, Request, HTTPException, status
 from fastapi.responses import RedirectResponse, JSONResponse, Response
 from ..service.auth import create_user, login_for_access_token, google_user, verify_and_generate_tokens
-from ..utils.auth import get_current_active_user, tokens_service, oauth2_scheme, get_current_active_admin_user
+from ..utils.auth import get_current_active_user, tokens_service, oauth2_scheme
 from ..setting import USER_GOOGLE_TOPIC, USER_OTP_TOPIC, USER_SIGNIN_TOPIC, USER_SIGNUP_TOPIC
 from fastapi.security.oauth2 import OAuth2PasswordRequestForm
 from ..model.models import Users, Token, Admin
@@ -165,9 +165,4 @@ async def get_tokens(session: Annotated[Session, Depends(get_session)], refresh_
 # user routes
 @router.get("/user/me", response_model=Users)
 async def read_users_me(current_user: Annotated[Users, Depends(get_current_active_user)]):
-    return current_user
-
-# admin routes
-@router.get("/user/admin", response_model=Admin)
-async def read_users_admin(current_user: Annotated[Admin, Depends(get_current_active_admin_user)]):
     return current_user

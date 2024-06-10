@@ -14,7 +14,7 @@ import asyncio
 async def task_initiator():
     asyncio.create_task(user_consumer())
 
-@asynccontextmanager
+@asynccontextmanager 
 async def life_span(app: FastAPI):
     print("Hello World..!!!")
     create_db_and_tables()

@@ -2,7 +2,7 @@ import json
 from typing import Annotated
 from aiokafka import AIOKafkaConsumer # type: ignore
 from aiokafka.errors import KafkaConnectionError # type: ignore
-from fastapi import Depends
+from fastapi import HTTPException
 from app.service.auth import create_user
 from app.model.models import Users
 # from app.controllers.kong_controller import create_consumer_in_kong, create_jwt_credential_in_kong
@@ -35,8 +35,11 @@ async def user_consumer():
                 imageUrl=new_user.imageUrl, is_active=new_user.is_active, is_verified=new_user.is_verified, role=new_user.role
             )
             with Session(engine) as session:
-                user = create_user(user_data, session)
-                print(user)
+                try:
+                    user = create_user(user_data, session)
+                    print(user)
+                except HTTPException as e:
+                    print(f"Error creating user: {e}")
             print(msg.value)
     except KafkaConnectionError as e:
         print(e)
