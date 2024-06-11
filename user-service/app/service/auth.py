@@ -51,10 +51,7 @@ def verify_and_generate_tokens(user_otp: str, user: Users, session: Session):
 
 #  Create user 
 def create_user(user: Users, session: Annotated[Session, Depends(get_session)], isGoogle: bool = False):
-    existing_user = session.exec(select(Users).where(Users.email == user.email)).first()
-    if existing_user:
-        raise HTTPException(status_code=400, detail="User already exists")
-    
+
     if isGoogle:
         user.is_verified = True
         session.add(user)
