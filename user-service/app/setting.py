@@ -18,7 +18,7 @@ USER_OTP_TOPIC= config("USER_OTP_TOPIC", cast=str)
 USER_SIGNIN_TOPIC= config("USER_SIGNIN_TOPIC", cast=str)
 USER_GOOGLE_TOPIC= config("USER_GOOGLE_TOPIC", cast=str)
 KONG_TOPIC= config("KONG_TOPIC", cast=str)
-
+KONG_ADMIN_URL = config("KONG_ADMIN_URL", cast=str)
 
 
 REDIRECT_URI = config("REDIRECT_URI", cast=str)

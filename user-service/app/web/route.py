@@ -132,7 +132,7 @@ async def sign_up(user: Users, aio_producer: Annotated[AIOKafkaProducer, Depends
         print(f"Serialized data: {serialized_user}")
 
         # Produce message
-        await aio_producer.send_and_wait(topic="signup", value=serialized_user)
+        await aio_producer.send_and_wait(topic=USER_SIGNUP_TOPIC, value=serialized_user)
     except KafkaTimeoutError as e:
         print(f"Error In Print message...! {e}")
     finally:

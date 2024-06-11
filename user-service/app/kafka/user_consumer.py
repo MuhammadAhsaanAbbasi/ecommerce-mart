@@ -5,7 +5,7 @@ from aiokafka.errors import KafkaConnectionError # type: ignore
 from fastapi import HTTPException
 from app.service.auth import create_user
 from app.model.models import Users
-# from app.controllers.kong_controller import create_consumer_in_kong, create_jwt_credential_in_kong
+from app.service.kong_consumer import create_consumer_in_kong, create_jwt_credentials_in_kong
 from app.setting import KONG_TOPIC, USER_SIGNUP_TOPIC, USER_SIGNIN_TOPIC, USER_GOOGLE_TOPIC, USER_OTP_TOPIC
 from app.kafka.user_producer import get_kafka_producer
 from app import user_pb2
@@ -38,6 +38,9 @@ async def user_consumer():
                 try:
                     user = create_user(user_data, session)
                     print(user)
+
+                    create_consumer_in_kong(user.data.email)
+                    create_jwt_credentials_in_kong(user.data.email, user.data.kid)
                 except HTTPException as e:
                     print(f"Error creating user: {e}")
             print(msg.value)
