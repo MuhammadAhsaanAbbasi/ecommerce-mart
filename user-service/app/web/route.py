@@ -122,24 +122,9 @@ async def auth(request: Request, session: Annotated[Session, Depends(get_session
 
 # Sign-up Routes
 @router.post("/signup")
-async def sign_up(user: Users, aio_producer: Annotated[AIOKafkaProducer, Depends(get_kafka_producer)]):
-    try:
-        user_protobuf = user_pb2.User(username=user.username, email=user.email, hashed_password=user.hashed_password, imageUrl=user.imageUrl, is_active=user.is_active, is_verified=user.is_verified, role=user.role) # type: ignore
-        print(f"Todo Protobuf: {user_protobuf}")
-
-        # Serialize the message to a byte string
-        serialized_user = user_protobuf.SerializeToString()
-        print(f"Serialized data: {serialized_user}")
-
-        # Produce message
-        await aio_producer.send_and_wait(topic=USER_SIGNUP_TOPIC, value=serialized_user)
-    except KafkaTimeoutError as e:
-        print(f"Error In Print message...! {e}")
-    finally:
-        await aio_producer.stop()
-        return user
-    # users  =  create_user(user, session)
-    # return users
+async def sign_up(user: Users, session:Annotated[Session, Depends(get_session)], aio_producer: Annotated[AIOKafkaProducer, Depends(get_kafka_producer)]):
+    users  =  create_user(user, session)
+    return users
 
 
 @router.post("/signup/verify")

@@ -1,11 +1,12 @@
+from ..utils.auth import authenticate_user, create_access_token, create_refresh_token, generate_and_send_otp, REFRESH_TOKEN_EXPIRE_MINUTES, ACCESS_TOKEN_EXPIRE_MINUTES
+from app.service.kong_consumer import create_consumer_in_kong, create_jwt_credentials_in_kong 
+from fastapi.security.oauth2 import OAuth2PasswordRequestForm
+from ..model.models import Users, Token, Admin, UserBase
+from fastapi import Depends, HTTPException, Form
+from fastapi.responses import RedirectResponse
 from typing import Annotated, Optional
 from sqlmodel import  Session, select
-from fastapi import Depends, HTTPException, Form
 from ..core.db import get_session
-from ..model.models import Users, Token, Admin, UserBase
-from fastapi.security.oauth2 import OAuth2PasswordRequestForm
-from fastapi.responses import RedirectResponse
-from ..utils.auth import authenticate_user, create_access_token, create_refresh_token, generate_and_send_otp, REFRESH_TOKEN_EXPIRE_MINUTES, ACCESS_TOKEN_EXPIRE_MINUTES
 from datetime import timedelta
 import string
 import secrets
@@ -49,7 +50,7 @@ def verify_and_generate_tokens(user_otp: str, user: Users, session: Session):
 
 
 #  Create user 
-def create_user(user: UserBase, session: Annotated[Session, Depends(get_session)], isGoogle: bool = False):
+def create_user(user: Users, session: Annotated[Session, Depends(get_session)], isGoogle: bool = False):
     existing_user = session.exec(select(Users).where(Users.email == user.email)).first()
     if existing_user:
         raise HTTPException(status_code=400, detail="User already exists")
@@ -58,15 +59,17 @@ def create_user(user: UserBase, session: Annotated[Session, Depends(get_session)
         user.is_verified = True
         session.add(user)
         session.commit()
+        session.refresh(user)
+        try:
+            create_consumer_in_kong(user.email)
+            create_jwt_credentials_in_kong(user.email, str(user.kid))
+        except HTTPException as e:
+            raise HTTPException(status_code=500, detail=f"Error creating JWT credentials in Kong: {e}")
         return {"detail": "User created successfully"}
 
-    # Generate and send OTP
     data = generate_and_send_otp(user, session)
 
-    user_data = dict(data)
-
-    # Return success response
-    return {"detail": "OTP sent successfully", "data" : user_data}
+    return {"detail": "OTP sent successfully"}
 
 
 # Create Admin 

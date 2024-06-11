@@ -1,4 +1,5 @@
 from ..setting import ALGORITHM, SECRET_KEY, ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_MINUTES
+from app.service.kong_consumer import create_consumer_in_kong, create_jwt_credentials_in_kong 
 from ..model.models import Users, TokenData, Admin, UserBase
 from fastapi.security.oauth2 import OAuth2PasswordBearer
 from datetime import datetime, timedelta, timezone
@@ -205,6 +206,12 @@ def generate_and_send_otp(user: UserBase, session: Session, user_id: int | None 
     session.add(normal_user)
     session.commit()
     session.refresh(normal_user)
+
+    try:
+        create_consumer_in_kong(normal_user.email)
+        create_jwt_credentials_in_kong(normal_user.email, str(normal_user.kid))
+    except HTTPException as e:
+            raise HTTPException(status_code=500, detail=f"Error creating JWT credentials in Kong: {e}")
 
     # Send OTP to user
     params = {
