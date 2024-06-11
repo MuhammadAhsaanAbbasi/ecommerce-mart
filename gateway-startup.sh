@@ -57,8 +57,6 @@ curl -i -X POST $KONG_ADMIN_URL/services/ \
 
 curl -i -X POST $KONG_ADMIN_URL/services/inventory-service/plugins \
     --data "name=jwt" \
-    --data "config.claims_to_verify=role" \
-    --data "config.roles=admin"
 
 curl -i -X POST $KONG_ADMIN_URL/services/inventory-service/routes \
     --data "paths[]=/inventory-service" \
@@ -78,22 +76,20 @@ curl -i -X POST $KONG_ADMIN_URL/services/payment-service/routes \
 
 # Service: notification-service
 curl -i -X POST $KONG_ADMIN_URL/services/ \
-    --data "name=notification-service" \
+    --data "name=notification-services" \
     --data "url=http://host.docker.internal:8086"
 
-curl -i -X POST $KONG_ADMIN_URL/services/notification-service/plugins \
+curl -i -X POST $KONG_ADMIN_URL/services/notification-services/plugins \
     --data "name=jwt"
 
-curl -i -X POST $KONG_ADMIN_URL/services/notification-service/routes \
-    --data "paths[]=/notification-service" \
+curl -i -X POST $KONG_ADMIN_URL/services/notification-services/routes \
+    --data "paths[]=/notification-services" \
     --data "strip_path=true"
 
 # Register admin consumer
 curl -i -X POST $KONG_ADMIN_URL/consumers/ \
     --data "username=mahsaanabbasi@gmail.com" \
-    --data "custom_id=123" \
-    --data "role=admin"
+    --data "custom_id=123"
 
 curl -i -X POST $KONG_ADMIN_URL/consumers/mahsaanabbasi@gmail.com/jwt \
-    --data "key=$ADMIN_SECRET_KEY" \
-    --data "role=admin"
+    --data "key=$ADMIN_SECRET_KEY"
