@@ -1,5 +1,6 @@
-from ..utils.auth import authenticate_user, create_access_token, create_refresh_token, generate_and_send_otp, REFRESH_TOKEN_EXPIRE_MINUTES, ACCESS_TOKEN_EXPIRE_MINUTES
+from ..utils.auth import authenticate_user, create_access_token, create_refresh_token, generate_and_send_otp, get_value_hash
 from app.service.kong_consumer import create_consumer_in_kong, create_jwt_credentials_in_kong 
+from ..setting import ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_MINUTES
 from fastapi.security.oauth2 import OAuth2PasswordRequestForm
 from ..model.models import Users, Token, Admin, UserBase
 from fastapi import Depends, HTTPException, Form
@@ -36,7 +37,7 @@ def verify_and_generate_tokens(user_otp: str, user: Users, session: Session):
 
     # Return tokens
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(data={"sub": user.email}, expires_delta=access_token_expires)
+    access_token = create_access_token(existing_user, expires_delta=access_token_expires)
     refresh_token_expires = timedelta(minutes=float(REFRESH_TOKEN_EXPIRE_MINUTES))
     refresh_token = create_refresh_token(data={"email": user.email}, expires_delta=refresh_token_expires)
 
@@ -76,6 +77,7 @@ def create_admin(user: Admin, session: Annotated[Session, Depends(get_session)])
     if existing_admin:
             raise HTTPException(status_code=400, detail="Admin already exists")
     user.is_verified=is_verified
+    user.hashed_password = get_value_hash(user.hashed_password)
     session.add(user)
     session.commit()
     session.refresh(user)
@@ -84,7 +86,10 @@ def create_admin(user: Admin, session: Annotated[Session, Depends(get_session)])
 
 
 #  Login for access Token
-async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], session: Annotated[Session, Depends(get_session)])->Token:
+async def login_for_access_token(
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()], 
+    session: Annotated[Session, Depends(get_session)]
+) -> Token:
     user = authenticate_user(Users, form_data.username, form_data.password, session)
     if not user:
         raise HTTPException(
@@ -92,20 +97,19 @@ async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm,
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": user.email}, expires_delta=access_token_expires
-    )
+    access_token = create_access_token(user, expires_delta=access_token_expires)
     refresh_token_expires = timedelta(minutes=float(REFRESH_TOKEN_EXPIRE_MINUTES))
     refresh_token = create_refresh_token(data={"email": user.email}, expires_delta=refresh_token_expires)
-    print(ACCESS_TOKEN_EXPIRE_MINUTES)
+    
     return Token(
-        access_token=access_token, 
-        token_type="bearer", 
-        access_expires_in= int(access_token_expires.total_seconds()), 
-        refresh_token_expires_in= int(refresh_token_expires.total_seconds()),
+        access_token=access_token,
+        token_type="bearer",
+        access_expires_in=int(access_token_expires.total_seconds()),
+        refresh_token_expires_in=int(refresh_token_expires.total_seconds()),
         refresh_token=refresh_token,
-        )
+    )
 
 
 # Login Access Token for Admin
@@ -119,7 +123,7 @@ async def login_access_token_for_admin(form_data: Annotated[OAuth2PasswordReques
         )
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user.email}, expires_delta=access_token_expires
+        user, expires_delta=access_token_expires
     )
 
         # Generate refresh token (you might want to set a longer expiry for this)
@@ -150,7 +154,7 @@ async def google_user(session: Annotated[Session, Depends(get_session)], usernam
 
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = create_access_token(
-                    data={"sub": user.username}, expires_delta=access_token_expires)
+                    user, expires_delta=access_token_expires)
         print(f"access_token {access_token_expires.total_seconds()}")
         
         refresh_token_expires = timedelta(minutes=REFRESH_TOKEN_EXPIRE_MINUTES)
