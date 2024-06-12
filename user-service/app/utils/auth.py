@@ -58,9 +58,9 @@ def create_access_token(user: UserBase, expires_delta: Optional[Union[timedelta,
         expire = datetime.now(timezone.utc) + timedelta(minutes=15)
     
     payload = {
-        "sub": user.email,
+        # "sub": user.email,
         "username": user.email,
-        # "iss": "product_service",  # Add issuer claim
+        "iss": user.kid,  # Add issuer claim
         "exp": expire
     }
 
@@ -80,6 +80,7 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], sessio
     )
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload_headers = jwt.get_unverified_headers(token)
         email: Union[str, None] = payload.get("username")
         if email is None:
             raise credentials_exception
@@ -89,7 +90,7 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], sessio
     user = get_user(Users, email=token_data.email, session=session)
     if user is None:
         raise credentials_exception
-    return user
+    return user , payload_headers
 
 # Get Current Active & Verify User
 async def get_current_active_user(current_user: Annotated[Users, Depends(get_current_user)]):
