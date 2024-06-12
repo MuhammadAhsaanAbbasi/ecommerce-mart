@@ -65,7 +65,7 @@ def create_access_token(user: UserBase, expires_delta: Optional[Union[timedelta,
     }
 
     headers = {
-        "key": user.kid
+        "kid": user.kid
     }
 
     encoded_jwt = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM, headers=headers)
