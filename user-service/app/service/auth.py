@@ -52,6 +52,9 @@ def verify_and_generate_tokens(user_otp: str, user: Users, session: Session):
 
 #  Create user 
 def create_user(user: Users, session: Annotated[Session, Depends(get_session)], isGoogle: bool = False):
+    existing_user = session.exec(select(Users).where(Users.email == user.email)).first()
+    if existing_user:
+        return False  # Return False if user already exists
 
     if isGoogle:
         user.is_verified = True
@@ -66,9 +69,7 @@ def create_user(user: Users, session: Annotated[Session, Depends(get_session)], 
         return {"detail": "User created successfully"}
 
     data = generate_and_send_otp(user, session)
-
     return {"detail": "OTP sent successfully"}
-
 
 # Create Admin 
 def create_admin(user: Admin, session: Annotated[Session, Depends(get_session)]):

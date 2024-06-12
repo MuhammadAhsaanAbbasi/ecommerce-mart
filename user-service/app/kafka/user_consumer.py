@@ -23,23 +23,23 @@ async def get_kafka_consumer(topics: list[str]) -> AIOKafkaConsumer:
 
 ###################################################################################################################
 
-# async def user_consumer():
-#     consumer_kafka = await get_kafka_consumer([USER_SIGNUP_TOPIC])
-#     try:
-#         async for msg in consumer_kafka:
-#             new_user = user_pb2.User()
-#             new_user.ParseFromString(msg.value)
-#             user_data = Users(
-#                 username=new_user.username, email=new_user.email, hashed_password=new_user.hashed_password,
-#                 imageUrl=new_user.imageUrl, is_active=new_user.is_active, is_verified=new_user.is_verified, role=new_user.role
-#             )
-#             with Session(engine) as session:
-#                 try:
-#                     user = create_user(user_data, session)
-#                     # print(f"Created user: {user['data']['email']}")
-#                 except HTTPException as e:
-#                     print(f"Error creating user: {e.detail}")
-#     except KafkaConnectionError as e:
-#         print(f"Error connecting to Kafka: {e}")
-#     finally:
-#         await consumer_kafka.stop()
+async def user_consumer():
+    consumer_kafka = await get_kafka_consumer([USER_SIGNUP_TOPIC])
+    try:
+        async for msg in consumer_kafka:
+            new_user = user_pb2.User()
+            new_user.ParseFromString(msg.value)
+            user_data = Users(
+                username=new_user.username, email=new_user.email, hashed_password=new_user.hashed_password,
+                imageUrl=new_user.imageUrl, is_active=new_user.is_active, is_verified=new_user.is_verified, role=new_user.role
+            )
+            with Session(engine) as session:
+                try:
+                    user = create_user(user_data, session)
+                    # print(f"Created user: {user['data']['email']}")
+                except HTTPException as e:
+                    print(f"Error creating user: {e.detail}")
+    except KafkaConnectionError as e:
+        print(f"Error connecting to Kafka: {e}")
+    finally:
+        await consumer_kafka.stop()
