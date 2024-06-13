@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends,  Form, Request, HTTPException, status
 from fastapi.responses import RedirectResponse, JSONResponse, Response
 from ..service.auth import login_for_access_token, google_user, verify_and_generate_tokens
-from ..utils.auth import get_current_active_user, tokens_service, oauth2_scheme
+from ..utils.auth import get_current_active_user, tokens_service, oauth2_scheme, get_current_user, get_value_hash
 from ..setting import USER_GOOGLE_TOPIC, USER_OTP_TOPIC, USER_SIGNIN_TOPIC, USER_SIGNUP_TOPIC
 from fastapi.security.oauth2 import OAuth2PasswordRequestForm
-from ..model.models import Users, Token
+from ..model.models import Users, Token, UserBase
 from ..kafka.user_producer import get_kafka_producer
 from aiokafka import AIOKafkaProducer # type: ignore
 from aiokafka.errors import KafkaTimeoutError # type: ignore
@@ -67,6 +67,7 @@ async def login(request:Request):
     )
     request.session['state'] = state
     return RedirectResponse(authorization_url)
+
 
 # Google Callback
 @router.get("/auth/google/callback")
@@ -161,14 +162,42 @@ async def login_access_token(form_data: Annotated[OAuth2PasswordRequestForm, Dep
     token = await login_for_access_token(form_data, session)
     return token
 
-
 # token route
-@router.post("/refresh_token", response_model=Token)
+@router.post("/user/refresh_token", response_model=Token)
 async def get_tokens(session: Annotated[Session, Depends(get_session)], refresh_token:Annotated[str, Depends(oauth2_scheme)]): 
-    tokens = await tokens_service(refresh_token=refresh_token, session=session)
+    tokens = await tokens_service(db=Users, refresh_token=refresh_token, session=session)
     return tokens
 
 # user routes
 @router.get("/user/me", response_model=Users)
 async def read_users_me(current_user: Annotated[Users, Depends(get_current_active_user)]):
     return current_user
+
+@router.put("/user/reset-password")
+async def reset_password(reset_password:str, current_user: Annotated[Users, Depends(get_current_user)], session:Annotated[Session, Depends(get_session)]):
+    if current_user:
+        current_user.hashed_password = get_value_hash(reset_password)
+        session.commit()
+        session.refresh(current_user)
+        return {"message" : "Password Reset Successfully"}
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid User Details & Credentials Token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+@router.put("/user/update")
+async def update_user(current_user: Annotated[Users, Depends(get_current_active_user)], user:UserBase, session:Annotated[Session, Depends(get_session)]):
+    if current_user:
+        current_user.username = user.username
+        current_user.imageUrl = user.imageUrl
+        session.commit()
+        session.refresh(current_user)
+        return current_user
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid User Details & Credentials Token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )

@@ -160,7 +160,7 @@ def create_refresh_token(data: dict, expires_delta: Union[timedelta, None] = Non
     return encoded_jwt
 
 # Validate Refresh Token
-def validate_refresh_token(token: str, session: Annotated[Session, Depends(get_session)]):
+def validate_refresh_token(db,token: str, session: Annotated[Session, Depends(get_session)]):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -173,14 +173,14 @@ def validate_refresh_token(token: str, session: Annotated[Session, Depends(get_s
             raise credentials_exception
     except JWTError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
-    user = session.exec(select(Users).where(Users.email == email)).first()
+    user = session.exec(select(db).where(db.email == email)).first()
     if user is None:
         raise credentials_exception
     return user
 
 # Token Service Function that Generate token
-async def tokens_service(refresh_token: str, session: Annotated[Session, Depends(get_session)]):
-    user = validate_refresh_token(refresh_token, session)
+async def tokens_service(db, refresh_token: str, session: Annotated[Session, Depends(get_session)]):
+    user = validate_refresh_token(db, refresh_token, session)
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
     access_token_expires = timedelta(minutes=float(ACCESS_TOKEN_EXPIRE_MINUTES))
