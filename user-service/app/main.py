@@ -1,14 +1,12 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
 from starlette.middleware.sessions import SessionMiddleware
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from .web.route  import router
 from .web.admin_route import admin_router
-from .core.db import create_db_and_tables, get_session, DB_SESSION
+from .core.db import create_db_and_tables, DB_SESSION
 from .kafka.user_consumer import user_consumer
 from .model.models import Users
-from sqlmodel import Session
-from typing import Annotated
 import asyncio
 
 async def task_initiator():

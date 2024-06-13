@@ -11,10 +11,7 @@ from ..core.db import get_session
 from datetime import timedelta
 import string
 import secrets
-import resend # type: ignore
-import numpy as np
-# Set your API key 
-resend.api_key = "re_K6Jhif6u_BVUGdYvzWjVjioaJR4Cpq28X"
+
 from passlib.context import CryptContext
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
