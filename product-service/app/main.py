@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from starlette.middleware.sessions import SessionMiddleware
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
-# from .web.route  import router
+from .web.route  import router
 # from .core.db import create_db_and_tables
 # from .model.models import Users
 
@@ -15,7 +15,7 @@ async def life_span(app: FastAPI):
 
 app = FastAPI(
     title="Product Service",
-    description="A GPT University or Program that will help to create whole university program with GPT and also help to create a Quizz for Students!",
+    description="This a Product Service that Manage all Product Service Routes",
     version="1.0.0",
     terms_of_service="https://caxgpt.vercel.app/terms/",
     lifespan=life_span,
@@ -44,7 +44,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# app.router.include_router(router, tags=["OAuth2 Authentication"])
+app.router.include_router(router, tags=["Product Service"])
 
 @app.get("/")
 def get_root():
