@@ -3,7 +3,6 @@ from fastapi.responses import RedirectResponse, JSONResponse, Response
 from fastapi.security.oauth2 import OAuth2PasswordRequestForm
 # from ..service.auth import login_for_access_token, google_user, verify_and_generate_tokens
 # from ..utils.auth import get_current_active_user, tokens_service, oauth2_scheme, get_current_user, get_value_hash
-# from ..setting import USER_GOOGLE_TOPIC, USER_OTP_TOPIC, USER_SIGNIN_TOPIC, USER_SIGNUP_TOPIC
 # from ..model.models import Users, Token, UserBase
 # from ..kafka.user_producer import get_kafka_producer
 # from aiokafka import AIOKafkaProducer # type: ignore
@@ -20,6 +19,6 @@ import json
 # Router
 router = APIRouter(prefix="/api/v1")
 
-# router
-
-
+router.post("/create_product")
+async def create_product():
+    return {"message" : "Create Product"}
