@@ -46,7 +46,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.router.include_router(router=router, tags=["Product Service"])
+# app.router.include_router(router=router, tags=["Product Service"])
 app.router.include_router(router=csg_router, tags=["Category Service"])
 
 
@@ -54,6 +54,6 @@ app.router.include_router(router=csg_router, tags=["Category Service"])
 def get_root():
     return {"message": "welcome to Product Service, Search Product, All Products, Sepecific Product Details..."}
 
-@app.get("/product")
-def get_product():
-    return {"message" : "product details"}
+# @app.get("/product")
+# def get_product():
+#     return {"message" : "product details"}
