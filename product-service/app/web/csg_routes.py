@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends,  Form, Request, HTTPException, status
 from fastapi.responses import RedirectResponse, JSONResponse, Response
-from ..lib.utils import create_categories, get_categories
+from ..utils.utils import create_categories, get_categories
 from ..model.category_model import Category, Size, Gender
 # from ..kafka.user_producer import get_kafka_producer
 # from aiokafka import AIOKafkaProducer # type: ignore

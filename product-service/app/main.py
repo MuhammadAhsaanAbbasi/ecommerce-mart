@@ -2,16 +2,17 @@ from fastapi import FastAPI
 from starlette.middleware.sessions import SessionMiddleware
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
-from .routes.route import router
-from .routes.csg_routes import csg_router
-# from .core.db import create_db_and_tables
-# from .model.models import Users
+from .web.route import router
+from .web.csg_routes import csg_router
+from .core.db import create_db_and_tables
+from .model.models import *
+from .model.category_model import *
 
 
 @asynccontextmanager
 async def life_span(app: FastAPI):
     print("Hello World..!!!")
-    # create_db_and_tables()
+    create_db_and_tables()
     yield
 
 app = FastAPI(
@@ -45,9 +46,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.router.include_router(router, tags=["Product Service"])
-app.router.include_router(router=csg_router, tags=["Category, Size & Gender Service"])
+app.router.include_router(router=router, tags=["Product Service"])
+app.router.include_router(router=csg_router, tags=["Category Service"])
+
 
 @app.get("/")
 def get_root():
     return {"message": "welcome to Product Service, Search Product, All Products, Sepecific Product Details..."}
+
+@app.get("/product")
+def get_product():
+    return {"message" : "product details"}
