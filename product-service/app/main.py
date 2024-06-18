@@ -3,6 +3,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from .routes.route import router
+from .routes.csg_routes import csg_router
 # from .core.db import create_db_and_tables
 # from .model.models import Users
 
@@ -45,6 +46,7 @@ app.add_middleware(
 )
 
 app.router.include_router(router, tags=["Product Service"])
+app.router.include_router(router=csg_router, tags=["Category, Size & Gender Service"])
 
 @app.get("/")
 def get_root():

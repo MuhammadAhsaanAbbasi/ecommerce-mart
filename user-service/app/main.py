@@ -52,7 +52,7 @@ app.add_middleware(
 )
 
 app.router.include_router(router=router, tags=["User Authorize & Authentication"])
-app.include_router(router=admin_router, tags=["Admin Authorize & Authentication"])
+app.router.include_router(router=admin_router, tags=["Admin Authorize & Authentication"])
 
 @app.get("/")
 def get_root():
