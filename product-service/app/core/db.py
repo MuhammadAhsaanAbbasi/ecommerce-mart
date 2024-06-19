@@ -3,7 +3,7 @@ from sqlmodel import SQLModel, create_engine, Session
 
 connectionstring = str(setting.DATABASE_URL).replace(
     "postgresql", "postgresql+psycopg2"
-)
+) 
 
 engine = create_engine(connectionstring, connect_args={"sslmode" : "require"}, pool_recycle=600)
 
