@@ -3,26 +3,23 @@ from starlette.middleware.sessions import SessionMiddleware
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from .web.route import router
-from .web.csg_routes import csg_router
+from .web.csg_route import csg_router
 from .core.db import create_db_and_tables
-from .model.models import *
-from .model.category_model import *
 
-
-@asynccontextmanager
+@asynccontextmanager 
 async def life_span(app: FastAPI):
-    print("Hello World..!!!")
     create_db_and_tables()
     yield
 
 app = FastAPI(
     title="Product Service",
-    description="This a Product Service that Manage all Product Service Routes",
+    description="This is a product service",
     version="1.0.0",
     terms_of_service="https://caxgpt.vercel.app/terms/",
     lifespan=life_span,
     contact={
         "name": "Muhammad Ahsaan Abbasi",
+        "phone": "+92 349-204-7381",
         "email": "mahsaanabbasi@gmail.com",
     },
     license_info={
@@ -35,9 +32,7 @@ app = FastAPI(
 )
 
 # SessionMiddleware must be installed to access request.session
-app.add_middleware(
-    SessionMiddleware, secret_key="!secret")
-
+app.add_middleware(SessionMiddleware, secret_key="!secret")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -46,14 +41,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# app.router.include_router(router=router, tags=["Product Service"])
-app.router.include_router(router=csg_router, tags=["Category Service"])
-
+app.router.include_router(router=router, tags=["Product Service"])
+app.router.include_router(router=csg_router, tags=["Category, Size & Gender Service"])
 
 @app.get("/")
 def get_root():
-    return {"message": "welcome to Product Service, Search Product, All Products, Sepecific Product Details..."}
-
-# @app.get("/product")
-# def get_product():
-#     return {"message" : "product details"}
+    return {"message": "welcome to login & Sign-up System & User Service"}
