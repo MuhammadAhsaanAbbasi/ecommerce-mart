@@ -15,3 +15,25 @@ async def get_categories(session: Annotated[Session, Depends(get_session)]):
     categories = session.exec(select(Category)).all()
     return {"data" : categories}
 
+
+async def create_sizes(size_input: Size, session: Annotated[Session, Depends(get_session)]):
+    size = Size(**size_input.model_dump())
+    session.add(size)
+    session.commit()
+    session.refresh(size)
+    return size
+
+async def get_sizies(session: Annotated[Session, Depends(get_session)]):
+    sizes = session.exec(select(Size)).all()
+    return {"data" : sizes}
+
+async def create_genders(gender_input: Gender, session: Annotated[Session, Depends(get_session)]):
+    gender = Gender(**gender_input.model_dump())
+    session.add(gender)
+    session.commit()
+    session.refresh(gender)
+    return gender
+
+async def get_all_genders(session: Annotated[Session, Depends(get_session)]):
+    genders = session.exec(select(Gender)).all()
+    return {"data" : genders}
