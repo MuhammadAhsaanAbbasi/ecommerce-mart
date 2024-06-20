@@ -78,20 +78,11 @@ class SizeModel(SQLModel):
         price (int): Price of the product item.
         stock (int): Stock level of the product item.
     """
-    size: str | int
-    price: int = Field(ge=0)
+    size: int
+    price: float
     stock: int
 
-class ProductItemBase(SQLModel):
-    """
-    Base model for ProductItem, used for shared attributes.
-
-    Attributes:
-        color (str): Color of the product item.
-    """
-    color: str
-
-class ProductItemFormModel(ProductItemBase):
+class ProductItemFormModel(SQLModel):
     """
     Model for representing product item details in forms.
 
@@ -100,7 +91,7 @@ class ProductItemFormModel(ProductItemBase):
     image_url (str): URL of the product item image.
     sizes (list[SizeModel]): List of size details.
     """
-    image_url: str
+    color: str
     sizes: List[SizeModel]
 
 class ProductFormModel(ProductBase):
