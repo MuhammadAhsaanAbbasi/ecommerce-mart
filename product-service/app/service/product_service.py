@@ -3,7 +3,7 @@ import cloudinary.uploader # type: ignore
 from ..setting import CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET, CLOUDINARY_CLOUD
 from fastapi import Depends, HTTPException, UploadFile, File, Form
 from sqlmodel import Session, select
-from ..core.db import get_session
+from ..core.db import DB_SESSION
 from ..model.models import Product, ProductSize, ProductItem, Stock, ProductFormModel
 from ..model.category_model import Category
 from ..utils.admin_verify import get_current_active_admin_user
@@ -21,7 +21,7 @@ cloudinary.config(
 # Create Product
 async def create_product(
                 current_admin: Annotated[Admin, Depends(get_current_active_admin_user)], 
-                session: Annotated[Session, Depends(get_session)],
+                session: DB_SESSION,
                 product_details:ProductFormModel,
                 images: List[UploadFile] = File(...),
                 ):
@@ -30,8 +30,8 @@ async def create_product(
 
     Args:
         product_details (ProductFormModel): Details of the product to be created.
-        session (DB_SESSION): Database session for performing operations.
-        admin_verification (dict): Admin verification dictionary obtained via dependency injection.
+        session (Annotated[Session, Depends(get_session)]): Database session for performing operations.
+        admin_verification (Annotated[Admin, Depends(get_current_active_admin_user)]): Admin verification dictionary obtained via dependency injection.
         images (List[UploadFile]): List of images to be uploaded.
 
     Raises:
@@ -90,22 +90,41 @@ async def create_product(
         raise HTTPException(status_code=500, detail=f"Error Occurs while creating the product: {e}")
 
 
+
 # get all product details
-async def get_all_product_details(session: Annotated[Session, Depends(get_session)]):
+async def get_all_product_details(session: DB_SESSION):
     products = session.exec(select(Product)).all()
     return {"data" : products}
 
 # get specific product details
-async def get_specific_product_details(product_id: int, session: Annotated[Session, Depends(get_session)]):
+async def get_specific_product_details(product_id: int, session: DB_SESSION):
     product = session.exec(select(Product).where(Product.id == product_id)).first()
+
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
     return {"data" : product}
 
+
 # search_product_results
-async def search_product_results(details:str, session:Annotated[Session, Depends(get_session)]):
+async def search_product_results(input:str, session: DB_SESSION):
+    """
+    Search Input In Category & Product Table
+
+    Args:
+        input (str): Input of Product & Category that search in both tables 
+        session (Annotated[Session, Depends(get_session)]): Database session for performing operations.
+
+    Raises:
+        HTTPException: If input details are not have in both category & Product Tables.
+
+    Returns:
+        Product: Showing Result of Products.
+    """
+    # categories = searh_algorithm_by_category(input, )
     return {"": ""}
 
 # get product by category
-async def get_product_by_category(catogery:str, session: Annotated[Session, Depends(get_session)]):
+async def get_product_by_category(catogery:str, session: DB_SESSION):
     category = session.exec(select(Category).where(Category.category_name == catogery)).first()
 
     if not category:
@@ -116,14 +135,19 @@ async def get_product_by_category(catogery:str, session: Annotated[Session, Depe
     return {"data" : products}
 
 # delete product
-async def deleted_product(product_id:int, current_admin: Annotated[Admin, Depends(get_current_active_admin_user)], session:Annotated[Session, Depends(get_session)]):
+async def deleted_product(product_id:int, current_admin: Annotated[Admin, Depends(get_current_active_admin_user)], session: DB_SESSION):
     if not current_admin:
         raise HTTPException(status_code=404,
                             detail="Admin not found")
+    
     product = session.exec(select(Product).where(Product.id == product_id)).first()
-
+    if not product:
+        raise HTTPException(status_code=404,
+                            detail="Product not found")
+    
     session.delete(product)
     session.commit()
     session.refresh(product)
 
     return {"data" : product}
+

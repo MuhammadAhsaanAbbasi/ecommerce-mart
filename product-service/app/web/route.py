@@ -3,7 +3,7 @@ from ..utils.admin_verify import get_current_active_admin_user
 from ..model.models import Product, ProductFormModel
 from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException
 from typing import Annotated, Optional, List
-from ..core.db import get_session
+from ..core.db import DB_SESSION
 from ..model.admin import Admin
 from sqlmodel import Session
 import json
@@ -13,7 +13,7 @@ router = APIRouter(prefix="/api/v1")
 @router.post("/create_product")
 async def create_products(
                         current_admin: Annotated[Admin, Depends(get_current_active_admin_user)], 
-                        session: Annotated[Session, Depends(get_session)],
+                        session: DB_SESSION,
                         product_details: Annotated[str, Form(...)],
                         images: List[UploadFile] = File(...),
                         ):
@@ -40,27 +40,30 @@ async def create_products(
     return {"message": "Create Product Successfully!", "data": product}
 
 @router.get("/get_all_products")
-async def get_all_product(session: Annotated[Session, Depends(get_session)]):
-    products = get_all_product_details(session)
-    return {"message": "Get Product Details"}
+async def get_all_product(session: DB_SESSION):
+    products = await get_all_product_details(session)
+    return products
 
 # specific_product details
 @router.get("/product/{product_id}")
-async def specific_product_details(product_id: int, session: Annotated[Session, Depends(get_session)]):
-    product = get_specific_product_details(product_id, session)
-    return {"message" : "specific product details"}
+async def specific_product_details(product_id: int, session: DB_SESSION):
+    product = await get_specific_product_details(product_id, session)
+    return product
 
-@router.get("/search_product/{details}")
-async def search_product(details:str, session:Annotated[Session, Depends(get_session)]):
-    products = search_product_results(details, session)
-    return {"message" : "search product details"}
+# search_product_results 
+@router.get("/search_product/{input}")
+async def search_product(input:str, session: DB_SESSION):
+    products = await search_product_results(input, session)
+    return products
 
+# Products By Category
 @router.get("/product_by_category/{category}")
-async def product_by_category(category:str, session:Annotated[Session, Depends(get_session)]):
-    products = get_product_by_category(category, session)
-    return {"message" : "category product details"}
+async def product_by_category(category:str, session: DB_SESSION):
+    products = await get_product_by_category(category, session)
+    return products
 
+# Deleted Products
 @router.delete("/delete_product/{product_id}")
-async def delete_product(product_id:int, current_admin: Annotated[Admin, Depends(get_current_active_admin_user)], session:Annotated[Session, Depends(get_session)]):
-    product = deleted_product(product_id, current_admin, session)
-    return {"message" : "delete product"}
+async def delete_product(product_id:int, current_admin: Annotated[Admin, Depends(get_current_active_admin_user)], session: DB_SESSION):
+    product = await deleted_product(product_id, current_admin, session)
+    return product
