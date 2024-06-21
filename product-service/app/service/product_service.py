@@ -2,13 +2,15 @@ from typing import Annotated, Optional, Union, List
 import cloudinary.uploader # type: ignore
 from ..setting import CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET, CLOUDINARY_CLOUD
 from fastapi import Depends, HTTPException, UploadFile, File, Form
-from sqlmodel import Session, select
+from sqlmodel import select, func
 from ..core.db import DB_SESSION
 from ..model.models import Product, ProductSize, ProductItem, Stock, ProductFormModel
 from ..model.category_model import Category
 from ..utils.admin_verify import get_current_active_admin_user
+from ..utils.utils import search_algorithm_by_category
 from ..model.admin import Admin
 import cloudinary # type: ignore
+from sqlalchemy import or_
 
 # Configuration       
 cloudinary.config( 
@@ -20,7 +22,7 @@ cloudinary.config(
 
 # Create Product
 async def create_product(
-                current_admin: Annotated[Admin, Depends(get_current_active_admin_user)], 
+                # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)], 
                 session: DB_SESSION,
                 product_details:ProductFormModel,
                 images: List[UploadFile] = File(...),
@@ -44,9 +46,9 @@ async def create_product(
     Returns:
         Product: The created product.
     """
-    if not current_admin:
-        raise HTTPException(status_code=404,
-                            detail="Admin not found")
+    # if not current_admin:
+    #     raise HTTPException(status_code=404,
+    #                         detail="Admin not found")
     
     if len(product_details.product_item) != len(images):
         raise HTTPException(status_code=202, detail="The number of images does not match the number of product items")
@@ -104,24 +106,45 @@ async def get_specific_product_details(product_id: int, session: DB_SESSION):
         raise HTTPException(status_code=404, detail="Product not found")
     return {"data" : product}
 
-
 # search_product_results
-async def search_product_results(input:str, session: DB_SESSION):
+async def search_product_results(input: str, session: DB_SESSION):
     """
-    Search Input In Category & Product Table
+    Search for products by input in both category and product tables.
 
     Args:
-        input (str): Input of Product & Category that search in both tables 
-        session (Annotated[Session, Depends(get_session)]): Database session for performing operations.
-
-    Raises:
-        HTTPException: If input details are not have in both category & Product Tables.
+        input (str): The input to search for in category and product names.
+        session (DB_SESSION): The database session.
 
     Returns:
-        Product: Showing Result of Products.
+        List[Product]: A list of products that match the input.
     """
-    # categories = searh_algorithm_by_category(input, )
-    return {"": ""}
+    categories = await search_algorithm_by_category(input, session)
+        
+    if categories:
+        categories_ids = [category.id for category in categories]
+
+        # Use or_ to combine multiple conditions
+        conditions = [Product.category_id == category_id for category_id in categories_ids]
+        category_products = session.exec(select(Product).where(or_(*conditions))).all()
+    else:
+        category_products = []
+
+    # Search for products that start with the input
+    products = session.exec(select(Product).where(Product.product_name.startswith(input))).all()
+    
+    # Collect unique product IDs
+    category_product_ids = {product.id for product in category_products if product.id is not None}
+    product_ids = {product.id for product in products if product.id is not None}
+
+    # Combine the unique product IDs
+    unique_product_ids = category_product_ids.union(product_ids)
+
+    # Fetch the unique products from the database
+    unique_products = session.exec(select(Product).where(Product.id.in_(unique_product_ids))).all() # type: ignore
+
+    return {"data": unique_products}
+
+
 
 # get product by category
 async def get_product_by_category(catogery:str, session: DB_SESSION):
