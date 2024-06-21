@@ -46,4 +46,4 @@ app.router.include_router(router=csg_router, tags=["Category, Size & Gender Serv
 
 @app.get("/")
 def get_root():
-    return {"message": "welcome to login & Sign-up System & User Service"}
+    return {"message": "welcome to Product Service, Create Product, Product Detail, Specific Product Detail, Search Product, Delete Product"}

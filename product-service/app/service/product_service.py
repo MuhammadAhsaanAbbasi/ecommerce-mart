@@ -2,7 +2,7 @@ from typing import Annotated, Optional, Union, List
 import cloudinary.uploader # type: ignore
 from ..setting import CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET, CLOUDINARY_CLOUD
 from fastapi import Depends, HTTPException, UploadFile, File, Form
-from sqlmodel import select, func
+from sqlmodel import select
 from ..core.db import DB_SESSION
 from ..model.models import Product, ProductSize, ProductItem, Stock, ProductFormModel
 from ..model.category_model import Category
@@ -11,6 +11,8 @@ from ..utils.utils import search_algorithm_by_category
 from ..model.admin import Admin
 import cloudinary # type: ignore
 from sqlalchemy import or_
+from sqlalchemy.orm import selectinload
+import json
 
 # Configuration       
 cloudinary.config( 
@@ -91,8 +93,6 @@ async def create_product(
         session.rollback()
         raise HTTPException(status_code=500, detail=f"Error Occurs while creating the product: {e}")
 
-
-
 # get all product details
 async def get_all_product_details(session: DB_SESSION):
     products = session.exec(select(Product)).all()
@@ -101,9 +101,74 @@ async def get_all_product_details(session: DB_SESSION):
 # get specific product details
 async def get_specific_product_details(product_id: int, session: DB_SESSION):
     product = session.exec(select(Product).where(Product.id == product_id)).first()
-
+    
     if not product:
-        raise HTTPException(status_code=404, detail="Product not found")
+        return None
+    product_items_table : List[ProductItem] = []
+    product_items = session.exec(select(ProductItem).where(ProductItem.product_id == product.id)).all()
+
+    # print(f"product_item: {ProductItem(product_items)}")
+    # product.product_item = list(product_items)
+    for item in product_items:
+        sizes = session.exec(select(ProductSize).where(ProductSize.product_item_id == item.id)).all()
+        # item.sizes = list(sizes)
+        product_sizes_table: List[ProductSize] = []
+        for size in sizes:
+            stock = session.exec(select(Stock).where(Stock.product_size_id == size.id)).first()
+            if stock:
+                size.stock = stock
+            print(f'size stock {size.stock}')
+            product_sizes_table.append(size)
+        print(f"Product_size_table: {product_sizes_table}")
+        item.sizes = product_sizes_table
+        print(f"item_sizes:{item.sizes}")
+        product_items_table.append(item)
+    # product.product_item = product_items_table
+    print(f"product_items_table: {product_items_table}")
+
+    product.product_item = product_items_table
+
+    product_details = ProductFormModel(
+        product_name=product.product_name,
+        product_desc=product.product_desc,
+        category_id=product.category_id,
+        gender_id=product.gender_id,
+        product_item=product.product_item
+    )
+
+    print(f"product_details: {product_details}")
+
+    # product_data = {
+    #     "id": product.id,
+    #     "product_name": product.product_name,
+    #     "product_desc": product.product_desc,
+    #     "category_id": product.category_id,
+    #     "gender_id": product.gender_id,
+    #     "product_items": [
+    #         {
+    #             "id": item.id,
+    #             "color": item.color,
+    #             "image_url": item.image_url,
+    #             "product_id": item.product_id,
+    #             "sizes": [
+    #                 {
+    #                     "id": size.id,
+    #                     "size": size.size,
+    #                     "price": size.price,
+    #                     "product_item_id": size.product_item_id,
+    #                     "stock": {
+    #                         "id": size.stock.id if size.stock else None,
+    #                         "stock": size.stock.stock if size.stock else None,
+    #                         "stock_level": size.stock.stock_level if size.stock else None
+    #                     }
+    #                 }
+    #                 for size in item.sizes
+    #             ]
+    #         }
+    #         for item in product.product_item
+    #     ]
+    # }
+
     return {"data" : product}
 
 # search_product_results

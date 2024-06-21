@@ -9,7 +9,8 @@ x-kong-config:
   KONG_PG_PASSWORD_FILE: /run/secrets/kong_postgres_password
 
 volumes:
-  kong_data: {}
+  kong_data:
+    driver: local
   kong_prefix_vol:
     driver_opts:
       type: tmpfs
