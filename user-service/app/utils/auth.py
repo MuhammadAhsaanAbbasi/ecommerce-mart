@@ -5,7 +5,7 @@ from fastapi.security.oauth2 import OAuth2PasswordBearer
 from datetime import datetime, timedelta, timezone
 from fastapi import HTTPException, Depends, status
 from jose import jwt, JWTError
-from ..core.db import get_session
+from ..core.db import DB_SESSION
 from sqlmodel import select, Session
 from typing import Annotated, Union, Optional
 from passlib.context import CryptContext
@@ -30,13 +30,13 @@ def verify_password(plain_password: str, hashed_password:str):
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 # Get User in db
-def get_user(db, email: str | None, session: Annotated[Session, Depends(get_session)]):
+def get_user(db, email: str | None, session: DB_SESSION):
     correct_user = session.exec(select(db).where(db.email == email)).first()
     if correct_user:
         return correct_user
 
 # Authenticate the User
-def authenticate_user(db, email: str, password: str, session: Annotated[Session, Depends(get_session)]):
+def authenticate_user(db, email: str, password: str, session: DB_SESSION):
     user = get_user(db, email, session)
     if not user:
         return False
@@ -72,7 +72,7 @@ def create_access_token(user: UserBase, expires_delta: Optional[Union[timedelta,
     return encoded_jwt
 
 # Get Current User
-async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], session: Annotated[Session, Depends(get_session)]):
+async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], session: DB_SESSION):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -104,7 +104,7 @@ async def get_current_active_user(current_user: Annotated[Users, Depends(get_cur
         )
 
 # Get Current Admin
-async def get_current_admin(token: Annotated[str, Depends(oauth2_scheme)], session: Annotated[Session, Depends(get_session)]):
+async def get_current_admin(token: Annotated[str, Depends(oauth2_scheme)], session: DB_SESSION):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -160,7 +160,7 @@ def create_refresh_token(data: dict, expires_delta: Union[timedelta, None] = Non
     return encoded_jwt
 
 # Validate Refresh Token
-def validate_refresh_token(db,token: str, session: Annotated[Session, Depends(get_session)]):
+def validate_refresh_token(db,token: str, session: DB_SESSION):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -179,7 +179,7 @@ def validate_refresh_token(db,token: str, session: Annotated[Session, Depends(ge
     return user
 
 # Token Service Function that Generate token
-async def tokens_service(db, refresh_token: str, session: Annotated[Session, Depends(get_session)]):
+async def tokens_service(db, refresh_token: str, session: DB_SESSION):
     user = validate_refresh_token(db, refresh_token, session)
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")

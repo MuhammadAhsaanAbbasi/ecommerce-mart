@@ -11,7 +11,7 @@ from aiokafka.errors import KafkaTimeoutError # type: ignore
 from typing import Annotated, Any, Optional
 from passlib.context import CryptContext
 from sqlmodel import Session, select
-from ..core.db import get_session
+from ..core.db import DB_SESSION
 from datetime import timedelta
 from app import user_pb2
 import os
@@ -71,7 +71,7 @@ async def login(request:Request):
 
 # Google Callback
 @router.get("/auth/google/callback")
-async def auth(request: Request, session: Annotated[Session, Depends(get_session)]):
+async def auth(request: Request, session: DB_SESSION):
     try:
         state = request.session['state']
 
@@ -123,7 +123,7 @@ async def auth(request: Request, session: Annotated[Session, Depends(get_session
 
 # Sign-up Routes
 @router.post("/signup")
-async def sign_up(user: Users, session:Annotated[Session, Depends(get_session)], aio_producer: Annotated[AIOKafkaProducer, Depends(get_kafka_producer)]):
+async def sign_up(user: Users, session:DB_SESSION, aio_producer: Annotated[AIOKafkaProducer, Depends(get_kafka_producer)]):
     # Check the value on db
     existing_user  = session.exec(select(Users).where(Users.email == user.email)).first()
     if existing_user:
@@ -150,7 +150,7 @@ async def sign_up(user: Users, session:Annotated[Session, Depends(get_session)],
 
 
 @router.post("/signup/verify")
-def verify_sign_up_otp(user_otp: str, user: Users, session:Annotated[Session, Depends(get_session)]):
+def verify_sign_up_otp(user_otp: str, user: Users, session:DB_SESSION):
     # Verify OTP
     tokens = verify_and_generate_tokens(user_otp, user, session)
     return tokens
@@ -158,13 +158,13 @@ def verify_sign_up_otp(user_otp: str, user: Users, session:Annotated[Session, De
 
 # Login Routes
 @router.post("/login", response_model=Token)
-async def login_access_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], session: Annotated[Session, Depends(get_session)]):
+async def login_access_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], session: DB_SESSION):
     token = await login_for_access_token(form_data, session)
     return token
 
 # token route
 @router.post("/user/refresh_token", response_model=Token)
-async def get_tokens(session: Annotated[Session, Depends(get_session)], refresh_token:Annotated[str, Depends(oauth2_scheme)]): 
+async def get_tokens(session: DB_SESSION, refresh_token:Annotated[str, Depends(oauth2_scheme)]): 
     tokens = await tokens_service(db=Users, refresh_token=refresh_token, session=session)
     return tokens
 
@@ -174,7 +174,7 @@ async def read_users_me(current_user: Annotated[Users, Depends(get_current_activ
     return current_user
 
 @router.put("/user/reset-password")
-async def reset_password(reset_password:str, current_user: Annotated[Users, Depends(get_current_user)], session:Annotated[Session, Depends(get_session)]):
+async def reset_password(reset_password:str, current_user: Annotated[Users, Depends(get_current_user)], session:DB_SESSION):
     if current_user:
         current_user.hashed_password = get_value_hash(reset_password)
         session.commit()
@@ -188,7 +188,7 @@ async def reset_password(reset_password:str, current_user: Annotated[Users, Depe
         )
 
 @router.put("/user/update")
-async def update_user(current_user: Annotated[Users, Depends(get_current_active_user)], user:UserBase, session:Annotated[Session, Depends(get_session)]):
+async def update_user(current_user: Annotated[Users, Depends(get_current_active_user)], user:UserBase, session:DB_SESSION):
     if current_user:
         current_user.username = user.username
         current_user.imageUrl = user.imageUrl

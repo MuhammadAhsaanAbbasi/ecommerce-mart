@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from starlette.middleware.sessions import SessionMiddleware
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
-# from .web.route  import router
+from .web.routes  import router
 # from .core.db import create_db_and_tables
 # from .model.models import Users
 
@@ -14,8 +14,8 @@ async def life_span(app: FastAPI):
     yield
 
 app = FastAPI(
-    title="Payment Service",
-    description="This is a Payment Service",
+    title="Notification Service",
+    description="This is a Notification Service",
     version="1.0.0",
     terms_of_service="https://caxgpt.vercel.app/terms/",
     lifespan=life_span,
@@ -44,8 +44,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# app.router.include_router(router, tags=["OAuth2 Authentication"])
+app.router.include_router(router, tags=["Payment Services"])
 
 @app.get("/")
 def get_root():
-    return {"message": "welcome to Payment Service"}
+    return {"message": "welcome to Payment Service! Transaction a new payment"}

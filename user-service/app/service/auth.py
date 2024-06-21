@@ -7,7 +7,7 @@ from fastapi import Depends, HTTPException, Form
 from fastapi.responses import RedirectResponse
 from typing import Annotated, Optional
 from sqlmodel import  Session, select
-from ..core.db import get_session
+from ..core.db import DB_SESSION
 from datetime import timedelta
 import string
 import secrets
@@ -48,7 +48,7 @@ def verify_and_generate_tokens(user_otp: str, user: Users, session: Session):
 
 
 #  Create user 
-def create_user(user: Users, session: Annotated[Session, Depends(get_session)], isGoogle: bool = False):
+def create_user(user: Users, session: DB_SESSION, isGoogle: bool = False):
     existing_user = session.exec(select(Users).where(Users.email == user.email)).first()
     if existing_user:
         return False  # Return False if user already exists
@@ -69,7 +69,7 @@ def create_user(user: Users, session: Annotated[Session, Depends(get_session)], 
     return {"detail": "OTP sent successfully"}
 
 # Create Admin 
-def create_admin(user: Admin, session: Annotated[Session, Depends(get_session)]):
+def create_admin(user: Admin, session: DB_SESSION):
     is_verified = True
     existing_admin = session.exec(select(Admin).where(Admin.email == user.email)).first()
     if existing_admin:
@@ -86,7 +86,7 @@ def create_admin(user: Admin, session: Annotated[Session, Depends(get_session)])
 #  Login for access Token
 async def login_for_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()], 
-    session: Annotated[Session, Depends(get_session)]
+    session: DB_SESSION
 ) -> Token:
     user = authenticate_user(Users, form_data.username, form_data.password, session)
     if not user:
@@ -111,7 +111,7 @@ async def login_for_access_token(
 
 
 # Login Access Token for Admin
-async def login_access_token_for_admin(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], session: Annotated[Session, Depends(get_session)])->Token:
+async def login_access_token_for_admin(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], session: DB_SESSION)->Token:
     user = authenticate_user(Admin, form_data.username, form_data.password, session)
     if not user:
         raise HTTPException(
@@ -138,7 +138,7 @@ async def login_access_token_for_admin(form_data: Annotated[OAuth2PasswordReques
 
 
 # Google user Auth
-async def google_user(session: Annotated[Session, Depends(get_session)], username:str, email:str, picture:str):
+async def google_user(session: DB_SESSION, username:str, email:str, picture:str):
     user = session.exec(select(Users).where(Users.email == email)).first()
     try:
         if user is None:

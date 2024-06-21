@@ -144,8 +144,6 @@ async def search_product_results(input: str, session: DB_SESSION):
 
     return {"data": unique_products}
 
-
-
 # get product by category
 async def get_product_by_category(catogery:str, session: DB_SESSION):
     category = session.exec(select(Category).where(Category.category_name == catogery)).first()

@@ -1,5 +1,7 @@
-from university_gpt import setting
+from app import setting
 from sqlmodel import SQLModel, create_engine, Session
+from typing import Annotated
+from fastapi import Depends
 
 connectionstring = str(setting.DATABASE_URL).replace(
     "postgresql", "postgresql+psycopg2"
@@ -13,3 +15,5 @@ def create_db_and_tables():
 def get_session():
     with Session(engine) as session:
         yield session
+
+DB_SESSION = Annotated[Session, Depends(get_session)]

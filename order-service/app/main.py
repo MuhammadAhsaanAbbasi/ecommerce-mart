@@ -2,8 +2,8 @@ from fastapi import FastAPI
 from starlette.middleware.sessions import SessionMiddleware
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
-# from .web.route  import router
-# from .core.db import create_db_and_tables
+from .web.routes  import router
+from .core.db import create_db_and_tables
 # from .model.models import Users
 
 
@@ -44,8 +44,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# app.router.include_router(router, tags=["OAuth2 Authentication"])
+app.router.include_router(router, tags=["Notification Services"])
 
 @app.get("/")
 def get_root():
-    return {"message": "welcome to Order Service, Create Order, Cancel Order, Update Order"}
+    return {"message": "welcome to Order Services, Create Order, Update Order, Delete Order, User All Orders, User Specific Order Details"}
