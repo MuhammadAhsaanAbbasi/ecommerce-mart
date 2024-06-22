@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from .web.routes import router
 from .core.db import create_db_and_tables
-# from .model.models import Users
+from .model.models import *
 
 
 @asynccontextmanager

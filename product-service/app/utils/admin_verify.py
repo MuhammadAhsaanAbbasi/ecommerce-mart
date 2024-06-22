@@ -1,10 +1,9 @@
 from ..setting import ALGORITHM, SECRET_KEY
-from ..model.admin import TokenData, Admin, UserBase
+from ..model.admin import TokenData, Admin
 from fastapi.security.oauth2 import OAuth2PasswordBearer
-from datetime import datetime, timedelta, timezone
 from fastapi import HTTPException, Depends, status
 from jose import jwt, JWTError
-from ..core.db import get_session
+from ..core.db import DB_SESSION
 from sqlmodel import select, Session
 from typing import Annotated, Union, Optional
 import json
@@ -12,13 +11,13 @@ import json
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 # Get User
-def get_user(db, email: str | None, session: Annotated[Session, Depends(get_session)]):
+def get_user(db, email: str | None, session: DB_SESSION):
     correct_user = session.exec(select(db).where(db.email == email)).first()
     if correct_user:
         return correct_user
 
 # Get Current Admin
-async def get_current_admin(token: Annotated[str, Depends(oauth2_scheme)], session: Annotated[Session, Depends(get_session)]):
+async def get_current_admin(token: Annotated[str, Depends(oauth2_scheme)], session: DB_SESSION):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
