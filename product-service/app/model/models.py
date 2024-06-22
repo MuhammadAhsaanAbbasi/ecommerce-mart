@@ -92,6 +92,7 @@ class ProductItemFormModel(SQLModel):
     sizes (list[SizeModel]): List of size details.
     """
     color: str
+    image_url: Optional[str] = Field(default=None)
     sizes: List[SizeModel]
 
 class ProductFormModel(ProductBase):

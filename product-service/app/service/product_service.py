@@ -1,17 +1,16 @@
-from typing import Annotated, Optional, Union, List
-import cloudinary.uploader # type: ignore
+from ..model.models import Product, ProductSize, ProductItem, Stock, ProductFormModel, ProductItemFormModel, SizeModel
 from ..setting import CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET, CLOUDINARY_CLOUD
 from fastapi import Depends, HTTPException, UploadFile, File, Form
-from sqlmodel import select
-from ..core.db import DB_SESSION
-from ..model.models import Product, ProductSize, ProductItem, Stock, ProductFormModel
-from ..model.category_model import Category
 from ..utils.admin_verify import get_current_active_admin_user
-from ..utils.utils import search_algorithm_by_category
+from ..utils.utils import search_algorithm_by_category, all_product_details
+from typing import Annotated, Optional, Union, List
+from ..model.category_model import Category
+import cloudinary.uploader # type: ignore
+from ..core.db import DB_SESSION
 from ..model.admin import Admin
 import cloudinary # type: ignore
+from sqlmodel import select
 from sqlalchemy import or_
-from sqlalchemy.orm import selectinload
 import json
 
 # Configuration       
@@ -42,6 +41,7 @@ async def create_product(
         HTTPException: If the user is not an admin.
         HTTPException: If the number of images does not match the number of product items.
         HTTPException: If product details are not provided.
+        HTTPException: If product Name are also exist.
         HTTPException: If an error occurs during image upload.
         HTTPException: If an error occurs while creating the product.
 
@@ -57,6 +57,11 @@ async def create_product(
     
     if not product_details:
         raise HTTPException(status_code=400, detail="Product details not provided")
+
+    available_products = session.exec(select(Product).where(Product.product_name == product_details.product_name)).first()
+
+    if available_products:
+        raise HTTPException(status_code=409, detail="Product already exists")
 
     product_item_tables: List[ProductItem] = []
     try:
@@ -96,7 +101,11 @@ async def create_product(
 # get all product details
 async def get_all_product_details(session: DB_SESSION):
     products = session.exec(select(Product)).all()
-    return {"data" : products}
+
+    product_details = await all_product_details(products, session)
+
+    return product_details
+
 
 # get specific product details
 async def get_specific_product_details(product_id: int, session: DB_SESSION):
@@ -104,72 +113,43 @@ async def get_specific_product_details(product_id: int, session: DB_SESSION):
     
     if not product:
         return None
-    product_items_table : List[ProductItem] = []
-    product_items = session.exec(select(ProductItem).where(ProductItem.product_id == product.id)).all()
 
-    # print(f"product_item: {ProductItem(product_items)}")
-    # product.product_item = list(product_items)
+    product_items = session.exec(select(ProductItem).where(ProductItem.product_id == product.id)).all()
+    product_items_table: List[ProductItemFormModel] = []
+
     for item in product_items:
         sizes = session.exec(select(ProductSize).where(ProductSize.product_item_id == item.id)).all()
-        # item.sizes = list(sizes)
-        product_sizes_table: List[ProductSize] = []
+        product_sizes_table: List[SizeModel] = []
+
         for size in sizes:
             stock = session.exec(select(Stock).where(Stock.product_size_id == size.id)).first()
-            if stock:
-                size.stock = stock
-            print(f'size stock {size.stock}')
-            product_sizes_table.append(size)
-        print(f"Product_size_table: {product_sizes_table}")
-        item.sizes = product_sizes_table
-        print(f"item_sizes:{item.sizes}")
-        product_items_table.append(item)
-    # product.product_item = product_items_table
-    print(f"product_items_table: {product_items_table}")
-
-    product.product_item = product_items_table
+            size_stock = stock.stock if stock else 0
+            size_model = SizeModel(
+                size=size.size,
+                price=float(size.price),
+                stock=size_stock
+            )
+            product_sizes_table.append(size_model)
+        
+        product_item_model = ProductItemFormModel(
+            color=item.color,
+            image_url=item.image_url,
+            sizes=product_sizes_table
+        )
+        product_items_table.append(product_item_model)
 
     product_details = ProductFormModel(
         product_name=product.product_name,
         product_desc=product.product_desc,
         category_id=product.category_id,
         gender_id=product.gender_id,
-        product_item=product.product_item
+        product_item=product_items_table
     )
 
     print(f"product_details: {product_details}")
 
-    # product_data = {
-    #     "id": product.id,
-    #     "product_name": product.product_name,
-    #     "product_desc": product.product_desc,
-    #     "category_id": product.category_id,
-    #     "gender_id": product.gender_id,
-    #     "product_items": [
-    #         {
-    #             "id": item.id,
-    #             "color": item.color,
-    #             "image_url": item.image_url,
-    #             "product_id": item.product_id,
-    #             "sizes": [
-    #                 {
-    #                     "id": size.id,
-    #                     "size": size.size,
-    #                     "price": size.price,
-    #                     "product_item_id": size.product_item_id,
-    #                     "stock": {
-    #                         "id": size.stock.id if size.stock else None,
-    #                         "stock": size.stock.stock if size.stock else None,
-    #                         "stock_level": size.stock.stock_level if size.stock else None
-    #                     }
-    #                 }
-    #                 for size in item.sizes
-    #             ]
-    #         }
-    #         for item in product.product_item
-    #     ]
-    # }
+    return {"data": product_details}
 
-    return {"data" : product}
 
 # search_product_results
 async def search_product_results(input: str, session: DB_SESSION):
@@ -207,7 +187,9 @@ async def search_product_results(input: str, session: DB_SESSION):
     # Fetch the unique products from the database
     unique_products = session.exec(select(Product).where(Product.id.in_(unique_product_ids))).all() # type: ignore
 
-    return {"data": unique_products}
+    product_details = await all_product_details(unique_products, session)
+
+    return product_details
 
 # get product by category
 async def get_product_by_category(catogery:str, session: DB_SESSION):
@@ -218,22 +200,44 @@ async def get_product_by_category(catogery:str, session: DB_SESSION):
                             detail="Category not found")
     
     products = session.exec(select(Product).where(Product.category_id == category.id)).all()
-    return {"data" : products}
+
+    product_details = await all_product_details(products, session)
+
+    return product_details
 
 # delete product
-async def deleted_product(product_id:int, current_admin: Annotated[Admin, Depends(get_current_active_admin_user)], session: DB_SESSION):
-    if not current_admin:
-        raise HTTPException(status_code=404,
-                            detail="Admin not found")
+async def deleted_product(product_id: int,
+                        # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)], 
+                        session: DB_SESSION):
+    # if not current_admin:
+    #     raise HTTPException(status_code=404, detail="Admin not found")
     
     product = session.exec(select(Product).where(Product.id == product_id)).first()
     if not product:
-        raise HTTPException(status_code=404,
-                            detail="Product not found")
+        raise HTTPException(status_code=404, detail="Product not found")
     
+    # Retrieve all product items related to the product
+    product_items = session.exec(select(ProductItem).where(ProductItem.product_id == product_id)).all()
+    
+    for item in product_items:
+        # Retrieve all product sizes related to the product item
+        product_sizes = session.exec(select(ProductSize).where(ProductSize.product_item_id == item.id)).all()
+        
+        for size in product_sizes:
+            # Retrieve and delete the stock related to the product size
+            stock = session.exec(select(Stock).where(Stock.product_size_id == size.id)).first()
+            if stock:
+                session.delete(stock)
+        
+            # Delete the product size
+            session.delete(size)
+        
+        # Delete the product item
+        session.delete(item)
+    
+    # Finally, delete the product
     session.delete(product)
     session.commit()
-    session.refresh(product)
 
-    return {"data" : product}
+    return {"data": f"Product with ID {product_id} and all its related items have been deleted"}
 
