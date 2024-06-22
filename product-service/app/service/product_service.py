@@ -23,7 +23,7 @@ cloudinary.config(
 
 # Create Product
 async def create_product(
-                # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)], 
+                current_admin: Annotated[Admin, Depends(get_current_active_admin_user)], 
                 session: DB_SESSION,
                 product_details:ProductFormModel,
                 images: List[UploadFile] = File(...),
@@ -48,9 +48,9 @@ async def create_product(
     Returns:
         Product: The created product.
     """
-    # if not current_admin:
-    #     raise HTTPException(status_code=404,
-    #                         detail="Admin not found")
+    if not current_admin:
+        raise HTTPException(status_code=404,
+                            detail="Admin not found")
     
     if len(product_details.product_item) != len(images):
         raise HTTPException(status_code=202, detail="The number of images does not match the number of product items")
@@ -207,10 +207,10 @@ async def get_product_by_category(catogery:str, session: DB_SESSION):
 
 # delete product
 async def deleted_product(product_id: int,
-                        # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)], 
+                        current_admin: Annotated[Admin, Depends(get_current_active_admin_user)], 
                         session: DB_SESSION):
-    # if not current_admin:
-    #     raise HTTPException(status_code=404, detail="Admin not found")
+    if not current_admin:
+        raise HTTPException(status_code=404, detail="Admin not found")
     
     product = session.exec(select(Product).where(Product.id == product_id)).first()
     if not product:

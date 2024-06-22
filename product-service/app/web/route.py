@@ -12,7 +12,7 @@ router = APIRouter(prefix="/api/v1")
 
 @router.post("/create_product")
 async def create_products(
-                        # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)], 
+                        current_admin: Annotated[Admin, Depends(get_current_active_admin_user)], 
                         session: DB_SESSION,
                         product_details: Annotated[str, Form(...)],
                         images: List[UploadFile] = File(...),
@@ -36,8 +36,8 @@ async def create_products(
         raise HTTPException(status_code=400, detail="Invalid JSON data provided for product details")
 
     product_details_model = ProductFormModel(**product_details_dict)
-    # product = await create_product(current_admin, session, product_details_model, images)
-    product = await create_product(session, product_details_model, images)
+    product = await create_product(current_admin, session, product_details_model, images)
+    # product = await create_product(session, product_details_model, images)
     return {"message": "Create Product Successfully!", "data": product}
 
 @router.get("/get_all_products")
@@ -67,7 +67,7 @@ async def product_by_category(category:str, session: DB_SESSION):
 @router.delete("/delete_product/{product_id}")
 async def delete_product(product_id:int, 
                         session: DB_SESSION,
-                        # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)]
+                        current_admin: Annotated[Admin, Depends(get_current_active_admin_user)]
                         ):
-    product = await deleted_product(product_id, session)
+    product = await deleted_product(product_id, current_admin, session)
     return product
