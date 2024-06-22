@@ -25,7 +25,7 @@ async def delete_product_item(current_admin: Annotated[Admin, Depends(get_curren
     return {"message" : "delete product items"}
 
 # Product Sizes
-async def product_size(current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
+async def create_product_size(current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
                         session: DB_SESSION,
                         product_size_detail: SizeModel,
                         product_item_id: int
