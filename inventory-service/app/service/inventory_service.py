@@ -10,10 +10,11 @@ from sqlmodel import select
 
 # Create Product Item Function
 async def create_product_item(
-    current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
+    # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
     session: DB_SESSION,
+    product_id: int,
     product_item_detail: ProductItemFormModel,
-    image: UploadFile = File(...)
+    image: UploadFile = File(...),
 ):
     """
     Create a new product item in the database.
@@ -26,14 +27,19 @@ async def create_product_item(
 
     Raises:
         HTTPException: If the user is not an admin.
+        TTPException: If the product is not found.
         HTTPException: If an error occurs during image upload.
         HTTPException: If an error occurs while creating the product item.
 
     Returns:
         ProductItem: The created product item.
     """
-    if not current_admin:
-        raise HTTPException(status_code=404, detail="Admin not found")
+    # if not current_admin:
+    #     raise HTTPException(status_code=404, detail="Admin not found")
+
+    product = session.exec(select(Product).where(Product.id == product_id)).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
 
     try:
         image_url = upload_image(image)
@@ -47,7 +53,8 @@ async def create_product_item(
         product_item = ProductItem(
             color=product_item_detail.color,
             image_url=image_url,
-            sizes=product_size_tables
+            sizes=product_size_tables,
+            product_id=product.id
         )
 
         session.add(product_item)
@@ -59,11 +66,12 @@ async def create_product_item(
         session.rollback()
         raise HTTPException(status_code=500, detail=f"Error Occurs while creating the product item: {e}")
 
-async def get_product_item(current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
+async def get_product_item(
+                    # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
                     session: DB_SESSION,
                     product_id: int):
-    if not current_admin:
-        raise HTTPException(status_code=404, detail="Admin not found")
+    # if not current_admin:
+    #     raise HTTPException(status_code=404, detail="Admin not found")
 
     product_items = session.exec(select(ProductItem).where(ProductItem.product_id == product_id)).all()
     if not product_items:
@@ -80,11 +88,12 @@ async def get_product_item(current_admin: Annotated[Admin, Depends(get_current_a
 
     return product_item_models
 
-async def delete_product_item(current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
+async def delete_product_item(
+                    # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
                     session: DB_SESSION,
                     product_item_id: int):
-    if not current_admin:
-        raise HTTPException(status_code=404, detail="Admin not found")
+    # if not current_admin:
+    #     raise HTTPException(status_code=404, detail="Admin not found")
 
     product_item = session.exec(select(ProductItem).where(ProductItem.id == product_item_id)).first()
     if not product_item:
@@ -104,7 +113,7 @@ async def delete_product_item(current_admin: Annotated[Admin, Depends(get_curren
 
 # Product Sizes
 async def create_product_size(
-    current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
+    # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
     session: DB_SESSION,
     product_size_detail: SizeModel,
     product_item_id: int
@@ -126,8 +135,8 @@ async def create_product_size(
     Returns:
         ProductSize: The created product size.
     """
-    if not current_admin:
-        raise HTTPException(status_code=404, detail="Admin not found")
+    # if not current_admin:
+    #     raise HTTPException(status_code=404, detail="Admin not found")
     
     product_item = session.exec(select(ProductItem).where(ProductItem.id == product_item_id)).first()
     if not product_item:
@@ -139,7 +148,7 @@ async def create_product_size(
             size=product_size_detail.size,
             price=product_size_detail.price,
             stock=stock_table,
-            product_item_id=product_item_id
+            product_item_id=product_item.id
         )
 
         session.add(product_size)
@@ -152,7 +161,7 @@ async def create_product_size(
         raise HTTPException(status_code=500, detail=f"Error Occurs while creating the product size: {e}")
 
 async def get_product_size(
-    current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
+    # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
     session: DB_SESSION,
     product_item_id: int
 ):
@@ -171,8 +180,8 @@ async def get_product_size(
     Returns:
         List[ProductSize]: List of product sizes.
     """
-    if not current_admin:
-        raise HTTPException(status_code=404, detail="Admin not found")
+    # if not current_admin:
+    #     raise HTTPException(status_code=404, detail="Admin not found")
 
     product_item = session.exec(select(ProductItem).where(ProductItem.id == product_item_id)).first()
     if not product_item:
@@ -182,7 +191,7 @@ async def get_product_size(
     return product_sizes
 
 async def delete_product_size(
-    current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
+    # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
     session: DB_SESSION,
     product_size_id: int
 ):
@@ -201,8 +210,8 @@ async def delete_product_size(
     Returns:
         ProductSize: The deleted product size.
     """
-    if not current_admin:
-        raise HTTPException(status_code=404, detail="Admin not found")
+    # if not current_admin:
+    #     raise HTTPException(status_code=404, detail="Admin not found")
 
     product_size = session.exec(select(ProductSize).where(ProductSize.id == product_size_id)).first()
     if not product_size:
@@ -214,7 +223,7 @@ async def delete_product_size(
     return product_size
 
 async def update_product_item_size(
-    current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
+    # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
     session: DB_SESSION,
     product_item_size_detail: ProductItemFormModel,
     product_size_id: int,
@@ -238,8 +247,8 @@ async def update_product_item_size(
     Returns:
         ProductItem: The updated product item.
     """
-    if not current_admin:
-        raise HTTPException(status_code=404, detail="Admin not found")
+    # if not current_admin:
+    #     raise HTTPException(status_code=404, detail="Admin not found")
 
     product_size = session.exec(select(ProductSize).where(ProductSize.id == product_size_id)).first()
     if not product_size:
