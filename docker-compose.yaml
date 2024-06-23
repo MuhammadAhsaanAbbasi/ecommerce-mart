@@ -168,7 +168,7 @@ services:
   #   ports:
   #     - "8083:8083" 
   #   volumes:
-  #     - ./product-service:/code  # Sync  local development directory with the container
+  #     - ./order-service:/code  # Sync  local development directory with the container
   #   depends_on:
   #     - kafka
   #     - postgres_db
@@ -200,7 +200,7 @@ services:
   #   ports:
   #     - "8085:8085" 
   #   volumes:
-  #     - ./product-service:/code  # Sync  local development directory with the container
+  #     - ./payment-service:/code  # Sync  local development directory with the container
   #   depends_on:
   #     - kafka
   #     - postgres_db
@@ -208,18 +208,18 @@ services:
 ####################################################################################################
 
 # # notification Service
-#   notification-service:
-#     build:
-#       context: ./notification-services
-#       dockerfile: Dockerfile
-#     restart: always
-#     ports:
-#       - "8086:8086" 
-#     volumes:
-#       - ./product-service:/code  # Sync  local development directory with the container
-#     depends_on:
-#       - kafka
-#       - postgres_db
+  notification-service:
+    build:
+      context: ./notification-services
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "8086:8086" 
+    volumes:
+      - ./notification-services:/code  # Sync  local development directory with the container
+    depends_on:
+      - kafka
+      - postgres_db
 
 ####################################################################################################
 

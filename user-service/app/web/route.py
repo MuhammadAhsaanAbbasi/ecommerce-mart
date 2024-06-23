@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends,  Form, Request, HTTPException, status
 from fastapi.responses import RedirectResponse, JSONResponse, Response
 from ..service.auth import login_for_access_token, google_user, verify_and_generate_tokens
 from ..utils.auth import get_current_active_user, tokens_service, oauth2_scheme, get_current_user, get_value_hash
-from ..setting import USER_GOOGLE_TOPIC, USER_OTP_TOPIC, USER_SIGNIN_TOPIC, USER_SIGNUP_TOPIC
+from ..setting import USER_SIGNUP_TOPIC
 from fastapi.security.oauth2 import OAuth2PasswordRequestForm
 from ..model.models import Users, Token, UserBase
 from ..kafka.user_producer import get_kafka_producer
@@ -150,9 +150,9 @@ async def sign_up(user: Users, session:DB_SESSION, aio_producer: Annotated[AIOKa
 
 
 @router.post("/signup/verify")
-def verify_sign_up_otp(user_otp: str, user: Users, session:DB_SESSION):
+async def verify_sign_up_otp(user_otp: str, user: Users, session:DB_SESSION, aio_producer: Annotated[AIOKafkaProducer, Depends(get_kafka_producer)]):
     # Verify OTP
-    tokens = verify_and_generate_tokens(user_otp, user, session)
+    tokens = await verify_and_generate_tokens(user_otp, user, session, aio_producer)
     return tokens
 
 

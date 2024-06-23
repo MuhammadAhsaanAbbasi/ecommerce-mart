@@ -1,23 +1,26 @@
 from ..utils.auth import authenticate_user, create_access_token, create_refresh_token, generate_and_send_otp, get_value_hash
 from app.service.kong_consumer import create_consumer_in_kong, create_jwt_credentials_in_kong 
-from ..setting import ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_MINUTES
+from ..setting import ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_MINUTES, USER_SIGNUP_EMAIL_TOPIC
 from fastapi.security.oauth2 import OAuth2PasswordRequestForm
+from aiokafka.errors import KafkaTimeoutError # type: ignore
+from aiokafka import AIOKafkaProducer # type: ignore
 from ..model.models import Users, Token, Admin, UserBase
+from ..kafka.user_producer import get_kafka_producer
 from fastapi import Depends, HTTPException, Form
 from fastapi.responses import RedirectResponse
-from typing import Annotated, Optional
-from sqlmodel import  Session, select
+from passlib.context import CryptContext
+from typing import Annotated
+from sqlmodel import select
 from ..core.db import DB_SESSION
 from datetime import timedelta
+from app import user_pb2
 import string
 import secrets
-
-from passlib.context import CryptContext
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Verify and Generate tokens
-def verify_and_generate_tokens(user_otp: str, user: Users, session: Session):
+async def verify_and_generate_tokens(user_otp: str, user: Users, session: DB_SESSION, aio_producer: Annotated[AIOKafkaProducer, Depends(get_kafka_producer)]):
     # Check if the user is an admin or a normal user
     # Verify OTP
     existing_user = session.exec(select(Users).where(Users.email == user.email)).first()
@@ -32,13 +35,27 @@ def verify_and_generate_tokens(user_otp: str, user: Users, session: Session):
     existing_user.is_verified = True
     session.commit()
 
-    # Return tokens
+        # Return tokens
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(existing_user, expires_delta=access_token_expires)
     refresh_token_expires = timedelta(minutes=float(REFRESH_TOKEN_EXPIRE_MINUTES))
     refresh_token = create_refresh_token(data={"email": user.email}, expires_delta=refresh_token_expires)
 
-    return Token(
+    try:
+        user_protobuf = user_pb2.EMAILUSER(username=user.username, email=user.email, imageUrl=user.imageUrl, is_active=user.is_active, is_verified=user.is_verified, role=user.role) # type: ignore
+        print(f"Todo Protobuf: {user_protobuf}") 
+
+        # Serialize the message to a byte string
+        serialized_user = user_protobuf.SerializeToString()
+        print(f"Serialized data: {serialized_user}")
+
+        # Produce message
+        await aio_producer.send_and_wait(topic=USER_SIGNUP_EMAIL_TOPIC, value=serialized_user)
+    except KafkaTimeoutError as e:
+        print(f"Error In Print message...! {e}")
+    finally:
+        await aio_producer.stop()
+        return Token(
         access_token=access_token,
         token_type="bearer",
         access_expires_in=int(access_token_expires.total_seconds()),

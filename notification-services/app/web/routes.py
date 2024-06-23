@@ -6,6 +6,6 @@ import json
 
 router = APIRouter(prefix="/api/v1")
 
-@router.get("/inventory")
+@router.get("/custom-notifications")
 async def inventory(session: DB_SESSION):
     return {"message" : "Inventory Services"}

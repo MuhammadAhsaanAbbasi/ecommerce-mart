@@ -5,7 +5,7 @@ from aiokafka.errors import KafkaConnectionError # type: ignore
 from fastapi import HTTPException
 from app.service.auth import create_user
 from app.model.models import Users
-from app.setting import KONG_TOPIC, USER_SIGNUP_TOPIC, USER_SIGNIN_TOPIC, USER_GOOGLE_TOPIC, USER_OTP_TOPIC
+from app.setting import USER_SIGNUP_TOPIC
 from app.kafka.user_producer import get_kafka_producer
 from app import user_pb2
 from sqlmodel import Session

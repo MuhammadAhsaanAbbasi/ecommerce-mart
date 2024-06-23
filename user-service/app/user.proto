@@ -9,3 +9,12 @@ message User {
     bool is_verified = 6;
     string role = 7;
 }
+
+message EmailUser {
+    string username = 1;
+    string email = 2;
+    string imageUrl = 3;
+    bool is_active = 4;
+    bool is_verified = 5;
+    string role = 6;
+}
