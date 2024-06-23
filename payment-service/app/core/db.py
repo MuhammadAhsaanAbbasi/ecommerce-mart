@@ -7,7 +7,7 @@ connectionstring = str(setting.DATABASE_URL).replace(
     "postgresql", "postgresql+psycopg2"
 )
 
-engine = create_engine(connectionstring, connect_args={"sslmode" : "require"}, pool_recycle=600)
+engine = create_engine(connectionstring, connect_args={"sslmode" : "require"}, pool_recycle=600, echo=True)
 
 def create_db_and_tables():
     SQLModel.metadata.create_all(engine)
