@@ -1,4 +1,5 @@
-from ..service.inventory_service import create_product_item, get_product_item, delete_product_item, create_product_size, get_product_size, delete_product_size, update_product_item_size
+from ..service.inventory_service import create_product_item, get_product_item, delete_product_item, update_product_item_image
+from ..service.product_size import create_product_size, get_product_size, delete_product_size, update_product_size
 from ..model.models import Product, ProductSize, ProductItem, ProductItemFormModel, SizeModel, Stock
 from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException
 from ..utils.admin_verify import get_current_active_admin_user
@@ -12,7 +13,7 @@ router = APIRouter(prefix="/api/v1/inventory")
 # Product Item Routes
 @router.post("/create_product_item")
 async def create_product_items(
-    # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
+    current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
     session: DB_SESSION,
     product_id: int,
     product_item_details: Annotated[str, Form(...)],
@@ -34,82 +35,87 @@ async def create_product_items(
         raise HTTPException(status_code=400, detail="Invalid JSON data provided for product item details")
 
     product_item_details_model = ProductItemFormModel(**product_item_details_dict)
-    # product_item = await create_product_item(current_admin, session, product_id, product_item_details_model, image)
-    product_item = await create_product_item(session, product_id, product_item_details_model, image)
+    product_item = await create_product_item(current_admin, session, product_id, product_item_details_model, image)
+    # product_item = await create_product_item(session, product_id, product_item_details_model, image)
     return {"message": "Create Product Item Successfully!", "data": product_item}
 
 @router.get("/product_item")
 async def get_product_items(
-                    # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
+                    current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
                     session: DB_SESSION,
                     product_id: int):
-    # product_items = await get_product_item(current_admin, session, product_id)
-    product_items = await get_product_item(session, product_id)
+    product_items = await get_product_item(current_admin, session, product_id)
+    # product_items = await get_product_item(session, product_id)
     return {"message" : "Item of Product Get Successfully!", "data" : product_items}
 
 @router.delete("/product_item")
 async def delete_product_items(
-                    #  current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
+                    current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
                     session: DB_SESSION,
                     product_item_id: int):
-    # product_item = await delete_product_item(current_admin, session, product_item_id)
-    product_item = await delete_product_item(session, product_item_id)
+    product_item = await delete_product_item(current_admin, session, product_item_id)
+    # product_item = await delete_product_item(session, product_item_id)
     return {"message" : "Item of Product Delete Successfully!", "data" : product_item}
 
 # Product Size 
 @router.post("/product_size")
 async def create_product_sizes(
-                        # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
+                        current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
                         session: DB_SESSION,
                         product_size_detail: SizeModel,
                         product_item_id: int
                         ):
-    # product_size = await create_product_size(current_admin, session, product_size_detail, product_item_id)
-    product_size = await create_product_size(session, product_size_detail, product_item_id)
+    product_size = await create_product_size(current_admin, session, product_size_detail, product_item_id)
+    # product_size = await create_product_size(session, product_size_detail, product_item_id)
     return {"message" : "Size of Product Create Successfully!", "data" : product_size }
 
 @router.get("/product_size")
 async def get_product_sizes(
-                        # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
+                        current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
                         session: DB_SESSION,
                         product_item_id: int):
-    # product_sizes = await get_product_size(current_admin, session, product_item_id)
-    product_sizes = await get_product_size(session, product_item_id)
+    product_sizes = await get_product_size(current_admin, session, product_item_id)
+    # product_sizes = await get_product_size(session, product_item_id)
     return {"message" : "Size of Product Get Successfully!", "data" : product_sizes }
 
 @router.delete("/product_size")
 async def delete_product_sizes(
-                        # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
+                        current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
                         session: DB_SESSION,
                         product_size_id: int):
-    # product_size = await delete_product_size(current_admin, session, product_size_id)
-    product_size = await delete_product_size(session, product_size_id)
+    product_size = await delete_product_size(current_admin, session, product_size_id)
+    # product_size = await delete_product_size(session, product_size_id)
     return {"message" : "Size of Product Delete Successfully!", "data" : product_size}
 
 # Update Product Item
-@router.put("/update_product_item")
-async def update_product_item_sizes(
-    # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
+@router.put("/update_product_size")
+async def update_product_sizes(
+    current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
     session: DB_SESSION,
-    product_item_details: Annotated[str, Form(...)],
+    product_size_detail: SizeModel,
+    product_size_id: int
+):
+    product_size = await update_product_size(current_admin, session, product_size_detail, product_size_id)
+    # product_size = await update_product_size(session, product_size_detail, product_size_id)
+    return {"message": "Size of Product Updated Successfully!", "data": product_size}
+
+@router.put("/product_item")
+async def update_product_item_route(
+    current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
+    session: DB_SESSION,
     product_item_id: int,
-    image: Optional[UploadFile] = File(None),
+    image: UploadFile = File(...)
 ):
     """
-    Update an existing product item in the database.
+    Update the image URL of an existing product item.
 
     Args:
-        product_item_details: Annotated[str, Form(...)] = {
-        "color": "string", 
-        "sizes": [ { "size": int, "price": int, "stock": int } ] 
-        }
-    """
-    try:
-        product_item_details_dict = json.loads(product_item_details)
-    except json.JSONDecodeError:
-        raise HTTPException(status_code=400, detail="Invalid JSON data provided for product item details")
+        product_item_id (int): The ID of the product item to be updated.
+        image (UploadFile): The new image to be uploaded for the product item.
 
-    product_item_details_model = ProductItemFormModel(**product_item_details_dict)
-    # product_item = await update_product_item_size(current_admin, session, product_item_details_model, product_item_id, image)
-    product_item = await update_product_item_size(session, product_item_details_model, product_item_id, image)
-    return {"message": "Update Product Item Successfully!", "data": product_item}
+    Returns:
+        dict: A success message and updated product item data.
+    """
+    product_item = await update_product_item_image(current_admin, session, product_item_id, image)
+    # product_item = await update_product_item_image(session, product_item_id, image)
+    return product_item

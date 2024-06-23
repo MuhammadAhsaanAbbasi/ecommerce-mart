@@ -109,7 +109,7 @@ class ProductItemFormModel(SQLModel):
     image_url (str): URL of the product item image.
     sizes (list[SizeModel]): List of size details.
     """
-    color: str
+    color: Optional[str] = Field(default=None)
     image_url: Optional[str] = Field(default=None)
     sizes: List[SizeModel]
 
