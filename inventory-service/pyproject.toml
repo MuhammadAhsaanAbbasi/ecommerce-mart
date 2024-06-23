@@ -21,6 +21,7 @@ types-python-jose = "^3.3.4.20240106"
 email-validator = "^2.1.1"
 resend = "^0.8.0"
 python-multipart = "^0.0.9"
+cloudinary = "^1.40.0"
 
 
 [build-system]
