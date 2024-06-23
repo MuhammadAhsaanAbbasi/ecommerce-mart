@@ -1,9 +1,9 @@
 from ..service.inventory_service import create_product_item, get_product_item, delete_product_item, update_product_item_image
 from ..service.product_size import create_product_size, get_product_size, delete_product_size, update_product_size
-from ..model.models import Product, ProductSize, ProductItem, ProductItemFormModel, SizeModel, Stock
+from ..model.models import ProductItem, ProductItemFormModel, SizeModel, Stock
 from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException
 from ..utils.admin_verify import get_current_active_admin_user
-from typing import Annotated, Optional, List
+from typing import Annotated
 from ..core.db import DB_SESSION
 from ..model.admin import Admin
 import json

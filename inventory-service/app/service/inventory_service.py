@@ -1,8 +1,8 @@
 from ..model.models import Product, ProductSize, ProductItem, ProductItemFormModel, SizeModel, Stock, Size
-from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException
+from fastapi import Depends, UploadFile, File, HTTPException
 from ..utils.admin_verify import get_current_active_admin_user
 from ..utils.auth import upload_image
-from typing import Annotated, Optional, List
+from typing import Annotated, List
 from ..model.admin import Admin
 from ..core.db import DB_SESSION
 from sqlmodel import select
