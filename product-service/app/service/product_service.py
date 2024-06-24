@@ -108,7 +108,7 @@ async def create_product(
                     color=item.color,
                     image_url=item.image_url,
                     sizes=[
-                        SizeModelProto(size=size.size, price=size.price, stock=size.stock)
+                        SizeModelProto(size=size.size, price=float(size.price), stock=size.stock.stock)
                         for size in item.sizes
                     ]
                 ) for item in product.product_item
@@ -125,6 +125,7 @@ async def create_product(
     except Exception as e:
         session.rollback()
         raise HTTPException(status_code=500, detail=f"Error Occurs while creating the product: {e}")
+
 
 # get all product details
 async def get_all_product_details(session: DB_SESSION):
