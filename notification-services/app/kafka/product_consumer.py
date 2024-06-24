@@ -5,7 +5,7 @@ from fastapi import HTTPException
 from app.utils.auth import email_signup
 from app.model.models import ProductBaseForm, ProductFormModel, ProductItemFormModel, SizeModel
 from app.setting import PRODUCT_TOPIC
-import product_pb2 # type: ignore
+from app import product_pb2 # type: ignore
 import resend # type: ignore
 import requests
 

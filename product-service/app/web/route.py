@@ -33,7 +33,7 @@ async def create_products(
         } ]
         }
     """
-    try:
+    try: 
         product_details_dict = json.loads(product_details)
     except json.JSONDecodeError:
         raise HTTPException(status_code=400, detail="Invalid JSON data provided for product details")
