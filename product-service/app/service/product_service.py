@@ -1,6 +1,6 @@
 from ..model.models import Product, ProductSize, ProductItem, Stock, ProductFormModel, ProductItemFormModel, SizeModel
+from ..product_pb2 import ProductFormModel as ProductFormModelProto, ProductItemFormModel as ProductItemFormModelProto, SizeModel as SizeModelProto # type: ignore
 from ..setting import CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET, CLOUDINARY_CLOUD, PRODUCT_TOPIC
-from .product_pb2 import ProductFormModel as ProductFormModelProto, ProductItemFormModel as ProductItemFormModelProto, SizeModel as SizeModelProto # type: ignore
 from ..utils.utils import search_algorithm_by_category, all_product_details
 from fastapi import Depends, HTTPException, UploadFile, File, Form
 from ..utils.admin_verify import get_current_active_admin_user
