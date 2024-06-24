@@ -99,10 +99,10 @@ async def create_product(
 
         # Convert product details to protobuf message
         product_proto = ProductFormModelProto(
-            product_name=product_details.product_name,
-            product_desc=product_details.product_desc,
-            category_id=int(product_details.category_id),
-            gender_id=int(product_details.gender_id),
+            product_name=product.product_name,
+            product_desc=product.product_desc,
+            category_id=int(product.category_id),
+            gender_id=int(product.gender_id),
             product_item=[
                 ProductItemFormModelProto(
                     color=item.color,
@@ -111,7 +111,7 @@ async def create_product(
                         SizeModelProto(size=size.size, price=size.price, stock=size.stock)
                         for size in item.sizes
                     ]
-                ) for item in product_details.product_item
+                ) for item in product.product_item
             ]
         )
 
