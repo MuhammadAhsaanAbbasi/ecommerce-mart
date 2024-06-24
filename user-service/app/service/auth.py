@@ -21,48 +21,62 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Verify and Generate tokens
 async def verify_and_generate_tokens(user_otp: str, user: Users, session: DB_SESSION, aio_producer: Annotated[AIOKafkaProducer, Depends(get_kafka_producer)]):
-    # Check if the user is an admin or a normal user
-    # Verify OTP
-    existing_user = session.exec(select(Users).where(Users.email == user.email)).first()
-    if not existing_user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    valid_otp = pwd_context.verify(user_otp, existing_user.otp)
-    if not valid_otp:
-        raise HTTPException(status_code=400, detail="Invalid OTP")
-
-    # If OTP is valid, update is_verified field
-    existing_user.is_verified = True
-    session.commit()
-
-        # Return tokens
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(existing_user, expires_delta=access_token_expires)
-    refresh_token_expires = timedelta(minutes=float(REFRESH_TOKEN_EXPIRE_MINUTES))
-    refresh_token = create_refresh_token(data={"email": user.email}, expires_delta=refresh_token_expires)
-
     try:
-        user_protobuf = user_pb2.EMAILUSER(username=user.username, email=user.email, imageUrl=user.imageUrl, is_active=user.is_active, is_verified=user.is_verified, role=user.role) # type: ignore
-        print(f"Todo Protobuf: {user_protobuf}") 
+        # Check if the user exists
+        existing_user = session.exec(select(Users).where(Users.email == user.email)).first()
+        if not existing_user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        # Verify OTP
+        valid_otp = pwd_context.verify(user_otp, existing_user.otp)
+        if not valid_otp:
+            raise HTTPException(status_code=400, detail="Invalid OTP")
+
+        # Update is_verified field
+        existing_user.is_verified = True
+        session.commit()
+
+        # Generate tokens
+        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = create_access_token(existing_user, expires_delta=access_token_expires)
+        refresh_token_expires = timedelta(minutes=float(REFRESH_TOKEN_EXPIRE_MINUTES))
+        refresh_token = create_refresh_token(data={"email": user.email}, expires_delta=refresh_token_expires)
+
+        # Create protobuf message
+        user_protobuf = user_pb2.EmailUser(
+            username=user.username,
+            email=user.email,
+            imageUrl=user.imageUrl,
+            is_active=user.is_active,
+            is_verified=user.is_verified,
+            role=user.role
+        ) # type: ignore
 
         # Serialize the message to a byte string
         serialized_user = user_protobuf.SerializeToString()
         print(f"Serialized data: {serialized_user}")
 
-        # Produce message
+        # Produce message to Kafka
         await aio_producer.send_and_wait(topic=USER_SIGNUP_EMAIL_TOPIC, value=serialized_user)
+        print("Message sent to Kafka topic")
+
     except KafkaTimeoutError as e:
-        print(f"Error In Print message...! {e}")
+        print(f"Error in sending message to Kafka: {e}")
+        raise HTTPException(status_code=500, detail="Error in sending message to Kafka")
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        raise HTTPException(status_code=500, detail="An unexpected error occurred")
     finally:
         await aio_producer.stop()
-        return Token(
-        access_token=access_token,
-        token_type="bearer",
-        access_expires_in=int(access_token_expires.total_seconds()),
-        refresh_token_expires_in=int(refresh_token_expires.total_seconds()),
-        refresh_token=refresh_token,
-    )
 
+    # Return tokens
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "access_expires_in": int(access_token_expires.total_seconds()),
+        "refresh_token_expires_in": int(refresh_token_expires.total_seconds()),
+        "refresh_token": refresh_token,
+    }
 
 #  Create user 
 def create_user(user: Users, session: DB_SESSION, isGoogle: bool = False):
@@ -94,7 +108,7 @@ def create_admin(user: Admin, session: DB_SESSION):
     user.is_verified=is_verified
     user.hashed_password = get_value_hash(user.hashed_password)
     session.add(user)
-    session.commit()
+    session.commit() 
     session.refresh(user)
 
     return {"message" : "Admin Created Successfully", "data": user}

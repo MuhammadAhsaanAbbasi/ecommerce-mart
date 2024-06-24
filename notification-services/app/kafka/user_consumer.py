@@ -1,15 +1,21 @@
+from app import user_pb2 # Ensure this is the correct path to your generated file
+
+# Other necessary imports
 import requests
 from typing import Annotated
 from aiokafka import AIOKafkaConsumer # type: ignore
 from aiokafka.errors import KafkaConnectionError # type: ignore
 from fastapi import HTTPException
-# from app.service.auth import create_user
-from app.model.models import EmailUser
+from app.utils.auth import email_signup
+from app.model.models import EmailUser as EmailUserModel
 from app.setting import USER_SIGNUP_EMAIL_TOPIC
 from app.kafka.user_producer import get_kafka_producer
-from app import user_pb2
 from sqlmodel import Session
 from ..core.db import DB_SESSION, engine
+import resend # type: ignore 
+
+# Set your API key
+resend.api_key = "re_K6Jhif6u_BVUGdYvzWjVjioaJR4Cpq28X"
 
 ###################################################################################################################
 async def get_kafka_consumer(topics: list[str]) -> AIOKafkaConsumer:
@@ -28,12 +34,29 @@ async def user_consumer():
     consumer_kafka = await get_kafka_consumer([USER_SIGNUP_EMAIL_TOPIC])
     try:
         async for msg in consumer_kafka:
-            new_user = user_pb2.User()
+            new_user = user_pb2.EmailUser()  # Correct instantiation
             new_user.ParseFromString(msg.value)
-            user_data = EmailUser(
-                username=new_user.username, email=new_user.email,imageUrl=new_user.imageUrl, 
-                is_active=new_user.is_active, is_verified=new_user.is_verified, role=new_user.role
+            user_data = EmailUserModel(
+                username=new_user.username,
+                email=new_user.email,
+                imageUrl=new_user.imageUrl,
+                is_active=new_user.is_active,
+                is_verified=new_user.is_verified,
+                role=new_user.role
             )
+            print(f"User Data: {user_data}")
+            # try:
+            #     # Send OTP to user
+            #     params = {
+            #         "from": "onboarding@resend.dev",
+            #         "to": [user_data.email],  # Use user email dynamically
+            #         "subject": "Congratulations! Email",
+            #         "html": f"<p>Congratulations on successfully verifying your email address. We are thrilled to have you with us!</p>",
+            #     }
+            #     response = resend.Emails.send(params)
+            #     print(response)
+            # except HTTPException as e:
+            #     print(e)
     except KafkaConnectionError as e:
         print(f"Error connecting to Kafka: {e}")
     finally:
