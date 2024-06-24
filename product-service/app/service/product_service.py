@@ -1,14 +1,18 @@
 from ..model.models import Product, ProductSize, ProductItem, Stock, ProductFormModel, ProductItemFormModel, SizeModel
-from ..setting import CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET, CLOUDINARY_CLOUD
+from ..setting import CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET, CLOUDINARY_CLOUD, PRODUCT_TOPIC
+from .product_pb2 import ProductFormModel as ProductFormModelProto, ProductItemFormModel as ProductItemFormModelProto, SizeModel as SizeModelProto # type: ignore
+from ..utils.utils import search_algorithm_by_category, all_product_details
 from fastapi import Depends, HTTPException, UploadFile, File, Form
 from ..utils.admin_verify import get_current_active_admin_user
-from ..utils.utils import search_algorithm_by_category, all_product_details
-from typing import Annotated, Optional, Union, List
+from ..model.category_model import Category, Gender
+from ..kafka.producer import get_kafka_producer
 from ..model.category_model import Category
+from aiokafka import AIOKafkaProducer # type: ignore
 import cloudinary.uploader # type: ignore
+import cloudinary # type: ignore
+from typing import Annotated, List
 from ..core.db import DB_SESSION
 from ..model.admin import Admin
-import cloudinary # type: ignore
 from sqlmodel import select
 from sqlalchemy import or_
 import json
@@ -23,34 +27,13 @@ cloudinary.config(
 
 # Create Product
 async def create_product(
-                current_admin: Annotated[Admin, Depends(get_current_active_admin_user)], 
-                session: DB_SESSION,
-                product_details:ProductFormModel,
-                images: List[UploadFile] = File(...),
-                ):
-    """
-    Create a new product in the database.
-
-    Args:
-        product_details (ProductFormModel): Details of the product to be created.
-        session (Annotated[Session, Depends(get_session)]): Database session for performing operations.
-        admin_verification (Annotated[Admin, Depends(get_current_active_admin_user)]): Admin verification dictionary obtained via dependency injection.
-        images (List[UploadFile]): List of images to be uploaded.
-
-    Raises:
-        HTTPException: If the user is not an admin.
-        HTTPException: If the number of images does not match the number of product items.
-        HTTPException: If product details are not provided.
-        HTTPException: If product Name are also exist.
-        HTTPException: If an error occurs during image upload.
-        HTTPException: If an error occurs while creating the product.
-
-    Returns:
-        Product: The created product.
-    """
+        current_admin: Annotated[Admin, Depends(get_current_active_admin_user)], 
+        aio_producer: Annotated[AIOKafkaProducer, Depends(get_kafka_producer)],
+        session: DB_SESSION,
+        product_details: ProductFormModel,
+        images: List[UploadFile] = File(...)):
     if not current_admin:
-        raise HTTPException(status_code=404,
-                            detail="Admin not found")
+        raise HTTPException(status_code=404, detail="Admin not found")
     
     if len(product_details.product_item) != len(images):
         raise HTTPException(status_code=202, detail="The number of images does not match the number of product items")
@@ -93,6 +76,30 @@ async def create_product(
         session.commit()
         session.refresh(product)
 
+        # Convert product details to protobuf message
+        product_proto = ProductFormModelProto(
+            product_name=product_details.product_name,
+            product_desc=product_details.product_desc,
+            category_id=int(product_details.category_id),
+            gender_id=int(product_details.gender_id),
+            product_item=[
+                ProductItemFormModelProto(
+                    color=item.color,
+                    image_url=item.image_url,
+                    sizes=[
+                        SizeModelProto(size=size.size, price=size.price, stock=size.stock)
+                        for size in item.sizes
+                    ]
+                ) for item in product_details.product_item
+            ]
+        )
+
+        # Serialize the message to a byte string
+        serialized_product = product_proto.SerializeToString()
+
+        # Produce message to Kafka
+        await aio_producer.send_and_wait(topic=PRODUCT_TOPIC, value=serialized_product)
+
         return product
     except Exception as e:
         session.rollback()
@@ -113,6 +120,13 @@ async def get_specific_product_details(product_id: int, session: DB_SESSION):
     
     if not product:
         return None
+
+    # Fetch category and gender names
+    category = session.exec(select(Category).where(Category.id == product.category_id)).first()
+    gender = session.exec(select(Gender).where(Gender.id == product.gender_id)).first()
+
+    category_name = category.category_name if category else product.category_id
+    gender_name = gender.gender_name if gender else product.gender_id
 
     product_items = session.exec(select(ProductItem).where(ProductItem.product_id == product.id)).all()
     product_items_table: List[ProductItemFormModel] = []
@@ -141,8 +155,8 @@ async def get_specific_product_details(product_id: int, session: DB_SESSION):
     product_details = ProductFormModel(
         product_name=product.product_name,
         product_desc=product.product_desc,
-        category_id=product.category_id,
-        gender_id=product.gender_id,
+        category_id=category_name,
+        gender_id=gender_name,
         product_item=product_items_table
     )
 

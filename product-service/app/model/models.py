@@ -1,5 +1,5 @@
 from sqlmodel import SQLModel, Field,Relationship
-from typing import Optional, List, Literal
+from typing import Optional, List, Literal, Union
 import datetime
 from pydantic import BaseModel, EmailStr
 from .base import BaseIdModel
@@ -95,7 +95,21 @@ class ProductItemFormModel(SQLModel):
     image_url: Optional[str] = Field(default=None)
     sizes: List[SizeModel]
 
-class ProductFormModel(ProductBase):
+class ProductBaseForm(SQLModel):
+    """
+    Base model for Product, used for shared attributes.
+
+    Attributes:
+        product_name (str): Name of the product.
+        description (str): Description of the product.
+    """
+    product_name: str
+    product_desc: Optional[str]
+    category_id: Union[int , str]
+    gender_id: Union[int , str]
+
+
+class ProductFormModel(ProductBaseForm):
     """
     Model for representing product details in forms.
 

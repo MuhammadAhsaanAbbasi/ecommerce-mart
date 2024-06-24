@@ -1,4 +1,4 @@
-from ..setting import ALGORITHM, SECRET_KEY, ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_MINUTES
+from ..setting import ALGORITHM, SECRET_KEY, ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_MINUTES, RESEND_API_KEY
 from app.service.kong_consumer import create_consumer_in_kong, create_jwt_credentials_in_kong 
 from ..model.models import Users, TokenData, Admin, UserBase
 from fastapi.security.oauth2 import OAuth2PasswordBearer
@@ -14,8 +14,7 @@ import numpy as np
 import json
 
 # Set your API key
-resend.api_key = "re_K6Jhif6u_BVUGdYvzWjVjioaJR4Cpq28X"
-
+resend.api_key = RESEND_API_KEY
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 

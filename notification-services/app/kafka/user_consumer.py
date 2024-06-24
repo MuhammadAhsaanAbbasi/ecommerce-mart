@@ -9,13 +9,9 @@ from fastapi import HTTPException
 from app.utils.auth import email_signup
 from app.model.models import EmailUser as EmailUserModel
 from app.setting import USER_SIGNUP_EMAIL_TOPIC
-from app.kafka.user_producer import get_kafka_producer
 from sqlmodel import Session
 from ..core.db import DB_SESSION, engine
 import resend # type: ignore 
-
-# Set your API key
-resend.api_key = "re_K6Jhif6u_BVUGdYvzWjVjioaJR4Cpq28X"
 
 ###################################################################################################################
 async def get_kafka_consumer(topics: list[str]) -> AIOKafkaConsumer:

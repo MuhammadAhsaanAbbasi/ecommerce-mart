@@ -14,3 +14,5 @@ ALGORITHM = config("ALGORITHM", cast=str)
 CLOUDINARY_CLOUD = config("CLOUDINARY_CLOUD", cast=str)
 CLOUDINARY_API_KEY = config("CLOUDINARY_API_KEY", cast=str)
 CLOUDINARY_API_SECRET = config("CLOUDINARY_API_SECRET", cast=str)
+
+PRODUCT_TOPIC = config("PRODUCT_TOPIC", cast=str)
