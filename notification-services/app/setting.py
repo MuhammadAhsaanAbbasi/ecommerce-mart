@@ -14,3 +14,5 @@ ALGORITHM = config("ALGORITHM", cast=str)
 USER_SIGNUP_EMAIL_TOPIC = config("USER_SIGNUP_EMAIL_TOPIC", cast=str)
 
 PRODUCT_TOPIC = config("PRODUCT_TOPIC", cast=str)
+
+INVENTORY_TOPIC = config("INVENTORY_TOPIC", cast=str)

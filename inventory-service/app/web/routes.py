@@ -2,6 +2,7 @@ from ..service.inventory_service import create_product_item, get_product_item, d
 from ..service.product_size import create_product_size, get_product_size, delete_product_size, update_product_size
 from ..model.models import ProductItem, ProductItemFormModel, SizeModel, Stock
 from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException
+from ..kafka.producer import get_kafka_producer, AIOKafkaProducer
 from ..utils.admin_verify import get_current_active_admin_user
 from typing import Annotated
 from ..core.db import DB_SESSION
@@ -13,7 +14,8 @@ router = APIRouter(prefix="/api/v1/inventory")
 # Product Item Routes
 @router.post("/create_product_item")
 async def create_product_items(
-    current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
+    # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
+    aio_kafka: Annotated[AIOKafkaProducer, Depends(get_kafka_producer)],
     session: DB_SESSION,
     product_id: int,
     product_item_details: Annotated[str, Form(...)],
@@ -35,8 +37,8 @@ async def create_product_items(
         raise HTTPException(status_code=400, detail="Invalid JSON data provided for product item details")
 
     product_item_details_model = ProductItemFormModel(**product_item_details_dict)
-    product_item = await create_product_item(current_admin, session, product_id, product_item_details_model, image)
-    # product_item = await create_product_item(session, product_id, product_item_details_model, image)
+    # product_item = await create_product_item(current_admin, aio_kafka, session, product_id, product_item_details_model, image)
+    product_item = await create_product_item(aio_kafka, session, product_id, product_item_details_model, image)
     return {"message": "Create Product Item Successfully!", "data": product_item}
 
 @router.get("/product_item")
