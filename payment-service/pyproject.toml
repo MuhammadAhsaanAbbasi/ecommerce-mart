@@ -17,6 +17,10 @@ python-dotenv = "^1.0.1"
 alembic = "^1.13.1"
 psycopg2-binary = "^2.9.9"
 resend = "^0.8.0"
+types-requests = "^2.32.0.20240602"
+protobuf = "^5.27.1"
+aiokafka = "^0.10.0"
+email-validator = "^2.1.1"
 
 [build-system]
 requires = ["poetry-core"]

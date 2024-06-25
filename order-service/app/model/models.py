@@ -13,6 +13,9 @@ class UserBase(SQLModel):
     is_verified: bool = Field(default=False)
     otp: Optional[str] = Field(default=None, index=True)
 
+# User Model
+class User(UserBase, BaseIdModel, table=True):
+    role: str = Field(default="user")
 
 # Admin Model
 class Admin(UserBase, BaseIdModel, table=True):
