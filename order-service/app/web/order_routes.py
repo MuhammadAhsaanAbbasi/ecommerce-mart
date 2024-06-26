@@ -4,8 +4,8 @@ from ..core.db import DB_SESSION
 from sqlmodel import Session
 import json
 
-router = APIRouter(prefix="/api/v1")
+order_router = APIRouter(prefix="/api/v1")
 
-@router.get("/order-service")
+@order_router.get("/order-service")
 async def inventory(session: DB_SESSION):
     return {"message" : "Order Services"}

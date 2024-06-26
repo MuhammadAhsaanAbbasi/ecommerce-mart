@@ -6,6 +6,7 @@ from .web.route import router
 from .web.csg_route import csg_router
 from .core.db import create_db_and_tables
 
+
 @asynccontextmanager 
 async def life_span(app: FastAPI):
     create_db_and_tables()
