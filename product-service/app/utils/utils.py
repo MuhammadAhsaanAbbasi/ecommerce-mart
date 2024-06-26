@@ -67,7 +67,7 @@ async def all_product_details(products: Sequence[Product], session: DB_SESSION):
                 size_stock = stock.stock if stock else 0
                 size_model = SizeModel(
                     size=size.size,
-                    price=float(size.price),
+                    price=size.price,
                     stock=size_stock
                 )
                 product_sizes_table.append(size_model)

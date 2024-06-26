@@ -2,7 +2,7 @@ from ..model.models import ProductSize, ProductItem, ProductItemFormModel, SizeM
 from ..utils.admin_verify import get_current_active_admin_user
 from fastapi import Depends, HTTPException
 from ..core.db import DB_SESSION
-from ..model.admin import Admin
+from ..model.authentication import Admin
 from typing import Annotated
 from sqlmodel import select
 

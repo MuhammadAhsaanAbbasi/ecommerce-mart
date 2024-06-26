@@ -21,7 +21,7 @@ class SizeModel(SQLModel):
         stock (int): Stock level of the product item.
     """
     size: int
-    price: float
+    price: int
     stock: int
 
 class ProductItemFormModel(SQLModel):

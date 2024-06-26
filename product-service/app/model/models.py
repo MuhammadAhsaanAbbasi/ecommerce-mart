@@ -43,7 +43,7 @@ class ProductSize(BaseIdModel, table=True):
     product_name, product_desc, category_id, gender_id (required): inherited from ProductBase]
     """
     size: int = Field(foreign_key="size.id")
-    price: str = Field(ge=0)
+    price: int = Field(ge=0)
     stock: "Stock" = Relationship(back_populates="product_size")
     product_item_id: int = Field(foreign_key="productitem.id")
     product_item: Optional["ProductItem"] = Relationship(back_populates="sizes")
@@ -79,7 +79,7 @@ class SizeModel(SQLModel):
         stock (int): Stock level of the product item.
     """
     size: int
-    price: float
+    price: int
     stock: int
 
 class ProductItemFormModel(SQLModel):

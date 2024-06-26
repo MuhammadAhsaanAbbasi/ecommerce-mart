@@ -5,7 +5,7 @@ from ..utils.admin_verify import get_current_active_admin_user
 from ..kafka.producer import get_kafka_producer, AIOKafkaProducer
 from ..utils.auth import upload_image
 from typing import Annotated, List
-from ..model.admin import Admin
+from ..model.authentication import Admin
 from ..core.db import DB_SESSION
 from sqlmodel import select
 # from app import inventory_pb2
@@ -74,7 +74,7 @@ async def create_product_item(
             color=product_item.color if product_item.color else "",
             image_url=product_item.image_url if product_item.image_url else "",
             sizes=[
-                SizeModelProto(size=size.size, price=float(size.price), stock=size.stock.stock)
+                SizeModelProto(size=size.size, price=size.price, stock=size.stock.stock)
                 for size in product_item.sizes
             ]
         )

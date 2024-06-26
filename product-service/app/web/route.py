@@ -6,7 +6,7 @@ from aiokafka import AIOKafkaProducer # type: ignore
 from ..kafka.producer import get_kafka_producer
 from typing import Annotated, Optional, List
 from ..core.db import DB_SESSION
-from ..model.admin import Admin
+from ..model.authentication import Admin
 from sqlmodel import Session
 import json
 

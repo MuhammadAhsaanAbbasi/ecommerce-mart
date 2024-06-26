@@ -8,11 +8,11 @@ from ..model.category_model import Category, Gender
 from ..kafka.producer import get_kafka_producer
 from ..model.category_model import Category
 from aiokafka import AIOKafkaProducer # type: ignore
+from ..model.authentication import Admin
 import cloudinary.uploader # type: ignore
 import cloudinary # type: ignore
 from typing import Annotated, List
 from ..core.db import DB_SESSION
-from ..model.admin import Admin
 from sqlmodel import select
 from sqlalchemy import or_
 import json
@@ -108,7 +108,7 @@ async def create_product(
                     color=item.color,
                     image_url=item.image_url,
                     sizes=[
-                        SizeModelProto(size=size.size, price=float(size.price), stock=size.stock.stock)
+                        SizeModelProto(size=size.size, price=size.price, stock=size.stock.stock)
                         for size in item.sizes
                     ]
                 ) for item in product.product_item
@@ -162,7 +162,7 @@ async def get_specific_product_details(product_id: int, session: DB_SESSION):
             size_stock = stock.stock if stock else 0
             size_model = SizeModel(
                 size=size.size,
-                price=float(size.price),
+                price=size.price,
                 stock=size_stock
             )
             product_sizes_table.append(size_model)

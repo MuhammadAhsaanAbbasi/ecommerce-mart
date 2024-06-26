@@ -1,7 +1,7 @@
 from sqlmodel import SQLModel, Field,Relationship
 from typing import Optional
 import datetime
-from .admin import UserBase
+from .authentication import UserBase
 from .base import BaseIdModel
 
 

@@ -6,7 +6,7 @@ from ..kafka.producer import get_kafka_producer, AIOKafkaProducer
 from ..utils.admin_verify import get_current_active_admin_user
 from typing import Annotated
 from ..core.db import DB_SESSION
-from ..model.admin import Admin
+from ..model.authentication import Admin
 import json
 
 router = APIRouter(prefix="/api/v1/inventory")
