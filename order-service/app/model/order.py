@@ -13,8 +13,8 @@ class OrderItemBase(SQLModel):
 
 
 class OrderBase(BaseIdModel):
-    user_id: int = Field(foreign_key="users.id")
     order_address: str = Field(max_length=60)
+    phone_number: str = Field(max_length=15)
 
 
 class OrderModel(OrderBase):
@@ -23,18 +23,22 @@ class OrderModel(OrderBase):
 
 class Order(OrderBase, table=True):
     total_price: float
-    advance_price: Optional[float]
     order_status: str = Field(default="pending")
     order_date: Optional[datetime.datetime] = Field(
         sa_column_kwargs={"server_default": "CURRENT_TIMESTAMP"},
         default_factory=datetime.datetime.now,
     )
+    user_id: int = Field(foreign_key="users.id")
     order_items: list["OrderItem"] = Relationship(back_populates="order")
 
 
 class OrderItem(OrderItemBase, BaseIdModel, table=True):
     order_id: int = Field(foreign_key="order.order_id")
     order: Optional[Order] = Relationship(back_populates="items")
+
+class OrderUpdateStatus(SQLModel):
+    order_id: int
+    status: str
 
 # Product Base Model
 class ProductBase(SQLModel):

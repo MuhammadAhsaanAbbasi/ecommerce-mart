@@ -1,5 +1,5 @@
 from ..setting import ALGORITHM, SECRET_KEY
-from ..model.admin import Token, TokenData, User
+from ..model.authentication import Token, TokenData, Users
 from fastapi.security.oauth2 import OAuth2PasswordBearer
 from fastapi import HTTPException, Depends, status
 from jose import jwt, JWTError
@@ -27,14 +27,14 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], sessio
         token_data = TokenData(email=email)
     except JWTError:
         raise credentials_exception
-    user = get_user(User, email=token_data.email, session=session)
+    user = get_user(Users, email=token_data.email, session=session)
     if user is None:
         raise credentials_exception
     return user
 
 # Get Current Active & Verify User
-async def get_current_active_user(current_user: Annotated[User, Depends(get_current_user)]):
-    if current_user.is_verified:
+async def get_current_active_user(current_user: Annotated[Users, Depends(get_current_user)]):
+    if current_user.is_active:
         print(current_user.id)
         return current_user
     else:

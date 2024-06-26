@@ -1,5 +1,5 @@
 from ..setting import ALGORITHM, SECRET_KEY
-from ..model.admin import Token, TokenData, Admin
+from ..model.authentication import Token, TokenData, Admin
 from fastapi.security.oauth2 import OAuth2PasswordBearer
 from fastapi import HTTPException, Depends, status
 from jose import jwt, JWTError

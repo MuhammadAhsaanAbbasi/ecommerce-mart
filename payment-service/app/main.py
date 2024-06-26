@@ -14,7 +14,7 @@ async def life_span(app: FastAPI):
     yield
 
 app = FastAPI(
-    title="Notification Service",
+    title="Payment Service",
     description="This is a Notification Service",
     version="1.0.0",
     terms_of_service="https://caxgpt.vercel.app/terms/",
