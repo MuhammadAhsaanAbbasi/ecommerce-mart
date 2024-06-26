@@ -6,9 +6,9 @@ class CartBase(SQLModel):
     user_id: int = Field(foreign_key="users.id")
 
 class CartItemBase(SQLModel):
-    color: str
-    size: str
-    product_id: int = Field(default=None, foreign_key="product.id")
+    quantity: int = Field(default=1)
+    product_item_id: int = Field(default=None, foreign_key="productitem.id")
+    product_size_id: int = Field(default=None, foreign_key="productsize.id")
 
 class CartModel(CartBase, CartItemBase):
     pass

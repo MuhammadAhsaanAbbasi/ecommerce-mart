@@ -154,37 +154,42 @@ async def get_specific_product_details(product_id: int, session: DB_SESSION):
     product_items_table: List[ProductItemFormModel] = []
 
     for item in product_items:
-        sizes = session.exec(select(ProductSize).where(ProductSize.product_item_id == item.id)).all()
-        product_sizes_table: List[SizeModel] = []
+            sizes = session.exec(select(ProductSize).where(ProductSize.product_item_id == item.id)).all()
+            product_sizes_table: List[SizeModel] = []
 
-        for size in sizes:
-            stock = session.exec(select(Stock).where(Stock.product_size_id == size.id)).first()
-            size_stock = stock.stock if stock else 0
-            size_model = SizeModel(
-                size=size.size,
-                price=size.price,
-                stock=size_stock
-            )
-            product_sizes_table.append(size_model)
-        
-        product_item_model = ProductItemFormModel(
-            color=item.color,
-            image_url=item.image_url,
-            sizes=product_sizes_table
-        )
-        product_items_table.append(product_item_model)
+            for size in sizes:
+                stock = session.exec(select(Stock).where(Stock.product_size_id == size.id)).first()
+                if stock and stock.stock > 0:
+                    size_model = SizeModel(
+                        id=size.id,
+                        size=size.size,
+                        price=size.price,
+                        stock=stock.stock
+                    )
+                    product_sizes_table.append(size_model)
+            
+            if product_sizes_table:
+                product_item_model = ProductItemFormModel(
+                    id=item.id,
+                    color=item.color,
+                    image_url=item.image_url,
+                    sizes=product_sizes_table
+                )
+                product_items_table.append(product_item_model)
 
     product_details = ProductFormModel(
-        product_name=product.product_name,
-        product_desc=product.product_desc,
-        category_id=category_name,
-        gender_id=gender_name,
-        product_item=product_items_table
-    )
+            id=product.id,
+            product_name=product.product_name,
+            product_desc=product.product_desc,
+            category_id=category_name,
+            gender_id=gender_name,
+            product_item=product_items_table
+        )
 
     print(f"product_details: {product_details}")
 
     return {"data": product_details}
+
 
 
 # search_product_results
