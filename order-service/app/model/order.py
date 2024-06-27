@@ -1,5 +1,6 @@
 from sqlmodel import SQLModel, Field, Relationship
 from typing import List, Literal, Optional
+from enum import Enum
 from datetime import timezone, datetime
 from .base import BaseIdModel
 from sqlalchemy import func
@@ -17,14 +18,18 @@ class OrderBase(SQLModel):
     phone_number: str 
 
 
-
 class OrderModel(OrderBase):
     items: List[OrderItemBase]
+
+class OrderStatus(str, Enum):
+    processing = "Processing"
+    shipping = "Shipping"
+    delivered = "Delivered"
 
 
 class Order(BaseIdModel, OrderBase, table=True):
     total_price: float
-    order_status: str = Field(default="pending")
+    order_status: Optional[OrderStatus] = Field(default="Processing")
     order_date: datetime | None = Field(default=datetime.now(timezone.utc))
     user_id: int = Field(foreign_key="users.id")
     order_items: List["OrderItem"] = Relationship(back_populates="order")

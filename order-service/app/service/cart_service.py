@@ -126,18 +126,79 @@ async def get_all_carts(
 
         cart_items_details.append(cart_item_detail)
 
-    return {"data": cart_items_details}
+    return cart_items_details
 
 async def update_carts(
-                        current_user: Annotated[Users, Depends(get_current_active_user)],
-                        session: DB_SESSION,
-                        cart_details: CartUpdateItem
-                    ):
-    return {"message" : "Cart has been Updated Successfully!"}
+    current_user: Annotated[Users, Depends(get_current_active_user)],
+    session: DB_SESSION,
+    cart_details: CartUpdateItem
+):
+    """
+    summary:
+    User can update the quantity of items in the cart
+
+    Args:
+        current_user (Annotated[Users, get_current_active_user]): The current active user
+        session (Session): Database session
+        cart_details (CartUpdateItem): Details of the cart item to update
+
+    Returns:
+        dict: Message indicating the result of the operation
+    """
+
+    user_cart = session.exec(select(Cart).where(Cart.user_id == current_user.id)).first()
+    if not user_cart:
+        raise HTTPException(status_code=404, detail="Cart not found")
+
+    # Initialize a flag to check if the cart item is found
+    cart_item_found = False
+
+    for cart_item in user_cart.cart_items:
+        if cart_item.id == cart_details.cart_item_id:
+            cart_item.quantity = cart_details.quantity
+            cart_item_found = True
+            session.commit()
+            break
+
+    if not cart_item_found:
+        raise HTTPException(status_code=404, detail="Cart item not found")
+
+    return {"message": "Cart has been updated successfully!"}
+
 
 async def delete_carts(
-                        current_user: Annotated[Users, Depends(get_current_active_user)],
-                        session: DB_SESSION,
-                        cart_item_id: int
-                    ):
-    return {"message" : "Cart has been Deleted Successfully!"}
+    current_user: Annotated[Users, Depends(get_current_active_user)],
+    session: DB_SESSION,
+    cart_item_id: int
+):
+    """
+    summary:
+    User can delete items from the cart
+
+    Args:
+        current_user (Annotated[Users, get_current_active_user]): The current active user
+        session (Session): Database session
+        cart_item_id (int): ID of the cart item to delete
+
+    Returns:
+        dict: Message indicating the result of the operation
+    """
+    
+    user_cart = session.exec(select(Cart).where(Cart.user_id == current_user.id)).first()
+    if not user_cart:
+        raise HTTPException(status_code=404, detail="Cart not found")
+
+    # Check if the cart item exists
+    cart_item_found = False
+
+    for cart_item in user_cart.cart_items:
+        if cart_item.id == cart_item_id:
+            session.delete(cart_item)
+            cart_item_found = True
+            session.commit()
+            break
+
+    if not cart_item_found:
+        raise HTTPException(status_code=404, detail="Cart item not found")
+
+    return {"message": "Cart item has been deleted successfully!"}
