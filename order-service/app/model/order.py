@@ -1,7 +1,6 @@
 from sqlmodel import SQLModel, Field, Relationship
 from typing import List, Literal, Optional
 from datetime import timezone, datetime
-# import datetime
 from .base import BaseIdModel
 from sqlalchemy import func
 # import datetime

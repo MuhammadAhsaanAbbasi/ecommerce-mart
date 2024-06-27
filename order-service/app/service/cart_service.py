@@ -7,7 +7,6 @@ from typing import Annotated, Optional, List
 from ..core.db import DB_SESSION
 from sqlmodel import select
 import json
-import random as r
 
 async def create_carts(
     current_user: Annotated[Users, Depends(get_current_active_user)],
