@@ -1,4 +1,4 @@
-from ..model.order import OrderModel, Order, OrderItem, Product, ProductItem, ProductSize, Stock
+from ..model.order import OrderModel, Order, OrderItem
 from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException
 from ..utils.admin_verify import get_current_active_admin_user
 from ..utils.user_verify import get_current_active_user

@@ -1,10 +1,10 @@
 from ..service.cart_service import create_carts, get_all_carts, update_carts, delete_carts
 from ..model.cart import CartItemModel, Cart, CartItem, CartUpdateItem
 from ..utils.user_verify import get_current_active_user
-from ..model.authentication import Users
 from typing import Annotated, Optional, List
-from ..core.db import DB_SESSION
+from ..model.authentication import Users
 from fastapi import APIRouter, Depends
+from ..core.db import DB_SESSION
 import json
 
 router = APIRouter(prefix="/api/v1")
@@ -13,7 +13,7 @@ router = APIRouter(prefix="/api/v1")
 @router.post("/create-cart")
 async def create_cart(
                         current_user: Annotated[Users, Depends(get_current_active_user)],
-                        session: DB_SESSION, 
+                        session: DB_SESSION,
                         cart_details: CartItemModel
                     ):
     

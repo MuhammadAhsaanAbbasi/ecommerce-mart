@@ -39,7 +39,7 @@ app = FastAPI(
     docs_url="/docs"
 )
 
-# SessionMiddleware must be installed to access request.session
+# SessionMiddleware must be installed to access request.session 
 app.add_middleware(
     SessionMiddleware, secret_key="!secret") 
 
