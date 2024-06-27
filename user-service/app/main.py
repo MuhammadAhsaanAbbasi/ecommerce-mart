@@ -41,7 +41,7 @@ app = FastAPI(
 
 # SessionMiddleware must be installed to access request.session
 app.add_middleware(
-    SessionMiddleware, secret_key="!secret")
+    SessionMiddleware, secret_key="!secret") 
 
 app.add_middleware(
     CORSMiddleware,
@@ -51,7 +51,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.router.include_router(router=router, tags=["User Authorize & Authentication"])
+app.router.include_router(router=router, tags=["User Authorize  &  Authentication"])
 app.router.include_router(router=admin_router, tags=["Admin Authorize & Authentication"])
 
 @app.get("/")

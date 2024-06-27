@@ -1,40 +1,39 @@
 from sqlmodel import SQLModel, Field, Relationship
 from typing import List, Literal, Optional
-from datetime import timezone
-import datetime
-from .authentication import UserBase
+from datetime import timezone, datetime
+# import datetime
 from .base import BaseIdModel
+from sqlalchemy import func
+# import datetime
 
 class OrderItemBase(SQLModel):
-    product_id: int = Field(foreign_key="product.product_id")
-    product_item_id: int = Field(foreign_key="productitem.item_id")
-    product_size_id: int = Field(foreign_key="productsize.product_size_id")
+    product_id: int = Field(foreign_key="product.id")
+    product_item_id: int = Field(foreign_key="productitem.id")
+    product_size_id: int = Field(foreign_key="productsize.id")
     quantity: int
 
 
-class OrderBase(BaseIdModel):
-    order_address: str = Field(max_length=60)
-    phone_number: str = Field(max_length=15)
+class OrderBase(SQLModel):
+    order_address: str
+    phone_number: str 
+
 
 
 class OrderModel(OrderBase):
     items: List[OrderItemBase]
 
 
-class Order(OrderBase, table=True):
+class Order(BaseIdModel, OrderBase, table=True):
     total_price: float
     order_status: str = Field(default="pending")
-    order_date: Optional[datetime.datetime] = Field(
-        sa_column_kwargs={"server_default": "CURRENT_TIMESTAMP"},
-        default_factory=datetime.datetime.now,
-    )
+    order_date: datetime | None = Field(default=datetime.now(timezone.utc))
     user_id: int = Field(foreign_key="users.id")
-    order_items: list["OrderItem"] = Relationship(back_populates="order")
+    order_items: List["OrderItem"] = Relationship(back_populates="order")
 
 
-class OrderItem(OrderItemBase, BaseIdModel, table=True):
-    order_id: int = Field(foreign_key="order.order_id")
-    order: Optional[Order] = Relationship(back_populates="items")
+class OrderItem(BaseIdModel, OrderItemBase, table=True):
+    order_id: int = Field(foreign_key="order.id")
+    order: Optional["Order"] = Relationship(back_populates="order_items")
 
 class OrderUpdateStatus(SQLModel):
     order_id: int

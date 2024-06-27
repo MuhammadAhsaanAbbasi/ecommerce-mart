@@ -5,13 +5,14 @@ from contextlib import asynccontextmanager
 from .web.cart_routes  import router
 from .web.order_routes  import order_router
 from .core.db import create_db_and_tables
-# from .model.models import Users
+from .model.order import *
+from .model.cart import *
 
 
 @asynccontextmanager
 async def life_span(app: FastAPI):
     print("Hello World..!!!")
-    # create_db_and_tables()
+    create_db_and_tables()
     yield
 
 app = FastAPI(
