@@ -12,10 +12,15 @@ class OrderItemBase(SQLModel):
     product_size_id: int = Field(foreign_key="productsize.id")
     quantity: int
 
+class OrderPayment(str, Enum):
+    cash_on_delivery = "Cash On Delivery" 
+    online_payment = "Online Payment"
 
 class OrderBase(SQLModel):
     order_address: str
     phone_number: str 
+    total_price: float
+    order_payment: OrderPayment = Field(default="Cash On Delivery")
 
 
 class OrderModel(OrderBase):
@@ -26,11 +31,11 @@ class OrderStatus(str, Enum):
     shipping = "Shipping"
     delivered = "Delivered"
 
+
 def calculate_delivery_date():
     return datetime.now(timezone.utc) + timedelta(days=7)
 
 class Order(BaseIdModel, OrderBase, table=True):
-    total_price: float
     tracking_id: Optional[str] = Field(default=uuid.uuid4().hex)
     order_status: Optional[OrderStatus] = Field(default="Processing")
     delivery_date: datetime | None = Field(default_factory=calculate_delivery_date)

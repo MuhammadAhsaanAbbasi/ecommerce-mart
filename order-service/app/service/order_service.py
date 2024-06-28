@@ -11,7 +11,6 @@ import json
 
 
 async def create_orders(
-                    total_price: float,
                     order_details: OrderModel,
                     session: DB_SESSION, 
                     current_user: Annotated[Users, Depends(get_current_active_user)],
