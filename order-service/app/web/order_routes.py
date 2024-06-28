@@ -12,16 +12,17 @@ import json
 order_router = APIRouter(prefix="/api/v1")
 
 # Create Order
-@order_router.get("/create_order")
+@order_router.post("/create_order")
 async def create_order(
-                    current_user: Annotated[Users, Depends(get_current_active_user)],
-                    session: DB_SESSION,
+                    total_price: float,
                     order_details: OrderModel,
+                    session: DB_SESSION, 
+                    current_user: Annotated[Users, Depends(get_current_active_user)],
                     ):
-    order = await create_orders(current_user, session, order_details)
+    order = await create_orders(total_price, order_details, session, current_user)
     return order
 
-# Get Order By User
+# Get Order By User 
 @order_router.get("/get_order_by_user")
 async def get_order_by_user(
                     current_user: Annotated[Users, Depends(get_current_active_user)],

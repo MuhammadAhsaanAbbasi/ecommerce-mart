@@ -11,10 +11,12 @@ import json
 
 
 async def create_orders(
-                    current_user: Annotated[Users, Depends(get_current_active_user)],
-                    session: DB_SESSION,
+                    total_price: float,
                     order_details: OrderModel,
+                    session: DB_SESSION, 
+                    current_user: Annotated[Users, Depends(get_current_active_user)],
                     ):
+    
     return {'message' : "Order Created Successfully!"}
 
 
