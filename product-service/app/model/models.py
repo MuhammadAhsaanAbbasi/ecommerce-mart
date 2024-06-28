@@ -79,7 +79,7 @@ class SizeModel(SQLModel):
         stock (int): Stock level of the product item.
     """
     id: Optional[int] = Field(default=None)
-    size: int
+    size: int | str
     price: int
     stock: int
 

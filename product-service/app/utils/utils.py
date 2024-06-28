@@ -3,7 +3,7 @@ from ..model.category_model import Category, Size, Gender
 from typing import List, Sequence
 from sqlmodel import SQLModel, select, Session
 from ..core.db import DB_SESSION
-from fastapi import Depends
+from fastapi import HTTPException
 
 # Create Categories
 async def create_categories(category_input: Category, session: DB_SESSION):
@@ -59,16 +59,19 @@ async def all_product_details(products: Sequence[Product], session: DB_SESSION):
         product_items_table: List[ProductItemFormModel] = []
 
         for item in product_items:
-            sizes = session.exec(select(ProductSize).where(ProductSize.product_item_id == item.id)).all()
+            product_sizes = session.exec(select(ProductSize).where(ProductSize.product_item_id == item.id)).all()
             product_sizes_table: List[SizeModel] = []
 
-            for size in sizes:
-                stock = session.exec(select(Stock).where(Stock.product_size_id == size.id)).first()
+            for product_size in product_sizes:
+                size = session.exec(select(Size).where(Size.id == product_size.size)).first()
+                if not size:
+                    raise HTTPException(status_code=404, detail="Size not found")
+                stock = session.exec(select(Stock).where(Stock.product_size_id == product_size.id)).first()
                 if stock and stock.stock > 0:
                     size_model = SizeModel(
-                        id=size.id,
+                        id=product_size.id,
                         size=size.size,
-                        price=size.price,
+                        price=product_size.price,
                         stock=stock.stock
                     )
                     product_sizes_table.append(size_model)

@@ -4,7 +4,7 @@ from ..setting import CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET, CLOUDINARY_CLOU
 from ..utils.utils import search_algorithm_by_category, all_product_details
 from fastapi import Depends, HTTPException, UploadFile, File, Form
 from ..utils.admin_verify import get_current_active_admin_user
-from ..model.category_model import Category, Gender
+from ..model.category_model import Category, Gender, Size
 from ..kafka.producer import get_kafka_producer
 from ..model.category_model import Category
 from aiokafka import AIOKafkaProducer # type: ignore
@@ -154,16 +154,19 @@ async def get_specific_product_details(product_id: int, session: DB_SESSION):
     product_items_table: List[ProductItemFormModel] = []
 
     for item in product_items:
-            sizes = session.exec(select(ProductSize).where(ProductSize.product_item_id == item.id)).all()
+            product_sizes = session.exec(select(ProductSize).where(ProductSize.product_item_id == item.id)).all()
             product_sizes_table: List[SizeModel] = []
 
-            for size in sizes:
-                stock = session.exec(select(Stock).where(Stock.product_size_id == size.id)).first()
+            for product_size in product_sizes:
+                size = session.exec(select(Size).where(Size.id == product_size.size)).first()
+                if not size:
+                    raise HTTPException(status_code=404, detail="Size not found")
+                stock = session.exec(select(Stock).where(Stock.product_size_id == product_size.id)).first()
                 if stock and stock.stock > 0:
                     size_model = SizeModel(
-                        id=size.id,
+                        id=product_size.id,
                         size=size.size,
-                        price=size.price,
+                        price=product_size.price,
                         stock=stock.stock
                     )
                     product_sizes_table.append(size_model)

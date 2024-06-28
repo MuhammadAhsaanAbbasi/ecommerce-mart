@@ -1,5 +1,6 @@
 from ..model.product import Product, ProductItem, ProductSize, Stock, SizeModel, ProductItemFormModel, ProductFormModel
 from ..model.order import OrderModel, Order, OrderItem, OrderUpdateStatus 
+from ..utils.actions import create_order
 from fastapi import Depends, UploadFile, File, Form, HTTPException
 from ..utils.admin_verify import get_current_active_admin_user
 from ..utils.user_verify import get_current_active_user
@@ -16,7 +17,17 @@ async def create_orders(
                     current_user: Annotated[Users, Depends(get_current_active_user)],
                     ):
     
-    return {'message' : "Order Created Successfully!"}
+    if not current_user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if current_user.id is None:
+        raise HTTPException(status_code=400, detail="User ID is invalid")
+
+    if order_details.order_payment != "Online Payment":
+        order = await create_order(order_details, current_user.id, session)
+        return order
+    else:
+        return {'message': "Order Created Successfully! & Charged Online Payment"}
 
 
 async def get_orders_by_user(
