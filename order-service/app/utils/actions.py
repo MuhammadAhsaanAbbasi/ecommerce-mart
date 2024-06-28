@@ -1,4 +1,4 @@
-from ..model.product import Product, ProductItem, ProductSize, Stock, SizeModel, ProductItemFormModel, ProductFormModel
+from ..model.product import Product, ProductItem, ProductSize, Stock, SizeModel, ProductItemFormModel, ProductFormModel, Size
 from ..model.order import OrderModel, Order, OrderItem, OrderUpdateStatus 
 from ..model.cart import Cart, CartItem
 from fastapi import Depends, UploadFile, File, Form, HTTPException
@@ -21,11 +21,22 @@ async def create_order(order_model: OrderModel, user_id: int, session: DB_SESSIO
             # Delete cart items
             cart_items = session.exec(select(CartItem).where(CartItem.cart_id == user_cart.id)).all()
 
-            for cart_item in cart_items:
-                session.delete(cart_item)
+            order_items_set = {
+                (item.product_item_id, item.product_size_id, item.quantity)
+                for item in order_model.items
+            }
 
-            # Delete the cart
-            session.delete(user_cart)
+            # Delete only matching cart items
+            for cart_item in cart_items:
+                if (cart_item.product_item_id, cart_item.product_size_id, cart_item.quantity) in order_items_set:
+                    session.delete(cart_item)
+
+            # If all items in the cart are deleted, delete the cart itself
+            remaining_cart_items_query = select(CartItem).where(CartItem.cart_id == user_cart.id)
+            remaining_cart_items = session.exec(remaining_cart_items_query).all()
+
+            if not remaining_cart_items:
+                session.delete(user_cart)
 
         # Check stock levels and prepare order items
         for order_items in order_model.items:
@@ -41,6 +52,7 @@ async def create_order(order_model: OrderModel, user_id: int, session: DB_SESSIO
 
             product_size = session.exec(select(ProductSize).where(ProductSize.id == order_items.product_size_id)).first()
 
+
             if not product_size:
                 raise HTTPException(status_code=404, detail="Product size not found")
 
@@ -50,7 +62,8 @@ async def create_order(order_model: OrderModel, user_id: int, session: DB_SESSIO
                 raise HTTPException(status_code=404, detail="Stock not found")
             
             if stock.stock < order_items.quantity:
-                raise HTTPException(status_code=400, detail=f"Product ID {order_items.product_id}, Item ID {order_items.product_item_id}, Size ID {order_items.product_size_id} has low stock. Please order after some time.")
+                size = session.exec(select(Size).where(Size.id == product_size.size)).first()
+                raise HTTPException(status_code=400, detail=f"You Select Product {product.product_name}, have color {product_item.color} in {size.size if size else ""} Size has low stock. Please order after some Days.")
             
             order_item = OrderItem(
                 product_id=order_items.product_id,

@@ -27,7 +27,7 @@ async def create_orders(
         order = await create_order(order_details, current_user.id, session)
         return order
     else:
-        return {'message': "Order Created Successfully! & Charged Online Payment"}
+        return {'message': "Order Created Successfully! & Charged Online Payment!"}
 
 
 async def get_orders_by_user(
