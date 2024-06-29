@@ -30,6 +30,7 @@ class OrderStatus(str, Enum):
     processing = "Processing"
     shipping = "Shipping"
     delivered = "Delivered"
+    cancelled = "Cancelled"
 
 
 def calculate_delivery_date():
@@ -51,4 +52,24 @@ class OrderItem(BaseIdModel, OrderItemBase, table=True):
 class OrderUpdateStatus(SQLModel):
     order_id: int
     status: str
+
+class OrderItemDetail(SQLModel):
+    product: str
+    product_item: dict
+    size: str
+    price: int
+    quantity: int
+    stock: int
+
+class OrderDetail(SQLModel):
+    order_id: int
+    order_address: str
+    phone_number: str
+    order_payment: str
+    total_price: float
+    tracking_id: str
+    order_status: str
+    delivery_date: datetime
+    order_date: datetime
+    order_items: List[OrderItemDetail]
 
