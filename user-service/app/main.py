@@ -6,7 +6,7 @@ from .web.route  import router
 from .web.admin_route import admin_router
 from .core.db import create_db_and_tables, DB_SESSION
 from .kafka.user_consumer import user_consumer
-from .model.models import Users
+from .model.models import *
 import asyncio
 
 async def task_initiator():

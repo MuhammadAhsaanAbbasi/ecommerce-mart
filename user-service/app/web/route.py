@@ -4,7 +4,7 @@ from ..service.auth import login_for_access_token, google_user, verify_and_gener
 from ..utils.auth import get_current_active_user, tokens_service, oauth2_scheme, get_current_user, get_value_hash
 from ..setting import USER_SIGNUP_TOPIC
 from fastapi.security.oauth2 import OAuth2PasswordRequestForm
-from ..model.models import Users, Token, UserBase
+from ..model.models import Users, Token, UserBase, SubscribeEmail
 from ..kafka.user_producer import get_kafka_producer
 from aiokafka import AIOKafkaProducer # type: ignore
 from aiokafka.errors import KafkaTimeoutError # type: ignore
@@ -201,3 +201,11 @@ async def update_user(current_user: Annotated[Users, Depends(get_current_active_
             detail="Invalid User Details & Credentials Token",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+@router.post("/subscribe_email")
+async def  subscribe_email(subscribe:SubscribeEmail, session:DB_SESSION):
+    new_subscribe = SubscribeEmail(email=subscribe.email)
+    session.add(new_subscribe)
+    session.commit()
+    session.refresh(new_subscribe)
+    return {"message": "Thank you for subscribing!"}

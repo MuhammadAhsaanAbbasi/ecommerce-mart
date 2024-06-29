@@ -1,11 +1,12 @@
-from ..service.order_service import create_orders, get_orders_by_user, get_all_orders, get_orders_by_id, update_orders_status, delete_orders, get_orders_by_status, cancel_orders_by_customer
-from ..model.order import OrderModel, Order, OrderItem
+from ..service.order_service import create_orders, get_orders_by_user, get_all_orders, get_orders_by_id, update_orders_status, delete_orders, get_orders_by_status_and_date, cancel_orders_by_customer
+from ..model.order import OrderModel, Order, OrderItem, OrderUpdateStatus
 from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException
 from ..utils.admin_verify import get_current_active_admin_user
 from ..utils.user_verify import get_current_active_user
 from ..model.authentication import Users, Admin
 from typing import Annotated, Optional, List
 from ..core.db import DB_SESSION
+from datetime import datetime
 from sqlmodel import Session
 import json
 
@@ -54,7 +55,7 @@ async def get_order_by_id(
 async def update_order_status(
                     current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
                     session: DB_SESSION,
-                    order_id: int,
+                    order_id: OrderUpdateStatus,
 ):
     order = await update_orders_status(current_admin, session, order_id )
     return order
@@ -70,13 +71,15 @@ async def delete_order(
     return order
 
 # Get Order By Status Only Admin
-@order_router.get("/get_order_by_status")
-async def get_order_by_status(
+@order_router.get("/get_order_by_status_and_date")
+async def get_order_by_status_and_date(
                     current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
                     session: DB_SESSION,
-                    status: str,
+                    status: Optional[str] = None,
+                    from_date: Optional[datetime] = None,
+                    to_date: Optional[datetime] = None
 ):
-    orders = await get_orders_by_status(current_admin, session, status)
+    orders = await get_orders_by_status_and_date(current_admin, session, status, from_date, to_date)
     return orders
 
 # Cancel Order By Customer Only User

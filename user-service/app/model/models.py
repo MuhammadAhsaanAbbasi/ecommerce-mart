@@ -5,6 +5,8 @@ from pydantic import BaseModel, EmailStr
 from .base import BaseIdModel
 import uuid
 
+class SubscribeEmail(BaseIdModel, table=True):
+    email: str = Field(index=True)
 
 class UserBase(BaseIdModel):
     kid: Optional[str] = Field(default=uuid.uuid4().hex)
