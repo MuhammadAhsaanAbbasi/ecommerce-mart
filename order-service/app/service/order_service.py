@@ -200,7 +200,7 @@ async def get_orders_by_status_and_date(
         if status:
             query = query.where(Order.order_status == status)
         if from_date:
-            query = query.where(Order.order_date >= from_date)
+            query = query.where(Order.order_date >= from_date) 
         if to_date:
             query = query.where(Order.order_date <= to_date)
         

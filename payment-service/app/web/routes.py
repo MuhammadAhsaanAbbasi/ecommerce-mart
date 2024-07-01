@@ -6,6 +6,6 @@ import json
 
 router = APIRouter(prefix="/api/v1")
 
-@router.get("/inventory")
+@router.post("/stripe/webhook")
 async def inventory(session: DB_SESSION):
     return {"message" : "Inventory Services"}
