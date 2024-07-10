@@ -46,8 +46,8 @@ async def get_product_items(
                     current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
                     session: DB_SESSION,
                     product_id: int):
-    product_items = await get_product_item(current_admin, session, product_id)
-    # product_items = await get_product_item(session, product_id)
+    # product_items = await get_product_item(current_admin, session, product_id)
+    product_items = await get_product_item(session, product_id)
     return {"message" : "Item of Product Get Successfully!", "data" : product_items}
 
 @router.delete("/product_item")

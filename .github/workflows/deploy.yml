@@ -43,6 +43,6 @@ jobs:
           template: ./main.bicep
           parameters: |
             Image=${{ secrets.DOCKER_HUB_USERNAME }}/inventory-service:latest
-            ContainerAppName=hrk-inventory-service-${{ github.run_id }}
+            containerAppName=hrk-inventory-service-${{ github.run_id }}
           scope: resourcegroup
           failOnStdErr: false

@@ -91,12 +91,12 @@ async def create_product_item(
         raise HTTPException(status_code=500, detail=f"Error Occurs while creating the product item: {e}")
 
 async def get_product_item(
-                    current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
+                    # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
                     session: DB_SESSION,
                     product_id: int):
     
-    if not current_admin:
-        raise HTTPException(status_code=404, detail="Admin not found")
+    # if not current_admin:
+    #     raise HTTPException(status_code=404, detail="Admin not found")
 
     product_items = session.exec(select(ProductItem).where(ProductItem.product_id == product_id)).all()
     if not product_items:
