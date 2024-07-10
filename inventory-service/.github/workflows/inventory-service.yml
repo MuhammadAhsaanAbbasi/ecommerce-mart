@@ -2,6 +2,8 @@ name: Deploy Inventory Service
 
 on:
   push:
+    branches:
+      - main
     paths:
       - 'inventory-service/**'
       - '.github/workflows/inventory-service.yml'
@@ -24,8 +26,11 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
       - name: Build and push Docker image
-        run: |
-          docker buildx build --platform linux/amd64 -t ${{ secrets.DOCKER_HUB_USERNAME }}/inventory-service:latest --push .
+        uses: docker/build-push-action@v4
+        with:
+            context: ./inventory-service
+            push: true
+            tags: ${{ secrets.DOCKER_HUB_USERNAME }}/inventory-service:latest
 
 
       - name: Deploy Bicep file
