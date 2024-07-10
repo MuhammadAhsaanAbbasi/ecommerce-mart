@@ -3,8 +3,8 @@ name: Deploy Inventory Service
 on:
   push:
     paths:
-      - './inventory-service/**'
-      - './main.bicep'
+      - 'inventory-service/**'
+      - '.github/workflows/inventory-service.yml'
 
 jobs:
   build:
