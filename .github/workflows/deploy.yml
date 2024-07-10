@@ -38,11 +38,11 @@ jobs:
       - name: Deploy Bicep file
         uses: azure/arm-deploy@v1
         with:
-          subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION }}
-          resourceGroupName: ${{ secrets.AZURE_RG }}
-          template: ./main.bicep
-          parameters: |
-            Image=${{ secrets.DOCKER_HUB_USERNAME }}/inventory-service:latest
-            ContainerAppName=hrk-inventory-service-${{ github.run_id }}
-          scope: resourcegroup
-          failOnStdErr: false
+              subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION }}
+              resourceGroupName: ${{ secrets.AZURE_RG }}
+              template: ./main.bicep
+              parameters: |
+                Image=${{ secrets.DOCKER_HUB_USERNAME }}/inventory-service:latest
+                containerAppName=hrk-inventory-service-${{ github.run_id }}
+              scope: resourcegroup
+              failOnStdErr: false
