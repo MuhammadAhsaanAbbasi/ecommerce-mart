@@ -59,7 +59,7 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
     managedEnvironmentId:containerEnvironment.id
     configuration: {
       ingress: {
-        external: true
+        external: true 
         targetPort: 8000
         allowInsecure: false
         traffic: [

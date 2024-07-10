@@ -8,6 +8,7 @@ on:
     paths:
       - 'inventory-service/**'
       - '.github/workflows/deploy.yml'
+      - './main.bicep'
 
 env:
   CONTAINERAPPNAME: hrk-inventory-service
