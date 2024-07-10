@@ -17,7 +17,7 @@ param containerAppEnvironmentName string = 'container-app-environment-${AppSuffi
 param Image string
 
 @description('The name of the Container App')
-param containerAppName string
+param ContainerAppName string
 
 resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
   name: logAnalyticsWorkspaceName
@@ -53,7 +53,7 @@ resource containerEnvironment 'Microsoft.App/managedEnvironments@2024-03-01' = {
 }
 
 resource containerApp 'Microsoft.App/containerApps@2023-11-02-preview' = {
-  name: containerAppName
+  name: ContainerAppName
   location: Location
   properties: {
     managedEnvironmentId:containerEnvironment.id
@@ -73,7 +73,7 @@ resource containerApp 'Microsoft.App/containerApps@2023-11-02-preview' = {
     template: {
       containers: [
         {
-          name: containerAppName
+          name: ContainerAppName
           image: Image
           resources: {
             cpu: json('2.0')
