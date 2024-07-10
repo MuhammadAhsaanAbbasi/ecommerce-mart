@@ -48,4 +48,4 @@ jobs:
               parameters: |
                 Image=${{ secrets.DOCKER_HUB_USERNAME }}/inventory-service:latest ContainerAppName=${{env.CONTAINERAPPNAME}}-${{ github.run_id }} 
               scope: resourcegroup
-              failOnStdErr: false 
+              failOnStdErr: false
