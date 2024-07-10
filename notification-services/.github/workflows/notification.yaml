@@ -1,10 +1,9 @@
-name: Deploy Service1
+name: Deploy Notification Service
 
 on:
   push:
     paths:
-      - 'inventory-service/**'
-      - '.github/workflows/deploy.yaml'
+      - 'notification-services/**'
       - 'main.bicep'
 
 jobs:
@@ -28,9 +27,9 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
         with:
-          context: ./service1
+          context: ./notification-services
           push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/inventory_service:latest
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/notification-service:latest
 
       - name: Deploy Bicep file
         uses: azure/arm-deploy@v1
@@ -39,7 +38,7 @@ jobs:
           resourceGroupName: ${{ secrets.AZURE_RG }}
           template: ./main.bicep
           parameters: |
-            Image=${{ secrets.DOCKER_HUB_USERNAME }}/inventory_service:latest
-            ContainerAppName=abbasimart-inventory_service-${{ github.run_id }}
+            Image=${{ secrets.DOCKER_HUB_USERNAME }}/notification-service:latest
+            ContainerAppName=hrk-notification-service-${{ github.run_id }}
           scope: resourcegroup
           failOnStdErr: false

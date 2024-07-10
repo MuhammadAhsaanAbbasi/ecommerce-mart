@@ -1,10 +1,9 @@
-name: Deploy Service1
+name: Deploy Payment Service
 
 on:
   push:
     paths:
       - 'payment-service/**'
-      - '.github/workflows/deploy.yaml'
       - 'main.bicep'
 
 jobs:
@@ -28,9 +27,9 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
         with:
-          context: ./service1
+          context: ./payment-service
           push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/payment_service:latest
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/payment-service:latest
 
       - name: Deploy Bicep file
         uses: azure/arm-deploy@v1
@@ -39,7 +38,7 @@ jobs:
           resourceGroupName: ${{ secrets.AZURE_RG }}
           template: ./main.bicep
           parameters: |
-            Image=${{ secrets.DOCKER_HUB_USERNAME }}/payment_service:latest
-            ContainerAppName=abbasimart-payment_service-${{ github.run_id }}
+            Image=${{ secrets.DOCKER_HUB_USERNAME }}/payment-service:latest
+            ContainerAppName=hrk-payment-service-${{ github.run_id }}
           scope: resourcegroup
           failOnStdErr: false
