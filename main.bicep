@@ -52,7 +52,7 @@ resource containerEnvironment 'Microsoft.App/managedEnvironments@2024-03-01' = {
   }
 }
 
-resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
+resource containerApp 'Microsoft.App/containerApps@2023-11-02-preview' = {
   name: containerAppName
   location: Location
   properties: {
