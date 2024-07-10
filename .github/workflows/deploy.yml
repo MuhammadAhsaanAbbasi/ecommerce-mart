@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - 'inventory-service/**'
-      - '.github/workflows/inventory-service.yml'
+      - '.github/workflows/deploy.yml'
 
 jobs:
   build:
@@ -43,6 +43,6 @@ jobs:
           template: ./main.bicep
           parameters: |
             Image=${{ secrets.DOCKER_HUB_USERNAME }}/inventory-service:latest |
-            containerAppName=hrk-inventory-service-${{ github.run_id }}
+            ContainerAppName=hrk-inventory-service-${{ github.run_id }}
           scope: resourcegroup
           failOnStdErr: false
