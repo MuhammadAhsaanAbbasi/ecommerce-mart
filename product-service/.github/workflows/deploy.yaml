@@ -3,8 +3,8 @@ name: Deploy Service1
 on:
   push:
     paths:
-      - 'order-service/**'
-      - '.github/workflows/order.yml'
+      - 'product-service/**'
+      - '.github/workflows/deploy.yaml'
       - 'main.bicep'
 
 jobs:
@@ -30,7 +30,7 @@ jobs:
         with:
           context: ./service1
           push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/order_service:latest
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/product_service:latest
 
       - name: Deploy Bicep file
         uses: azure/arm-deploy@v1
@@ -39,7 +39,7 @@ jobs:
           resourceGroupName: ${{ secrets.AZURE_RG }}
           template: ./main.bicep
           parameters: |
-            Image=${{ secrets.DOCKER_HUB_USERNAME }}/order_service:latest
-            ContainerAppName=abbasimart-order_service-${{ github.run_id }}
+            Image=${{ secrets.DOCKER_HUB_USERNAME }}/product_service:latest
+            ContainerAppName=abbasimart-product_service-${{ github.run_id }}
           scope: resourcegroup
           failOnStdErr: false
