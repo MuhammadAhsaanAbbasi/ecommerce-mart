@@ -1,5 +1,6 @@
 name: Deploy Inventory Service
 
+
 on:
   push:
     branches:
@@ -7,6 +8,9 @@ on:
     paths:
       - 'inventory-service/**'
       - '.github/workflows/deploy.yml'
+
+env:
+  CONTAINERAPPNAME: hrk-inventory-service
 
 jobs:
   build:
@@ -42,7 +46,6 @@ jobs:
               resourceGroupName: ${{ secrets.AZURE_RG }}
               template: ./main.bicep
               parameters: |
-                Image=${{ secrets.DOCKER_HUB_USERNAME }}/inventory-service:latest ,
-                ContainerAppName=hrk-inventory-service-${{ github.run_id }} 
+                Image=${{ secrets.DOCKER_HUB_USERNAME }}/inventory-service:latest ContainerAppName=${{env.CONTAINERAPPNAME}}-${{ github.run_id }} 
               scope: resourcegroup
               failOnStdErr: false
