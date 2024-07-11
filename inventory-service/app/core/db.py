@@ -3,9 +3,7 @@ from sqlmodel import SQLModel, create_engine, Session
 from typing import Annotated
 from fastapi import Depends
 
-connectionstring = str(setting.DATABASE_URL).replace(
-    "postgresql", "postgresql+psycopg2"
-)
+connectionstring = str(setting.DATABASE_URL)
 
 engine = create_engine(connectionstring, connect_args={"sslmode" : "require"}, pool_recycle=600, echo=True)
 
