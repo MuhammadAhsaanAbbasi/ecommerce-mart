@@ -2,10 +2,10 @@ from app import setting
 from sqlmodel import SQLModel, create_engine, Session
 from typing import Annotated
 from fastapi import Depends
+import os
 
-connectionstring = str(setting.DATABASE_URL)
-
-engine = create_engine(connectionstring, connect_args={"sslmode" : "require"}, pool_recycle=600, echo=True)
+connection_string = os.getenv('DATABASE_URL')
+engine = create_engine(str(connection_string), connect_args={"sslmode": "require"}, pool_recycle=600, echo=True)
 
 def create_db_and_tables():
     SQLModel.metadata.create_all(engine)
