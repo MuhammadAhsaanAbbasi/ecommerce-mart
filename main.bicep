@@ -13,7 +13,7 @@ param appInsightsWorkspaceName string = 'app-insights-${AppSuffix}'
 @description('The name of the Container App Environment')
 param containerAppEnvironmentName string = 'container-app-environment-${AppSuffix}'
 
-@description('The Docker Imaage name to deploy on Container')
+@description('The Docker Image name to deploy on Container')
 param Image string
 
 @description('The name of the Container App')
@@ -58,42 +58,42 @@ resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' existing = {
 
 resource databaseUrlSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' existing = {
   parent: keyVault
-  name: 'DATABASE-URL'
+  name: 'database-urls'
 }
 
 resource testDatabaseUrlSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' existing = {
   parent: keyVault
-  name: 'TEST-DATABASE-URL'
+  name: 'tests-database-url'
 }
 
 resource secretKeySecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' existing = {
   parent: keyVault
-  name: 'SECRET-KEY'
+  name: 'secret-keys'
 }
 
 resource algorithmSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' existing = {
   parent: keyVault
-  name: 'ALGORITHM'
+  name: 'algorithim'
 }
 
 resource cloudinaryCloudSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' existing = {
   parent: keyVault
-  name: 'CLOUDINARY-CLOUD'
+  name: 'cloudinary-clouds'
 }
 
 resource cloudinaryApiKeySecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' existing = {
   parent: keyVault
-  name: 'CLOUDINARY-API-KEY'
+  name: 'cloudinary-api-keys'
 }
 
 resource cloudinaryApiSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' existing = {
   parent: keyVault
-  name: 'CLOUDINARY-API-SECRET'
+  name: 'cloudinary-api-secrets'
 }
 
 resource inventoryTopicSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' existing = {
   parent: keyVault
-  name: 'INVENTORY-TOPIC'
+  name: 'inventory-topics'
 }
 
 resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
@@ -115,35 +115,35 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
       }
       secrets: [
         {
-          name: 'DATABASE_URL'
+          name: 'database-urls'
           value: databaseUrlSecret.properties.value
         }
         {
-          name: 'TEST_DATABASE_URL'
+          name: 'tests-database-url'
           value: testDatabaseUrlSecret.properties.value
         }
         {
-          name: 'SECRET_KEY'
+          name: 'secret-keys'
           value: secretKeySecret.properties.value
         }
         {
-          name: 'ALGORITHM'
+          name: 'algorithim'
           value: algorithmSecret.properties.value
         }
         {
-          name: 'CLOUDINARY_CLOUD'
+          name: 'cloudinary-clouds'
           value: cloudinaryCloudSecret.properties.value
         }
         {
-          name: 'CLOUDINARY_API_KEY'
+          name: 'cloudinary-api-keys'
           value: cloudinaryApiKeySecret.properties.value
         }
         {
-          name: 'CLOUDINARY_API_SECRET'
+          name: 'cloudinary-api-secrets'
           value: cloudinaryApiSecret.properties.value
         }
         {
-          name: 'INVENTORY_TOPIC'
+          name: 'inventory-topics'
           value: inventoryTopicSecret.properties.value
         }
       ]
@@ -158,14 +158,14 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
             memory: '4Gi'
           }
           env: [
-            { name: 'DATABASE_URL', secretRef: 'DATABASE_URL' }
-            { name: 'TEST_DATABASE_URL', secretRef: 'TEST_DATABASE_URL' }
-            { name: 'SECRET_KEY', secretRef: 'SECRET_KEY' }
-            { name: 'ALGORITHM', secretRef: 'ALGORITHM' }
-            { name: 'CLOUDINARY_CLOUD', secretRef: 'CLOUDINARY_CLOUD' }
-            { name: 'CLOUDINARY_API_KEY', secretRef: 'CLOUDINARY_API_KEY' }
-            { name: 'CLOUDINARY_API_SECRET', secretRef: 'CLOUDINARY_API_SECRET' }
-            { name: 'INVENTORY_TOPIC', secretRef: 'INVENTORY_TOPIC' } 
+            { name: 'DATABASE_URL', secretRef: 'database-urls' }
+            { name: 'TEST_DATABASE_URL', secretRef: 'tests-database-url' }
+            { name: 'SECRET_KEY', secretRef: 'secret-keys' }
+            { name: 'ALGORITHM', secretRef: 'algorithim' }
+            { name: 'CLOUDINARY_CLOUD', secretRef: 'cloudinary-clouds' }
+            { name: 'CLOUDINARY_API_KEY', secretRef: 'cloudinary-api-keys' }
+            { name: 'CLOUDINARY_API_SECRET', secretRef: 'cloudinary-api-secrets' }
+            { name: 'INVENTORY_TOPIC', secretRef: 'inventory-topics' }
           ]
         }
       ]
