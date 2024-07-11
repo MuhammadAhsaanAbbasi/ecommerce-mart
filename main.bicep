@@ -184,7 +184,7 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
             { name: 'CLOUDINARY_CLOUD', secretRef: 'cloudinary-clouds' }
             { name: 'CLOUDINARY_API_KEY', secretRef: 'cloudinary-api-keys' }
             { name: 'CLOUDINARY_API_SECRET', secretRef: 'cloudinary-api-secrets' }
-            { name: 'INVENTORY_TOPIC', secretRef: 'inventory_topic' }
+            { name: 'INVENTORY_TOPIC', secretRef: 'inventory_topics' }
           ]
         }
       ]
