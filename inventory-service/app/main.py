@@ -48,4 +48,4 @@ app.router.include_router(router, tags=["Inventory Services"])
 
 @app.get("/")
 def get_root():
-    return {"message": "welcome to Inventory Service, Update Product, Delete Product, Update Stock of Product"}
+    return {"message": "welcome to Inventory Service, Update Product, Delete Product, Update Stock of Products"}

@@ -19,6 +19,8 @@ param Image string
 @description('The name of the Container App')
 param ContainerAppName string
 
+var keyVaultSecretUserRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '4633458b-17de-408a-b874-0445c86b69e6')
+
 resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
   name: logAnalyticsWorkspaceName
   location: Location
@@ -201,5 +203,15 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
   }
   identity: {
     type: 'SystemAssigned'
+  }
+}
+
+resource keyVaultSecretUserRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(containerApp.id, keyVaultSecretUserRoleId)
+  scope: keyVault
+  properties: {
+    principalId: containerApp.identity.principalId
+    roleDefinitionId: keyVaultSecretUserRoleId
+    principalType: 'ServicePrincipal'
   }
 }
