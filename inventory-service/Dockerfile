@@ -1,6 +1,6 @@
 # We will use this Dockerfile for Cloud and Kubernetes Environment
 # Dependency Resolution Stage:
-    FROM python:3.12 as requirements-stage
+    FROM python:3.12-slim as base
 
     LABEL maintainer="mahsaanabbasi@gmail.com"
 

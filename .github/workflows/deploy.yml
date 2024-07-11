@@ -47,6 +47,6 @@ jobs:
               resourceGroupName: ${{ secrets.AZURE_RG }}
               template: ./main.bicep
               parameters: |
-                Image=${{ secrets.DOCKER_HUB_USERNAME }}/inventory-service:latest ContainerAppName=${{env.CONTAINERAPPNAME}}-${{ github.run_id }} 
+                Image=${{ secrets.DOCKER_HUB_USERNAME }}/inventory-service:latest ContainerAppName=${{ env.CONTAINERAPPNAME }}
               scope: resourcegroup
               failOnStdErr: false 
