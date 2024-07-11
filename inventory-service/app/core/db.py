@@ -4,8 +4,8 @@ from typing import Annotated
 from fastapi import Depends
 import os
 
-connection_string = str(DATABASE_URL)
-engine = create_engine(connection_string, connect_args={"sslmode": "require"})
+connection_string = os.getenv('DATABASE_URL')
+engine = create_engine(str(connection_string), connect_args={"sslmode": "require"})
 
 def create_db_and_tables():
     SQLModel.metadata.create_all(engine)
