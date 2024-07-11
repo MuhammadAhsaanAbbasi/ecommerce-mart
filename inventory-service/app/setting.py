@@ -6,13 +6,13 @@ try:
 except FileNotFoundError:
     config = Config()
 
-DATABASE_URL = config("DATABASE_URL", cast=Secret)
-TEST_DATABASE_URL = config("TEST_DATABASE_URL", cast=Secret)
-SECRET_KEY = config("SECRET_KEY", cast=str)
-ALGORITHM = config("ALGORITHM", cast=str)
+DATABASE_URL = config("database-urls", cast=Secret)
+TEST_DATABASE_URL = config("tests-database-url", cast=Secret)
+SECRET_KEY = config("secret-keys", cast=str)
+ALGORITHM = config("algorithim", cast=str)
 
-CLOUDINARY_CLOUD = config("CLOUDINARY_CLOUD", cast=str)
-CLOUDINARY_API_KEY = config("CLOUDINARY_API_KEY", cast=str)
-CLOUDINARY_API_SECRET = config("CLOUDINARY_API_SECRET", cast=str)
+CLOUDINARY_CLOUD = config("cloudinary-clouds", cast=str)
+CLOUDINARY_API_KEY = config("cloudinary-api-keys", cast=str)
+CLOUDINARY_API_SECRET = config("cloudinary-api-secrets", cast=str)
 
-INVENTORY_TOPIC = config("INVENTORY_TOPIC", cast=str)
+INVENTORY_TOPIC = config("inventory-topics", cast=str)
