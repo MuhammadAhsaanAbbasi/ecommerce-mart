@@ -1,32 +1,35 @@
-#  Select the base Image for running the container with Python
-FROM python:3.12
+# We will use this Dockerfile for Cloud and Kubernetes Environment
+# Dependency Resolution Stage:
+    FROM python:3.12 as requirements-stage
 
-LABEL maintainer="mahsaanabbasi@gmail.com"
+    LABEL maintainer="mahsaanabbasi@gmail.com"
 
-# Set the working directory
-WORKDIR /code
+    WORKDIR /tmp
 
-# Install system dependencies required for potential Python packages
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    protobuf-compiler \
-    libpq-dev \
-    && rm -rf /var/lib/apt/lists/*
+    RUN pip install poetry
 
-# Install Poetry
-RUN pip install poetry
+    COPY ./pyproject.toml ./poetry.lock* /tmp/
 
-# Copy the Pyproject.toml file into the container at /code
-COPY ./pyproject.toml /code/
+    RUN poetry export -f requirements.txt --output requirements.txt --without-hashes
 
-# Configuration to avoid creating virtual environments inside the Docker container
-RUN poetry config virtualenvs.create false
+    # Application Build Stage:
+    FROM python:3.12-slim
 
-# Install all dependencies and packages in Container
-RUN poetry install
+    WORKDIR /code
 
-COPY . /code/
+    COPY --from=requirements-stage /tmp/requirements.txt /code/requirements.txt
 
-EXPOSE 8084
+    RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
-CMD [ "poetry", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8084", "--reload" ]
+    COPY ./app /code/app
+    # We will comment COPY .env /code/ later 
+    # COPY .env /code/
+    # Set up a non-root user for better security
+    RUN useradd --create-home --home-dir /home/appuser appuser \
+        && chown -R appuser:appuser /code
+
+    USER appuser
+
+    EXPOSE 8081
+
+    CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8081"]
