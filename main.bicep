@@ -96,13 +96,18 @@ resource inventoryTopicSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' exi
   name: 'inventory-topics'
 }
 
+resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-07-31-preview' existing = {
+  name: 'hrk-ecommerce-mart'
+  scope: resourceGroup()
+}
+
 resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
   name: ContainerAppName
   location: Location
   identity: {
     type: 'UserAssigned'
     userAssignedIdentities: {
-      '/subscriptions/2573f620-d603-4def-b887-6cfad354dfee/resourcegroups/abbasi-ecommerce-mart/providers/Microsoft.ManagedIdentity/userAssignedIdentities/hrk-ecommerce-mart': {}
+      '${managedIdentity.id}': {}
     }
   }
   properties: {

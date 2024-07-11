@@ -15,7 +15,7 @@ async def life_span(app: FastAPI):
 
 app = FastAPI(
     title="Inventory Service",
-    description="This is a Inventory Service", 
+    description="This is a Inventory Service",
     version="1.0.0",
     terms_of_service="https://caxgpt.vercel.app/terms/",
     lifespan=life_span,
