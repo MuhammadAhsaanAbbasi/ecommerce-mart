@@ -178,7 +178,7 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
           }
           env: [
             { name: 'DATABASE_URL', secretRef: 'database-urls' }
-            { name: 'TEST_DATABASE_URL', secretRef: 'test-database-urls' }
+            { name: 'TEST_DATABASE_URL', secretRef: 'tests-database-url' }
             { name: 'SECRET_KEY', secretRef: 'secret-keys' }
             { name: 'ALGORITHM', secretRef: 'algorithim' }
             { name: 'CLOUDINARY_CLOUD', secretRef: 'cloudinary-clouds' }
