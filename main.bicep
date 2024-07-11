@@ -116,35 +116,35 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
       secrets: [
         {
           name: 'database-urls'
-          value: databaseUrlSecret.properties.value
+          value: databaseUrlSecret.properties.secretUriWithVersion
         }
         {
           name: 'tests-database-url'
-          value: testDatabaseUrlSecret.properties.value
+          value: testDatabaseUrlSecret.properties.secretUriWithVersion
         }
         {
           name: 'secret-keys'
-          value: secretKeySecret.properties.value
+          value: secretKeySecret.properties.secretUriWithVersion
         }
         {
           name: 'algorithim'
-          value: algorithmSecret.properties.value
+          value: algorithmSecret.properties.secretUriWithVersion
         }
         {
           name: 'cloudinary-clouds'
-          value: cloudinaryCloudSecret.properties.value
+          value: cloudinaryCloudSecret.properties.secretUriWithVersion
         }
         {
           name: 'cloudinary-api-keys'
-          value: cloudinaryApiKeySecret.properties.value
+          value: cloudinaryApiKeySecret.properties.secretUriWithVersion
         }
         {
           name: 'cloudinary-api-secrets'
-          value: cloudinaryApiSecret.properties.value
+          value: cloudinaryApiSecret.properties.secretUriWithVersion
         }
         {
           name: 'inventory-topics'
-          value: inventoryTopicSecret.properties.value
+          value: inventoryTopicSecret.properties.secretUriWithVersion
         }
       ]
     }
