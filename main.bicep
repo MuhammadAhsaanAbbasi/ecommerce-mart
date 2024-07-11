@@ -126,36 +126,44 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
       }
       secrets: [
         {
-          name: 'database_url'
+          name: 'database-urls'
           keyVaultUrl: databaseUrlSecret.properties.secretUriWithVersion
+          identity: managedIdentity.id
         }
         {
-          name: 'test_database_url'
+          name: 'tests-database-url'
           keyVaultUrl: testDatabaseUrlSecret.properties.secretUriWithVersion
+          identity: managedIdentity.id
         }
         {
-          name: 'secret_key'
+          name: 'secret-keys'
           keyVaultUrl: secretKeySecret.properties.secretUriWithVersion
+          identity: managedIdentity.id
         }
         {
-          name: 'algorithm'
+          name: 'algorithim'
           keyVaultUrl: algorithmSecret.properties.secretUriWithVersion
+          identity: managedIdentity.id
         }
         {
-          name: 'cloudinary_cloud'
+          name: 'cloudinary-clouds'
           keyVaultUrl: cloudinaryCloudSecret.properties.secretUriWithVersion
+          identity: managedIdentity.id
         }
         {
-          name: 'cloudinary_api_key'
+          name: 'cloudinary-api-keys'
           keyVaultUrl: cloudinaryApiKeySecret.properties.secretUriWithVersion
+          identity: managedIdentity.id
         }
         {
-          name: 'cloudinary_api_secret'
+          name: 'cloudinary-api-secrets'
           keyVaultUrl: cloudinaryApiSecret.properties.secretUriWithVersion
+          identity: managedIdentity.id
         }
         {
-          name: 'inventory_topic'
+          name: 'inventory-topics'
           keyVaultUrl: inventoryTopicSecret.properties.secretUriWithVersion
+          identity: managedIdentity.id
         }
       ]
     }
@@ -169,13 +177,13 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
             memory: '4Gi'
           }
           env: [
-            { name: 'DATABASE_URL', secretRef: 'database_url_' }
-            { name: 'TEST_DATABASE_URL', secretRef: 'test_database_url' }
-            { name: 'SECRET_KEY', secretRef: 'secret_key' }
-            { name: 'ALGORITHM', secretRef: 'algorithm' }
-            { name: 'CLOUDINARY_CLOUD', secretRef: 'cloudinary_cloud' }
-            { name: 'CLOUDINARY_API_KEY', secretRef: 'cloudinary_api_key' }
-            { name: 'CLOUDINARY_API_SECRET', secretRef: 'cloudinary_api_secret' }
+            { name: 'DATABASE_URL', secretRef: 'database-urls' }
+            { name: 'TEST_DATABASE_URL', secretRef: 'test-database-urls' }
+            { name: 'SECRET_KEY', secretRef: 'secret-keys' }
+            { name: 'ALGORITHM', secretRef: 'algorithim' }
+            { name: 'CLOUDINARY_CLOUD', secretRef: 'cloudinary-clouds' }
+            { name: 'CLOUDINARY_API_KEY', secretRef: 'cloudinary-api-keys' }
+            { name: 'CLOUDINARY_API_SECRET', secretRef: 'cloudinary-api-secrets' }
             { name: 'INVENTORY_TOPIC', secretRef: 'inventory_topic' }
           ]
         }
