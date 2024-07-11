@@ -96,20 +96,14 @@ resource inventoryTopicSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' exi
   name: 'inventory-topics'
 }
 
-resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-07-31-preview' existing = {
-  name: 'hrk-ecommerce-mart'
-  scope: resourceGroup()
-}
+// resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-07-31-preview' existing = {
+//   name: 'hrk-ecommerce-mart'
+//   scope: resourceGroup()
+// }
 
 resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
   name: ContainerAppName
   location: Location
-  identity: {
-    type: 'UserAssigned'
-    userAssignedIdentities: {
-      '${managedIdentity.id}': {}
-    }
-  }
   properties: {
     managedEnvironmentId: containerEnvironment.id
     configuration: {
@@ -128,44 +122,45 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
         {
           name: 'database-urls'
           keyVaultUrl: databaseUrlSecret.properties.secretUriWithVersion
-          identity: managedIdentity.id
+          identity: 'system'
         }
         {
           name: 'tests-database-url'
           keyVaultUrl: testDatabaseUrlSecret.properties.secretUriWithVersion
-          identity: managedIdentity.id
+          identity: 'system'
         }
         {
           name: 'secret-keys'
           keyVaultUrl: secretKeySecret.properties.secretUriWithVersion
-          identity: managedIdentity.id
+          identity: 'system'
         }
         {
           name: 'algorithim'
           keyVaultUrl: algorithmSecret.properties.secretUriWithVersion
-          identity: managedIdentity.id
+          identity: 'system'
         }
         {
           name: 'cloudinary-clouds'
           keyVaultUrl: cloudinaryCloudSecret.properties.secretUriWithVersion
-          identity: managedIdentity.id
+          identity: 'system'
         }
         {
           name: 'cloudinary-api-keys'
           keyVaultUrl: cloudinaryApiKeySecret.properties.secretUriWithVersion
-          identity: managedIdentity.id
+          identity: 'system'
         }
         {
           name: 'cloudinary-api-secrets'
           keyVaultUrl: cloudinaryApiSecret.properties.secretUriWithVersion
-          identity: managedIdentity.id
+          identity: 'system'
         }
         {
           name: 'inventory-topics'
           keyVaultUrl: inventoryTopicSecret.properties.secretUriWithVersion
-          identity: managedIdentity.id
+          identity: 'system'
         }
       ]
+      activeRevisionsMode: 'Multiple'
     }
     template: {
       containers: [
@@ -190,8 +185,21 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
       ]
       scale: {
         minReplicas: 0
-        maxReplicas: 4
+        maxReplicas: 3
+        rules: [
+          {
+            name: 'http-rule'
+            http: {
+              metadata: {
+                concurrentRequests: '100'
+              }
+            }
+          }
+        ]
       }
     }
+  }
+  identity: {
+    type: 'SystemAssigned'
   }
 }
