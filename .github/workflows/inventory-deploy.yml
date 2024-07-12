@@ -1,6 +1,7 @@
 name: Deploy Inventory Service
 
 
+
 on:
   push:
     branches:

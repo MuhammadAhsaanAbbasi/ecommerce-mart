@@ -1,7 +1,7 @@
 name: Deploy Notification Service
 
 
-on:
+on: 
   push:
     branches:
       - main
