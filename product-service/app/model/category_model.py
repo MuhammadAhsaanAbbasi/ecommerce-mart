@@ -2,13 +2,13 @@ from sqlmodel import SQLModel, Field, Relationship
 from typing import Optional, Union
 from .base import BaseIdModel
 
-class CategoryBase(BaseIdModel):
-    category_name: str = Field(index=True)
-    category_desc: str = Field(index=True)
+class CategoryBaseModel(SQLModel):
+    category_name: str
+    category_desc: str
 
 # Category Class
-class Category(CategoryBase, table=True):
-    category_image: Optional[str]  
+class Category(BaseIdModel,CategoryBaseModel, table=True):
+    category_image: Optional[str]
 
 
 # Gender Class

@@ -1,15 +1,17 @@
 from ..model.models import Product, ProductSize, ProductItem, Stock, ProductFormModel, ProductItemFormModel, SizeModel
-from ..model.category_model import Category, Size, Gender, CategoryBase
+from ..model.category_model import Category, Size, Gender, CategoryBaseModel
 from typing import List, Sequence
 from sqlmodel import SQLModel, select, Session
 from ..core.db import DB_SESSION
+from ..core.config import upload_files_in_s3
 from fastapi import HTTPException, UploadFile, File
 
 # Create Categories
-async def create_categories(category_input: CategoryBase,
+async def create_categories(category_input: CategoryBaseModel,
                             session: DB_SESSION,
-                            category_image: UploadFile = File(...)):
-    category = Category(**category_input.model_dump())
+                            image: UploadFile = File(...)):
+    category_image = await upload_files_in_s3(image)
+    category = Category(**category_input.model_dump(), category_image=category_image)
     session.add(category)
     session.commit()
     session.refresh(category)
