@@ -46,7 +46,7 @@ jobs:
               subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION }}
               resourceGroupName: ${{ secrets.AZURE_RG }}
               template: ./main.bicep
-              parameters: |
+              parameters: | 
                 Image=${{ secrets.DOCKER_HUB_USERNAME }}/inventory-service:latest ContainerAppName=${{ env.CONTAINERAPPNAME }}
               scope: resourcegroup
               failOnStdErr: false 

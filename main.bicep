@@ -123,18 +123,15 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
       secrets: [
         {
           name: 'database-urls'
-          keyVaultUrl: databaseUrlSecret.properties.secretUriWithVersion
-          identity: 'system'
+          value: databaseUrlSecret.properties.value
         }
         {
           name: 'tests-database-url'
-          keyVaultUrl: testDatabaseUrlSecret.properties.secretUriWithVersion
-          identity: 'system'
+          keyVaultUrl: testDatabaseUrlSecret.properties.value
         }
         {
           name: 'secret-keys'
-          keyVaultUrl: secretKeySecret.properties.secretUriWithVersion
-          identity: 'system'
+          keyVaultUrl: secretKeySecret.properties.value
         }
         {
           name: 'algorithim'
