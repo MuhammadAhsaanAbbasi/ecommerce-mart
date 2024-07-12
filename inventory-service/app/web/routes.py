@@ -17,7 +17,7 @@ async def create_product_items(
     # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
     aio_kafka: Annotated[AIOKafkaProducer, Depends(get_kafka_producer)],
     session: DB_SESSION,
-    product_id: int,
+    product_id: str,
     product_item_details: Annotated[str, Form(...)],
     image: UploadFile = File(...),
 ):
@@ -45,7 +45,7 @@ async def create_product_items(
 async def get_product_items(
                     current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
                     session: DB_SESSION,
-                    product_id: int):
+                    product_id: str):
     # product_items = await get_product_item(current_admin, session, product_id)
     product_items = await get_product_item(session, product_id)
     return {"message" : "Item of Product Get Successfully!", "data" : product_items}
@@ -65,7 +65,7 @@ async def create_product_sizes(
                         current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
                         session: DB_SESSION,
                         product_size_detail: SizeModel,
-                        product_item_id: int
+                        product_item_id: str
                         ):
     product_size = await create_product_size(current_admin, session, product_size_detail, product_item_id)
     # product_size = await create_product_size(session, product_size_detail, product_item_id)
@@ -75,7 +75,7 @@ async def create_product_sizes(
 async def get_product_sizes(
                         current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
                         session: DB_SESSION,
-                        product_item_id: int):
+                        product_item_id: str):
     product_sizes = await get_product_size(current_admin, session, product_item_id)
     # product_sizes = await get_product_size(session, product_item_id)
     return {"message" : "Size of Product Get Successfully!", "data" : product_sizes }

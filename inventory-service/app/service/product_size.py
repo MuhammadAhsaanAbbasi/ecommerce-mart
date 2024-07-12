@@ -12,7 +12,7 @@ async def create_product_size(
     current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
     session: DB_SESSION,
     product_size_detail: SizeModel,
-    product_item_id: int
+    product_item_id: str
 ):
     """
     Create a new product size in the database.
@@ -34,7 +34,7 @@ async def create_product_size(
     if not current_admin:
         raise HTTPException(status_code=404, detail="Admin not found")
     
-    product_item = session.exec(select(ProductItem).where(ProductItem.id == product_item_id)).first()
+    product_item = session.exec(select(ProductItem).where(ProductItem.product_item_id == product_item_id)).first()
     if not product_item:
         raise HTTPException(status_code=404, detail="Product item not found")
 
@@ -59,7 +59,7 @@ async def create_product_size(
 async def get_product_size(
     current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
     session: DB_SESSION,
-    product_item_id: int
+    product_item_id: str
 ):
     """
     Retrieve product sizes for a given product item.
@@ -84,7 +84,11 @@ async def get_product_size(
         raise HTTPException(status_code=404, detail="Product item not found")
 
     product_sizes = session.exec(select(ProductSize).where(ProductSize.product_item_id == product_item_id)).all()
-    return product_sizes
+    size_models = []
+    for size in product_sizes:
+            stock = session.exec(select(Stock).where(Stock.product_size_id == size.id)).first()
+            size_models.append(SizeModel(size=size.size, price=size.price, stock=stock.stock if stock else 0))
+    return size_models
 
 async def delete_product_size(
     current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
@@ -149,7 +153,7 @@ async def update_product_size(
         raise HTTPException(status_code=404, detail="Product size not found")
 
     product_size.size = product_size_detail.size
-    product_size.price = str(product_size_detail.price)
+    product_size.price = product_size_detail.price
     product_size.stock.stock = product_size_detail.stock
 
     session.add(product_size)

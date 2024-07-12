@@ -17,7 +17,7 @@ async def create_product_item(
     # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
     aio_kafka: Annotated[AIOKafkaProducer, Depends(get_kafka_producer)],
     session: DB_SESSION,
-    product_id: int,
+    product_id: str,
     product_item_detail: ProductItemFormModel,
     image: UploadFile = File(...),
 ):
@@ -44,7 +44,7 @@ async def create_product_item(
     # if not current_admin:
     #     raise HTTPException(status_code=404, detail="Admin not found")
 
-    product = session.exec(select(Product).where(Product.id == product_id)).first()
+    product = session.exec(select(Product).where(Product.product_id == product_id)).first()
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
 
@@ -93,12 +93,16 @@ async def create_product_item(
 async def get_product_item(
                     # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
                     session: DB_SESSION,
-                    product_id: int):
+                    product_id: str):
     
     # if not current_admin:
     #     raise HTTPException(status_code=404, detail="Admin not found")
 
-    product_items = session.exec(select(ProductItem).where(ProductItem.product_id == product_id)).all()
+    product = session.exec(select(Product).where(Product.product_id == product_id)).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    product_items = session.exec(select(ProductItem).where(ProductItem.product_id == product.id)).all()
     if not product_items:
         raise HTTPException(status_code=404, detail="Product items not found")
 

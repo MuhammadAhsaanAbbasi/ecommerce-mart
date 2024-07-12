@@ -51,7 +51,7 @@ class OrderItem(BaseIdModel, OrderItemBase, table=True):
     order: Optional["Order"] = Relationship(back_populates="order_items")
 
 class OrderUpdateStatus(SQLModel):
-    order_id: int
+    order_id: str
     status: str
 
 class OrderItemDetail(SQLModel):

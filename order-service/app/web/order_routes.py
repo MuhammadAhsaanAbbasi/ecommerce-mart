@@ -1,4 +1,4 @@
-from ..service.order_service import create_orders, get_orders_by_user, get_all_orders, get_orders_by_id, update_orders_status, delete_orders, get_orders_by_status_and_date, cancel_orders_by_customer
+from ..service.order_service import create_orders, get_orders_by_user, get_all_orders, get_orders_by_id, update_orders_status, delete_orders, get_orders_by_status_and_date, cancel_orders_by_customer, get_orders_by_tracking_id
 from ..model.order import OrderModel, Order, OrderItem, OrderUpdateStatus
 from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException
 from ..utils.admin_verify import get_current_active_admin_user
@@ -45,7 +45,7 @@ async def get_all_order(
 @order_router.get("/get_order_by_id/{order_id}")
 async def get_order_by_id(
                     session: DB_SESSION,
-                    order_id: int,
+                    order_id: str,
                     ):
     order = await get_orders_by_id(session, order_id)
     return order
@@ -55,7 +55,7 @@ async def get_order_by_id(
 async def update_order_status(
                     current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
                     session: DB_SESSION,
-                    order_id: int,
+                    order_id: str,
                     status: str
 ):
     order_update_details = OrderUpdateStatus(order_id=order_id, status=status)
@@ -67,7 +67,7 @@ async def update_order_status(
 async def delete_order(
                     current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
                     session: DB_SESSION,
-                    order_id: int,
+                    order_id: str,
 ):
     order = await delete_orders(current_admin, session, order_id)
     return order
@@ -89,7 +89,18 @@ async def get_order_by_status_and_date(
 async def cancel_order_by_customer(
                     current_user: Annotated[Users, Depends(get_current_active_user)],
                     session: DB_SESSION,
-                    order_id: int,
+                    order_id: str,
 ):
     order = await cancel_orders_by_customer(current_user, session, order_id)
+    return order
+
+#Track Order
+@order_router.get("/track_order/{tracking_id}")
+async def track_order(
+                    session: DB_SESSION,
+                    tracking_id: str,
+                    ):
+    order = await get_orders_by_tracking_id(session, tracking_id)
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
     return order

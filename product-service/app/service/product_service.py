@@ -137,8 +137,8 @@ async def get_all_product_details(session: DB_SESSION):
 
 
 # get specific product details
-async def get_specific_product_details(product_id: int, session: DB_SESSION):
-    product = session.exec(select(Product).where(Product.id == product_id)).first()
+async def get_specific_product_details(product_id: str, session: DB_SESSION):
+    product = session.exec(select(Product).where(Product.product_id == product_id)).first()
     
     if not product:
         return None
@@ -250,13 +250,13 @@ async def get_product_by_category(catogery:str, session: DB_SESSION):
     return product_details
 
 # delete product
-async def deleted_product(product_id: int,
+async def deleted_product(product_id: str,
                         current_admin: Annotated[Admin, Depends(get_current_active_admin_user)], 
                         session: DB_SESSION):
     if not current_admin:
         raise HTTPException(status_code=404, detail="Admin not found")
     
-    product = session.exec(select(Product).where(Product.id == product_id)).first()
+    product = session.exec(select(Product).where(Product.product_id == product_id)).first()
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
     

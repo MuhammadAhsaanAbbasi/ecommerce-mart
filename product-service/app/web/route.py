@@ -50,7 +50,7 @@ async def get_all_product(session: DB_SESSION):
 
 # specific_product details
 @router.get("/product/{product_id}")
-async def specific_product_details(product_id: int, session: DB_SESSION):
+async def specific_product_details(product_id: str, session: DB_SESSION):
     product = await get_specific_product_details(product_id, session)
     return product
 
@@ -68,7 +68,7 @@ async def product_by_category(category:str, session: DB_SESSION):
 
 # Deleted Products
 @router.delete("/delete_product/{product_id}")
-async def delete_product(product_id:int, 
+async def delete_product(product_id:str, 
                         session: DB_SESSION,
                         current_admin: Annotated[Admin, Depends(get_current_active_admin_user)]
                         ):
