@@ -19,7 +19,7 @@ param Image string
 @description('The name of the Container App')
 param ContainerAppName string
 
-var keyVaultSecretUserRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'cd855231-c0d2-5b08-9266-b2a3faadc02b')
+var keyVaultSecretUserRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'dc5d99a8-d52d-46d5-b4cf-cf63ae058707')
 
 resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
   name: logAnalyticsWorkspaceName
