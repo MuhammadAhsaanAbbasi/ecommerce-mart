@@ -1,13 +1,13 @@
 name: Deploy Notification Service
 
 
-on: 
+on:
   push:
     branches:
       - main
     paths:
       - 'notfication-services/**'
-      - '.github/workflows/notfication-deploy.yml'
+      - '.github/workflows/notification-deploy.yml'
       - '.main.bicep'
 
 env:
