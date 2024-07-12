@@ -1,16 +1,20 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, UploadFile, File
 from typing import Annotated
 from sqlmodel import Session
 from ..utils.utils import create_categories, get_categories, create_genders, get_all_genders, create_sizes, get_sizies
 from ..core.db import DB_SESSION
-from ..model.category_model import Category, Size, Gender
+from ..model.category_model import Category, Size, Gender, CategoryBase
 
 csg_router = APIRouter(prefix="/api/v1/csg")
 
 # Category Routes
 @csg_router.post("/create_category") 
-async def create_category(category_input: Category, session: DB_SESSION):
-    category = await create_categories(category_input,session)
+async def create_category(
+                        category_input: CategoryBase, 
+                        session: DB_SESSION,
+                        category_image: UploadFile = File(...),
+                        ):
+    category = await create_categories(category_input,session, category_image)
     return {"message": "Create Product Category Successfully!", "data" : category}
 
 @csg_router.get("/get_category")
