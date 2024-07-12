@@ -183,7 +183,7 @@ async def get_orders_by_status_and_date(
                     ):
     # Validate the Admin
     if not current_admin:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="Admin not found")
     
     # Validate the status
     if status not in OrderStatus.__members__:

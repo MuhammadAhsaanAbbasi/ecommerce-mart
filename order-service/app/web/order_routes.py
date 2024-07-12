@@ -55,9 +55,11 @@ async def get_order_by_id(
 async def update_order_status(
                     current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
                     session: DB_SESSION,
-                    order_id: OrderUpdateStatus,
+                    order_id: int,
+                    status: str
 ):
-    order = await update_orders_status(current_admin, session, order_id )
+    order_update_details = OrderUpdateStatus(order_id=order_id, status=status)
+    order = await update_orders_status(current_admin, session, order_update_details )
     return order
 
 # Delete Order By Admin

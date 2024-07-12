@@ -37,6 +37,7 @@ def calculate_delivery_date():
     return datetime.now(timezone.utc) + timedelta(days=7)
 
 class Order(BaseIdModel, OrderBase, table=True):
+    order_id: Optional[str] = Field(default=uuid.uuid4().hex)
     tracking_id: Optional[str] = Field(default=uuid.uuid4().hex)
     order_status: Optional[OrderStatus] = Field(default="Processing")
     delivery_date: datetime | None = Field(default_factory=calculate_delivery_date)

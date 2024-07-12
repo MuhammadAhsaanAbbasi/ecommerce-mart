@@ -1,9 +1,9 @@
 from sqlmodel import SQLModel, Field,Relationship
-from typing import Optional, List, Literal
+from typing import Optional, List, Literal, Union
 import datetime
 from pydantic import BaseModel, EmailStr
 from .base import BaseIdModel
-# import requests
+import uuid
 
 # Size Model
 class Size(BaseIdModel, table=True):
@@ -23,8 +23,9 @@ class Size(BaseIdModel, table=True):
             raise ValueError(f"Invalid size: {value}")
         return value
 
+
 # Product Base Model
-class ProductBase(SQLModel):
+class ProductBase(BaseIdModel):
     """
     Base model for Product, used for shared attributes.
 
@@ -37,11 +38,12 @@ class ProductBase(SQLModel):
     category_id: int = Field(foreign_key="category.id")
     gender_id: int = Field(foreign_key="gender.id")
 
-class Product(ProductBase, BaseIdModel, table=True):
+class Product(ProductBase, table=True):
     """
     Fields:
     product_name, product_desc, category_id, gender_id (required): inherited from ProductBase
     """
+    product_id: Optional[str] = Field(default=uuid.uuid4().hex)
     product_item: List["ProductItem"] = Relationship(back_populates="product")
 
 class ProductItem(BaseIdModel, table=True):
@@ -51,6 +53,7 @@ class ProductItem(BaseIdModel, table=True):
     """
     color: str
     image_url: str
+    product_item_id: Optional[str] = Field(default=uuid.uuid4().hex)
     product_id: int = Field(foreign_key="product.id")
     product: Optional["Product"] = Relationship(back_populates="product_item")
     sizes: List["ProductSize"] = Relationship(back_populates="product_item")
@@ -62,6 +65,7 @@ class ProductSize(BaseIdModel, table=True):
     """
     size: int = Field(foreign_key="size.id")
     price: int = Field(ge=0)
+    product_size_id: Optional[str] = Field(default=uuid.uuid4().hex)
     stock: "Stock" = Relationship(back_populates="product_size")
     product_item_id: int = Field(foreign_key="productitem.id")
     product_item: Optional["ProductItem"] = Relationship(back_populates="sizes")
@@ -96,6 +100,7 @@ class SizeModel(SQLModel):
         price (int): Price of the product item.
         stock (int): Stock level of the product item.
     """
+    id: Optional[int] = Field(default=None)
     size: int
     price: int
     stock: int
@@ -109,15 +114,31 @@ class ProductItemFormModel(SQLModel):
     image_url (str): URL of the product item image.
     sizes (list[SizeModel]): List of size details.
     """
-    color: Optional[str] = Field(default=None)
+    id: Optional[int] = Field(default=None)
+    color: str
     image_url: Optional[str] = Field(default=None)
     sizes: List[SizeModel]
 
-class ProductFormModel(ProductBase):
+class ProductBaseForm(SQLModel):
+    """
+    Base model for Product, used for shared attributes.
+
+    Attributes:
+        product_name (str): Name of the product.
+        description (str): Description of the product.
+    """
+    product_name: str
+    product_desc: Optional[str]
+    category_id: Union[int , str]
+    gender_id: Union[int , str]
+
+
+class ProductFormModel(ProductBaseForm):
     """
     Model for representing product details in forms.
 
     Attributes:
     product_item (list[ProductItemFormModel]): List of product item details.
     """
+    id: Optional[int] = Field(default=None)
     product_item: List[ProductItemFormModel]

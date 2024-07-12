@@ -6,6 +6,7 @@ from .base import BaseIdModel
 class Category(BaseIdModel, table=True):
     category_name: str = Field(index=True)
     category_desc: str = Field(index=True)
+    category_image: Optional[str]  
 
 
 # Gender Class
