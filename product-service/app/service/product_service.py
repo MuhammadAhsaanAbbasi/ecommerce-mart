@@ -7,6 +7,7 @@ from ..utils.admin_verify import get_current_active_admin_user
 from ..model.category_model import Category, Gender, Size
 from ..kafka.producer import get_kafka_producer
 from ..model.category_model import Category
+from ..core.config import upload_files_in_s3
 from aiokafka import AIOKafkaProducer # type: ignore
 from ..model.authentication import Admin
 import cloudinary.uploader # type: ignore
@@ -71,8 +72,7 @@ async def create_product(
     try:
         for product_items, image in zip(product_details.product_item, images):
             try:
-                upload_result = cloudinary.uploader.upload(image.file)
-                image_url = upload_result["secure_url"]
+                image_url = upload_files_in_s3(image)
             except Exception as e:
                 raise HTTPException(status_code=500, detail=f"Error Occurs during image upload: {e}")
             
@@ -284,4 +284,3 @@ async def deleted_product(product_id: str,
     session.commit()
 
     return {"data": f"Product with ID {product_id} and all its related items have been deleted"}
-
