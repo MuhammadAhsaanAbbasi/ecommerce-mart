@@ -164,7 +164,7 @@ async def get_specific_product_details(product_id: str, session: DB_SESSION):
                 stock = session.exec(select(Stock).where(Stock.product_size_id == product_size.id)).first()
                 if stock and stock.stock > 0:
                     size_model = SizeModel(
-                        id=product_size.id,
+                        id=product_size.product_size_id,
                         size=size.size,
                         price=product_size.price,
                         stock=stock.stock
@@ -173,7 +173,7 @@ async def get_specific_product_details(product_id: str, session: DB_SESSION):
             
             if product_sizes_table:
                 product_item_model = ProductItemFormModel(
-                    id=item.id,
+                    id=item.product_item_id,
                     color=item.color,
                     image_url=item.image_url,
                     sizes=product_sizes_table
@@ -181,7 +181,7 @@ async def get_specific_product_details(product_id: str, session: DB_SESSION):
                 product_items_table.append(product_item_model)
 
     product_details = ProductFormModel(
-            id=product.id,
+            id=product.product_id,
             product_name=product.product_name,
             product_desc=product.product_desc,
             category_id=category_name,
