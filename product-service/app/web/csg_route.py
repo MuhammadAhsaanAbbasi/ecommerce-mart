@@ -1,5 +1,5 @@
 from typing import Annotated
-from sqlmodel import Session
+from sqlmodel import select
 from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException
 from ..utils.utils import create_categories, get_categories, create_genders, get_all_genders, create_sizes, get_sizies, update_categories
 from ..model.category_model import Category, Size, Gender, CategoryBaseModel
@@ -65,8 +65,21 @@ async def update_category(category_id: int,
 
     category_base_model = CategoryBaseModel(**category_dict)
     category = await update_categories(category_id, category_base_model, session, image)
-    return {"message": "Update Product Category Successfully!", "data" : category}
+    return category
 
+@csg_router.delete("/delete_category/{category_id}")
+async def delete_category(category_id: int, 
+                        # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
+                        session: DB_SESSION):
+    # if not current_admin:
+    #     raise HTTPException(status_code=401, detail="Unauthorized Admin")
+
+    category = session.exec(select(Category).where(Category.id == category_id)).first()
+
+    session.delete(category)
+    session.commit()
+
+    return {"message": "Delete Product Category Successfully!"}
 
 # Size Routes
 @csg_router.post("/create_size")

@@ -1,4 +1,4 @@
-from ..model.models import Product, ProductSize, ProductItem, Stock, ProductFormModel, ProductItemFormModel, SizeModel
+from ..model.models import Product, ProductSize, ProductItem, Stock, ProductBaseForm, ProductFormModel, ProductItemFormModel, SizeModel
 from ..product_pb2 import ProductFormModel as ProductFormModelProto, ProductItemFormModel as ProductItemFormModelProto, SizeModel as SizeModelProto # type: ignore
 from ..setting import CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET, CLOUDINARY_CLOUD, PRODUCT_TOPIC
 from ..utils.utils import search_algorithm_by_category, all_product_details
@@ -18,17 +18,17 @@ from sqlmodel import select
 from sqlalchemy import or_
 import json
 
-# Configuration       
-cloudinary.config( 
-    cloud_name = CLOUDINARY_CLOUD, 
-    api_key = CLOUDINARY_API_KEY, 
-    api_secret = CLOUDINARY_API_SECRET, # Click 'View Credentials' below to copy your API secret
-    secure=True
-)
+# # Configuration       
+# cloudinary.config( 
+#     cloud_name = CLOUDINARY_CLOUD, 
+#     api_key = CLOUDINARY_API_KEY, 
+#     api_secret = CLOUDINARY_API_SECRET, # Click 'View Credentials' below to copy your API secret
+#     secure=True
+# )
 
 # Create Product
 async def create_product(
-        current_admin: Annotated[Admin, Depends(get_current_active_admin_user)], 
+        # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)], 
         aio_producer: Annotated[AIOKafkaProducer, Depends(get_kafka_producer)],
         session: DB_SESSION,
         product_details: ProductFormModel,
@@ -54,8 +54,8 @@ async def create_product(
     Returns:
         Product: The created product.
     """
-    if not current_admin:
-        raise HTTPException(status_code=404, detail="Admin not found")
+    # if not current_admin:
+    #     raise HTTPException(status_code=404, detail="Admin not found")
     
     if len(product_details.product_item) != len(images):
         raise HTTPException(status_code=202, detail="The number of images does not match the number of product items")
@@ -72,7 +72,7 @@ async def create_product(
     try:
         for product_items, image in zip(product_details.product_item, images):
             try:
-                image_url = upload_files_in_s3(image)
+                image_url = await upload_files_in_s3(image)
             except Exception as e:
                 raise HTTPException(status_code=500, detail=f"Error Occurs during image upload: {e}")
             
@@ -194,7 +194,6 @@ async def get_specific_product_details(product_id: str, session: DB_SESSION):
     return {"data": product_details}
 
 
-
 # search_product_results
 async def search_product_results(input: str, session: DB_SESSION):
     """
@@ -235,6 +234,7 @@ async def search_product_results(input: str, session: DB_SESSION):
 
     return product_details
 
+
 # get product by category
 async def get_product_by_category(catogery:str, session: DB_SESSION):
     category = session.exec(select(Category).where(Category.category_name == catogery)).first()
@@ -248,6 +248,46 @@ async def get_product_by_category(catogery:str, session: DB_SESSION):
     product_details = await all_product_details(products, session)
 
     return product_details
+
+
+# Updated Product
+async def updated_product(product_id:str,
+                        product_input: ProductBaseForm,
+                        session: DB_SESSION,
+                        # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)]
+                        ):
+    # if not current_admin:
+    #     raise HTTPException(status_code=404, detail="Admin not found")
+    
+    product = session.exec(select(Product).where(Product.product_id == product_id)).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    
+    for field, value in product_input.model_dump().items(): 
+        if field == "product_item":
+            for item in value:
+                product_item = session.exec(select(ProductItem).where(ProductItem.id == item.get("id"))).first()
+                if not product_item:
+                    raise HTTPException(status_code=404, detail="Product Item not found")
+
+                for size in item.get("sizes"):
+                    product_size = session.exec(select(ProductSize).where(ProductSize.id == size.get("id"))).first()
+                    if not product_size:
+                        raise HTTPException(status_code=404, detail="Product Size not found")
+
+                    stock = session.exec(select(Stock).where(Stock.product_size_id == product_size.id)).first()
+                    if not stock:
+                        raise HTTPException(status_code=404, detail="Stock not found")
+
+                    stock.stock = size.get("stock")
+        else:
+            setattr(product, field, value)
+    
+    session.commit()
+    session.refresh(product)
+    
+    return { "message" : "Updated Product Successfully!" }
+
 
 # delete product
 async def deleted_product(product_id: str,
