@@ -22,15 +22,21 @@ class OrderBase(SQLModel):
     total_price: float
     order_payment: OrderPayment = Field(default="Cash On Delivery")
 
+class OrderItemForm(SQLModel):
+    product_id: str
+    product_item_id: str
+    product_size_id: str
+    quantity: int
 
 class OrderModel(OrderBase):
-    items: List[OrderItemBase]
+    items: List[OrderItemForm]
 
 class OrderStatus(str, Enum):
     processing = "Processing"
     shipping = "Shipping"
     delivered = "Delivered"
     cancelled = "Cancelled"
+
 
 
 def calculate_delivery_date():

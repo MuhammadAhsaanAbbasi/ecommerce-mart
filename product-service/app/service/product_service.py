@@ -17,6 +17,7 @@ from ..core.db import DB_SESSION
 from sqlmodel import select
 from sqlalchemy import or_
 import json
+import uuid
 
 # # Configuration       
 # cloudinary.config( 
@@ -79,10 +80,16 @@ async def create_product(
             product_size_tables: List[ProductSize] = []
             for product_size in product_items.sizes:
                 stock_tables = Stock(stock=product_size.stock)
-                product_size_schema = ProductSize(size=product_size.size, price=product_size.price, stock=stock_tables)
+                product_size_schema = ProductSize(size=product_size.size, 
+                                                price=product_size.price, 
+                                                product_size_id=uuid.uuid4().hex,
+                                                stock=stock_tables)
                 product_size_tables.append(product_size_schema)
             
-            product_item = ProductItem(color=product_items.color, image_url=image_url, sizes=product_size_tables)
+            product_item = ProductItem(color=product_items.color, 
+                                        product_item_id=uuid.uuid4().hex,
+                                        image_url=image_url, 
+                                        sizes=product_size_tables)
             product_item_tables.append(product_item)
         
         product = Product(

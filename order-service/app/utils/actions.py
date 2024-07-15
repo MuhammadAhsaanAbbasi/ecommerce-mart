@@ -8,7 +8,7 @@ from ..model.authentication import Users, Admin
 from typing import Annotated, Optional, List, Sequence
 from ..core.db import DB_SESSION
 from sqlmodel import select
-import json
+import json 
 
 
 async def create_order(order_model: OrderModel, user_id: int, session: DB_SESSION):
@@ -17,44 +17,43 @@ async def create_order(order_model: OrderModel, user_id: int, session: DB_SESSIO
         # Check for an existing cart 
         user_cart = session.exec(select(Cart).where(Cart.user_id == user_id)).first()
 
-        if user_cart:
-            # Delete cart items
-            cart_items = session.exec(select(CartItem).where(CartItem.cart_id == user_cart.id)).all()
-
-            order_items_set = {
-                (item.product_item_id, item.product_size_id, item.quantity)
-                for item in order_model.items
-            }
-
-            # Delete only matching cart items
-            for cart_item in cart_items:
-                if (cart_item.product_item_id, cart_item.product_size_id, cart_item.quantity) in order_items_set:
-                    session.delete(cart_item)
-
-            # If all items in the cart are deleted, delete the cart itself
-            remaining_cart_items_query = select(CartItem).where(CartItem.cart_id == user_cart.id)
-            remaining_cart_items = session.exec(remaining_cart_items_query).all()
-
-            if not remaining_cart_items:
-                session.delete(user_cart)
-
         # Check stock levels and prepare order items
         for order_items in order_model.items:
-            product_item = session.exec(select(ProductItem).where(ProductItem.id == order_items.product_item_id)).first()
+            product_item = session.exec(select(ProductItem).where(ProductItem.product_item_id == order_items.product_item_id)).first()
 
             if not product_item:
                 raise HTTPException(status_code=404, detail="Product item not found")
             
-            product = session.exec(select(Product).where(Product.id == order_items.product_id)).first()
+            product = session.exec(select(Product).where(Product.product_id == order_items.product_id)).first()
 
             if not product:
                 raise HTTPException(status_code=404, detail="Product not found")
 
-            product_size = session.exec(select(ProductSize).where(ProductSize.id == order_items.product_size_id)).first()
-
+            product_size = session.exec(select(ProductSize).where(ProductSize.product_size_id == order_items.product_size_id)).first()
 
             if not product_size:
                 raise HTTPException(status_code=404, detail="Product size not found")
+
+            if user_cart:
+            # Delete cart items
+                cart_items = session.exec(select(CartItem).where(CartItem.cart_id == user_cart.id)).all()
+
+                order_items_set = {
+                    (product_item.id, product_size.id, item.quantity)
+                    for item in order_model.items
+                }
+
+                # Delete only matching cart items
+                for cart_item in cart_items:
+                    if (cart_item.product_item_id, cart_item.product_size_id, cart_item.quantity) in order_items_set:
+                        session.delete(cart_item)
+
+                # If all items in the cart are deleted, delete the cart itself
+                remaining_cart_items_query = select(CartItem).where(CartItem.cart_id == user_cart.id)
+                remaining_cart_items = session.exec(remaining_cart_items_query).all()
+
+                if not remaining_cart_items:
+                    session.delete(user_cart)
 
             stock = session.exec(select(Stock).where(Stock.product_size_id == product_size.id)).first()
             
@@ -66,9 +65,9 @@ async def create_order(order_model: OrderModel, user_id: int, session: DB_SESSIO
                 raise HTTPException(status_code=400, detail=f"You Select Product {product.product_name}, have color {product_item.color} in {size.size if size else ""} Size has low stock. Please order after some Days.")
             
             order_item = OrderItem(
-                product_id=order_items.product_id,
-                product_item_id=order_items.product_item_id,
-                product_size_id=order_items.product_size_id,
+                product_id=product.id,
+                product_item_id=product_item.id,
+                product_size_id=product_size.id,
                 quantity=order_items.quantity,
             )
             order_item_table.append(order_item)

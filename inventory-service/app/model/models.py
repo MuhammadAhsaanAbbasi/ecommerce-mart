@@ -51,9 +51,9 @@ class ProductItem(BaseIdModel, table=True):
     Fields:
     product_name, product_desc, category_id, gender_id (required): inherited from ProductBase]
     """
+    product_item_id: Optional[str] = Field(default=uuid.uuid4().hex)
     color: str
     image_url: str
-    product_item_id: Optional[str] = Field(default=uuid.uuid4().hex)
     product_id: int = Field(foreign_key="product.id")
     product: Optional["Product"] = Relationship(back_populates="product_item")
     sizes: List["ProductSize"] = Relationship(back_populates="product_item")
@@ -63,9 +63,9 @@ class ProductSize(BaseIdModel, table=True):
     Fields:
     product_name, product_desc, category_id, gender_id (required): inherited from ProductBase]
     """
-    size: int = Field(foreign_key="size.id")
-    price: int = Field(ge=0)
     product_size_id: Optional[str] = Field(default=uuid.uuid4().hex)
+    price: int = Field(ge=0)
+    size: int = Field(foreign_key="size.id")
     stock: "Stock" = Relationship(back_populates="product_size")
     product_item_id: int = Field(foreign_key="productitem.id")
     product_item: Optional["ProductItem"] = Relationship(back_populates="sizes")
@@ -125,7 +125,7 @@ class ProductBaseForm(SQLModel):
 
     Attributes:
         product_name (str): Name of the product.
-        description (str): Description of the product.
+        description (str): Description of the product. 
     """
     product_name: str
     product_desc: Optional[str]
