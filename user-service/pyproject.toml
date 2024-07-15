@@ -33,6 +33,7 @@ protobuf = "^5.27.1"
 aiokafka = "^0.10.0"
 email-validator = "^2.1.1"
 boto3 = "^1.34.143"
+stripe = "^10.3.0"
 
 [build-system]
 requires = ["poetry-core"]

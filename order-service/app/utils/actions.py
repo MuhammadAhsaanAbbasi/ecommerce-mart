@@ -1,15 +1,16 @@
 from ..model.product import Product, ProductItem, ProductSize, Stock, SizeModel, ProductItemFormModel, ProductFormModel, Size
 from ..model.order import OrderModel, Order, OrderItem, OrderUpdateStatus, OrderItemDetail, OrderDetail
+from ..setting import STRIPE_SECRET_KEY, NEXT_PUBLIC_APP_URL
+from fastapi.responses import RedirectResponse
+from fastapi import Depends, HTTPException
 from ..model.cart import Cart, CartItem
-from fastapi import Depends, UploadFile, File, Form, HTTPException
-from ..utils.admin_verify import get_current_active_admin_user
-from ..utils.user_verify import get_current_active_user
-from ..model.authentication import Users, Admin
-from typing import Annotated, Optional, List, Sequence
+from typing import List, Sequence
 from ..core.db import DB_SESSION
 from sqlmodel import select
 import json 
+import stripe
 
+stripe.api_key = STRIPE_SECRET_KEY
 
 async def create_order(order_model: OrderModel, user_id: int, session: DB_SESSION):
     order_item_table: List[OrderItem] = []
@@ -34,12 +35,23 @@ async def create_order(order_model: OrderModel, user_id: int, session: DB_SESSIO
             if not product_size:
                 raise HTTPException(status_code=404, detail="Product size not found")
 
+            
+
+            stock = session.exec(select(Stock).where(Stock.product_size_id == product_size.id)).first()
+            
+            if not stock:
+                raise HTTPException(status_code=404, detail="Stock not found")
+            
+            if stock.stock < order_items.quantity:
+                size = session.exec(select(Size).where(Size.id == product_size.size)).first()
+                raise HTTPException(status_code=400, detail=f"You Select Product {product.product_name}, have color {product_item.color} in {size.size if size else ""} Size has low stock. Please order after some Days.")
+            
             if user_cart:
             # Delete cart items
                 cart_items = session.exec(select(CartItem).where(CartItem.cart_id == user_cart.id)).all()
 
                 order_items_set = {
-                    (product_item.id, product_size.id, item.quantity)
+                    (item.product_item_id, item.product_size_id, item.quantity)
                     for item in order_model.items
                 }
 
@@ -55,15 +67,6 @@ async def create_order(order_model: OrderModel, user_id: int, session: DB_SESSIO
                 if not remaining_cart_items:
                     session.delete(user_cart)
 
-            stock = session.exec(select(Stock).where(Stock.product_size_id == product_size.id)).first()
-            
-            if not stock:
-                raise HTTPException(status_code=404, detail="Stock not found")
-            
-            if stock.stock < order_items.quantity:
-                size = session.exec(select(Size).where(Size.id == product_size.size)).first()
-                raise HTTPException(status_code=400, detail=f"You Select Product {product.product_name}, have color {product_item.color} in {size.size if size else ""} Size has low stock. Please order after some Days.")
-            
             order_item = OrderItem(
                 product_id=product.id,
                 product_item_id=product_item.id,
@@ -141,3 +144,80 @@ async def all_order_details(user_orders: Sequence[Order], session: DB_SESSION):
         return all_order_detail
     except HTTPException as e:
         raise e
+
+async def fetch_product_details(product_id: str, 
+                                product_item_id: int,
+                                product_size_id: int,
+                                session: DB_SESSION):
+    
+    product = session.exec(select(Product).where(Product.product_id == product_id)).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    
+    product_item = session.exec(select(ProductItem).where(ProductItem.id == product_item_id)).first()
+    if not product_item:
+        raise HTTPException(status_code=404, detail="Product item not found")
+    
+    product_size = session.exec(select(ProductSize).where(ProductSize.id == product_size_id)).first()
+    if not product_size:
+        raise HTTPException(status_code=404, detail="Product size not found")
+    
+    return product_size.price, product_item.image_url, product.product_name
+
+def create_metadata(order_details: OrderModel, user_id: int) -> dict:
+    return {
+        'user_id': user_id,
+        'order_address': order_details.order_address,
+        'phone_number': order_details.phone_number,
+        'total_price': order_details.total_price,
+        'order_payment': order_details.order_payment.value,
+        'items': [
+            {
+                'product_id': item.product_id,
+                'product_item_id': item.product_item_id,
+                'product_size_id': item.product_size_id,
+                'quantity': item.quantity
+            }
+            for item in order_details.items
+        ]
+    }
+
+async def order_checkout(order_details: OrderModel, user_id: int, session: DB_SESSION):
+    try:
+        line_items = []
+        for item in order_details.items:
+            price, image_url, product = await fetch_product_details(item.product_id, 
+                                                        item.product_item_id,
+                                                        item.product_size_id, 
+                                                        session)
+            line_items.append({
+                'price_data': {
+                    'currency': 'usd',
+                    'product_data': {
+                        'name': product,  # Assuming product_id can be used as a name
+                        'images': [image_url],
+                    },
+                    'unit_amount': int(price * 100),  # Convert to cents
+                },
+                'quantity': item.quantity,
+            })
+        
+        metadata = create_metadata(order_details, user_id)
+        
+        stripe_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=line_items,
+            metadata=metadata,
+            mode='payment',
+            success_url=f"{NEXT_PUBLIC_APP_URL}/profile",
+            cancel_url=f"{NEXT_PUBLIC_APP_URL}/",
+        )
+
+        if not stripe_session.url:
+            raise HTTPException(status_code=500, detail="Stripe session not created")
+        
+        response = RedirectResponse(url=stripe_session.url)
+
+        return response
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

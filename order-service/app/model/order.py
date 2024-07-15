@@ -24,8 +24,8 @@ class OrderBase(SQLModel):
 
 class OrderItemForm(SQLModel):
     product_id: str
-    product_item_id: str
-    product_size_id: str
+    product_item_id: int
+    product_size_id: int
     quantity: int
 
 class OrderModel(OrderBase):

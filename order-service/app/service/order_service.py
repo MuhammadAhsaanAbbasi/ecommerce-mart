@@ -1,6 +1,6 @@
 from ..model.product import Product, ProductItem, ProductSize, Stock, SizeModel, ProductItemFormModel, ProductFormModel, Size
 from ..model.order import OrderModel, Order, OrderItem, OrderUpdateStatus, OrderItemDetail, OrderDetail, OrderStatus
-from ..utils.actions import create_order, all_order_details
+from ..utils.actions import create_order, all_order_details, order_checkout
 from fastapi import Depends, UploadFile, File, Form, HTTPException
 from ..utils.admin_verify import get_current_active_admin_user
 from ..utils.user_verify import get_current_active_user
@@ -24,11 +24,13 @@ async def create_orders(
     if current_user.id is None:
         raise HTTPException(status_code=400, detail="User ID is invalid")
 
-    if order_details.order_payment != "Online Payment":
+    if order_details.order_payment == "Cash On Delivery":
         order = await create_order(order_details, current_user.id, session)
         return order
     else:
-        return {'message': "Order Created Successfully! & Charged Online Payment!"}
+        checkout = await order_checkout(order_details, current_user.id)
+        return checkout
+
 
 # Get User Orders
 async def get_orders_by_user(
@@ -40,6 +42,7 @@ async def get_orders_by_user(
         raise HTTPException(status_code=404, detail="Order not found")
     order_details = await all_order_details(user_orders, session)
     return order_details
+
 
 # Get All Orders
 async def get_all_orders(
@@ -54,6 +57,7 @@ async def get_all_orders(
     order_details = await all_order_details(all_orders, session)
 
     return order_details
+
 
 # Get Order By Id
 async def get_orders_by_id(
@@ -109,6 +113,7 @@ async def get_orders_by_id(
     except HTTPException as e:
         raise e
 
+
 # Update Order Status
 async def update_orders_status(
                     current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
@@ -138,6 +143,7 @@ async def update_orders_status(
     except Exception as e:
         session.rollback()
         raise HTTPException(status_code=400, detail=f"Failed to update order status: {e}")
+
 
 # Delete Order
 async def delete_orders(
@@ -172,6 +178,7 @@ async def delete_orders(
     except Exception as e:
         session.rollback()
         raise HTTPException(status_code=400, detail=f"Failed to delete order: {e}")
+
 
 # Get Order By Status
 async def get_orders_by_status_and_date(
@@ -218,6 +225,7 @@ async def get_orders_by_status_and_date(
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Failed to retrieve orders: {e}")
 
+
 # Customer Cancel Order
 async def cancel_orders_by_customer(
                     current_user: Annotated[Users, Depends(get_current_active_user)],
@@ -250,6 +258,7 @@ async def cancel_orders_by_customer(
     except Exception as e:
         session.rollback()
         raise HTTPException(status_code=400, detail=f"Failed to cancel order: {e}")
+
 
 # Get Order By Id
 async def get_orders_by_tracking_id(

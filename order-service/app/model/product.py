@@ -5,6 +5,7 @@ from pydantic import BaseModel, EmailStr
 from .base import BaseIdModel
 import uuid
 
+
 # Size Model
 class Size(BaseIdModel, table=True):
     """
