@@ -38,6 +38,7 @@ class OrderStatus(str, Enum):
     cancelled = "Cancelled"
 
 
+
 def calculate_delivery_date():
     return datetime.now(timezone.utc) + timedelta(days=7)
 
@@ -78,3 +79,17 @@ class OrderDetail(SQLModel):
     delivery_date: datetime
     order_date: datetime
     order_items: List[OrderItemDetail]
+
+class OrderItemMetadata(SQLModel):
+    product_id: str
+    product_item_id: str
+    product_size_id: str
+    quantity: int
+
+class OrderMetadata(SQLModel):
+    user_id: str
+    order_address: str
+    phone_number: str
+    total_price: str
+    order_payment: str
+    items: List[OrderItemMetadata]

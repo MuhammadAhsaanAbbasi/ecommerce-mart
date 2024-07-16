@@ -15,7 +15,7 @@ async def life_span(app: FastAPI):
 
 app = FastAPI(
     title="Payment Service",
-    description="This is a Notification Service",
+    description="This is a Payment Service",
     version="1.0.0",
     terms_of_service="https://caxgpt.vercel.app/terms/",
     lifespan=life_span,

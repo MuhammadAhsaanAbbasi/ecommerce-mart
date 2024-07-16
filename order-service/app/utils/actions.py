@@ -179,7 +179,7 @@ def create_metadata(order_details: OrderModel, user_id: int) -> dict:
         'user_id': str(user_id),
         'order_address': order_details.order_address,
         'phone_number': order_details.phone_number,
-        'total_price': str(order_details.total_price),
+        'total_amount': str(order_details.total_price),
         'order_payment': order_details.order_payment.value,
         'items': json.dumps(items_metadata)  # Convert items list to JSON string
     }

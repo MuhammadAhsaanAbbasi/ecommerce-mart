@@ -3,8 +3,10 @@ from typing import Optional
 import datetime
 from pydantic import BaseModel, EmailStr
 from .base import BaseIdModel
+import uuid
 
-class UserBase(SQLModel):
+class UserBase(BaseIdModel):
+    kid: Optional[str] = Field(default=uuid.uuid4().hex)
     username: str = Field(index=True)
     email: str = Field(index=True)
     hashed_password: Optional[str] = Field(default=None, index=True)
@@ -13,9 +15,13 @@ class UserBase(SQLModel):
     is_verified: bool = Field(default=False)
     otp: Optional[str] = Field(default=None, index=True)
 
+# User Model
+class Users(UserBase, table=True):
+    role: str = Field(default="user")
+
 
 # Admin Model
-class Admin(UserBase, BaseIdModel, table=True):
+class Admin(UserBase, table=True):
     role: str = Field(default="admin")
 
 # class Secretkey(SQLModel, table=True):

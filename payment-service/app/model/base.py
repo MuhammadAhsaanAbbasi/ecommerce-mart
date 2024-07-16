@@ -1,5 +1,6 @@
 from sqlmodel import SQLModel, Field
 from datetime import datetime
+import random as r
 import uuid
 
 class BaseIdModel(SQLModel):
