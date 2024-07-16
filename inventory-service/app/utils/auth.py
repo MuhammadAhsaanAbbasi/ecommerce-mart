@@ -12,7 +12,7 @@ cloudinary.config(
     secure=True
 )
 
-def upload_image(image: UploadFile):
+async def upload_image(image: UploadFile):
     try:
         upload_result = cloudinary.uploader.upload(image.file)
         return upload_result["secure_url"]

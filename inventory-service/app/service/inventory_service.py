@@ -49,7 +49,7 @@ async def create_product_item(
         raise HTTPException(status_code=404, detail="Product not found")
 
     try:
-        image_url = upload_image(image)
+        image_url = await upload_image(image)
 
         product_size_tables: List[ProductSize] = []
         for product_size in product_item_detail.sizes:
@@ -166,7 +166,7 @@ async def update_product_item_image(
         raise HTTPException(status_code=404, detail="Product item not found")
 
     try:
-        image_url = upload_image(image)
+        image_url = await upload_image(image)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error occurs during image upload: {e}")
 
