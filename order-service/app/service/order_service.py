@@ -28,7 +28,7 @@ async def create_orders(
         order = await create_order(order_details, current_user.id, session)
         return order
     else:
-        checkout = await order_checkout(order_details, current_user.id)
+        checkout = await order_checkout(order_details, current_user.id, session)
         return checkout
 
 

@@ -7,7 +7,7 @@ from ..utils.admin_verify import get_current_active_admin_user
 from ..model.category_model import Category, Gender, Size
 from ..kafka.producer import get_kafka_producer
 from ..model.category_model import Category
-from ..core.config import upload_files_in_s3
+from ..core.config import upload_image
 from aiokafka import AIOKafkaProducer # type: ignore
 from ..model.authentication import Admin
 import cloudinary.uploader # type: ignore
@@ -73,7 +73,7 @@ async def create_product(
     try:
         for product_items, image in zip(product_details.product_item, images):
             try:
-                image_url = await upload_files_in_s3(image)
+                image_url = await upload_image(image)
             except Exception as e:
                 raise HTTPException(status_code=500, detail=f"Error Occurs during image upload: {e}")
             

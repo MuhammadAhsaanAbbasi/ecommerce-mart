@@ -1,7 +1,7 @@
-from fastapi import UploadFile, HTTPException
-import cloudinary # type: ignore
 from app.setting import CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET, CLOUDINARY_CLOUD
+from fastapi import UploadFile, HTTPException
 import cloudinary.uploader # type: ignore
+import cloudinary # type: ignore
 import json
 
 # Configuration       

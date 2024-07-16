@@ -165,22 +165,25 @@ async def fetch_product_details(product_id: str,
     return product_size.price, product_item.image_url, product.product_name
 
 def create_metadata(order_details: OrderModel, user_id: int) -> dict:
+    items_metadata = [
+        {
+            'product_id': item.product_id,
+            'product_item_id': item.product_item_id,
+            'product_size_id': item.product_size_id,
+            'quantity': item.quantity
+        }
+        for item in order_details.items
+    ]
+    
     return {
-        'user_id': user_id,
+        'user_id': str(user_id),
         'order_address': order_details.order_address,
         'phone_number': order_details.phone_number,
-        'total_price': order_details.total_price,
+        'total_price': str(order_details.total_price),
         'order_payment': order_details.order_payment.value,
-        'items': [
-            {
-                'product_id': item.product_id,
-                'product_item_id': item.product_item_id,
-                'product_size_id': item.product_size_id,
-                'quantity': item.quantity
-            }
-            for item in order_details.items
-        ]
+        'items': json.dumps(items_metadata)  # Convert items list to JSON string
     }
+
 
 async def order_checkout(order_details: OrderModel, user_id: int, session: DB_SESSION):
     try:
@@ -190,12 +193,13 @@ async def order_checkout(order_details: OrderModel, user_id: int, session: DB_SE
                                                         item.product_item_id,
                                                         item.product_size_id, 
                                                         session)
+            print(f"Image Url: {image_url}")
             line_items.append({
                 'price_data': {
-                    'currency': 'usd',
+                    'currency': 'pkr',
                     'product_data': {
                         'name': product,  # Assuming product_id can be used as a name
-                        'images': [image_url],
+                        'images': ["https://ecommerce-mart.s3.eu-north-1.amazonaws.com/products/Off-White-Tissue-Silk-Paithani-Saree1-474x617.jpg"],
                     },
                     'unit_amount': int(price * 100),  # Convert to cents
                 },
@@ -216,6 +220,7 @@ async def order_checkout(order_details: OrderModel, user_id: int, session: DB_SE
         if not stripe_session.url:
             raise HTTPException(status_code=500, detail="Stripe session not created")
         
+        print(stripe_session.url)
         response = RedirectResponse(url=stripe_session.url)
 
         return response
