@@ -1,16 +1,20 @@
 from ..model.models import Product, ProductSize, ProductItem, Stock, ProductFormModel, ProductItemFormModel, SizeModel
 from ..model.category_model import Category, Size, Gender, CategoryBaseModel
-from typing import List, Sequence, Annotated
+from fastapi import HTTPException, UploadFile, File, Form, Depends
+from ..utils.admin_verify import get_current_active_admin_user
 from sqlmodel import SQLModel, select, Session
-from ..core.db import DB_SESSION
+from typing import List, Sequence, Annotated
 from ..core.config import upload_files_in_s3
-from fastapi import HTTPException, UploadFile, File, Form
+from ..model.authentication import Admin
+from ..core.db import DB_SESSION
 
 # Create Categories
 async def create_categories(category_input: CategoryBaseModel,
-                            # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
+                            current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
                             session: DB_SESSION,
                             image: UploadFile = File(...)):
+    if not current_admin:
+        raise HTTPException(status_code=401, detail="Unauthorized Admin")
     category_image = await upload_files_in_s3(image)
     category = Category(**category_input.model_dump(), category_image=category_image)
     session.add(category)
@@ -25,12 +29,12 @@ async def get_categories(session: DB_SESSION):
 
 async def update_categories(category_id: int, 
                         category_input: CategoryBaseModel,
-                        # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
+                        current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
                         session: DB_SESSION,
                         image: UploadFile = File(...),
                         ):
-    # if not current_admin:
-    #     raise HTTPException(status_code=401, detail="Unauthorized Admin")
+    if not current_admin:
+        raise HTTPException(status_code=401, detail="Unauthorized Admin")
 
     category_image = await upload_files_in_s3(image)
 
@@ -51,8 +55,10 @@ async def update_categories(category_id: int,
 
 # Create Size
 async def create_sizes(size_input: Size,
-                        # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
+                        current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
                         session: DB_SESSION):
+    if not current_admin:
+        raise HTTPException(status_code=401, detail="Unauthorized Admin")
     size = Size(**size_input.model_dump())
     session.add(size)
     session.commit()
@@ -66,8 +72,10 @@ async def get_sizies(session: DB_SESSION):
 
 # Create Genders
 async def create_genders(gender_input: Gender,
-                        # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
+                        current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
                         session: DB_SESSION):
+    if not current_admin:
+        raise HTTPException(status_code=401, detail="Unauthorized Admin")
     gender = Gender(**gender_input.model_dump())
     session.add(gender)
     session.commit()
@@ -104,7 +112,8 @@ async def all_product_details(products: Sequence[Product], session: DB_SESSION):
                 stock = session.exec(select(Stock).where(Stock.product_size_id == product_size.id)).first()
                 if stock and stock.stock > 0:
                     size_model = SizeModel(
-                        id=product_size.product_size_id,
+                        id=product_size.id,
+                        product_size_id=product_size.product_size_id, 
                         size=size.size,
                         price=product_size.price,
                         stock=stock.stock
@@ -113,7 +122,8 @@ async def all_product_details(products: Sequence[Product], session: DB_SESSION):
             
             if product_sizes_table:
                 product_item_model = ProductItemFormModel(
-                    id=item.product_item_id,
+                    id=item.id,
+                    product_item_id=item.product_item_id,
                     color=item.color,
                     image_url=item.image_url,
                     sizes=product_sizes_table
@@ -121,7 +131,7 @@ async def all_product_details(products: Sequence[Product], session: DB_SESSION):
                 product_items_table.append(product_item_model)
 
         product_details = ProductFormModel(
-                id=product.product_id,
+                product_id=product.product_id,
                 product_name=product.product_name,
                 product_desc=product.product_desc,
                 category_id=product.category_id,

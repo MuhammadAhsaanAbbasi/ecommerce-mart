@@ -82,7 +82,8 @@ class SizeModel(SQLModel):
         stock (int): Stock level of the product item.
     """
     id: Optional[int] = Field(default=None)
-    size: int
+    product_size_id: Optional[str]
+    size: Union[int , str]
     price: int
     stock: int
 
@@ -96,6 +97,7 @@ class ProductItemFormModel(SQLModel):
     sizes (list[SizeModel]): List of size details.
     """
     id: Optional[int] = Field(default=None)
+    product_item_id: Optional[str]
     color: str
     image_url: Optional[str] = Field(default=None)
     sizes: List[SizeModel]
@@ -121,5 +123,5 @@ class ProductFormModel(ProductBaseForm):
     Attributes:
     product_item (list[ProductItemFormModel]): List of product item details.
     """
-    id: Optional[int] = Field(default=None)
+    product_id: Optional[str]
     product_item: List[ProductItemFormModel]

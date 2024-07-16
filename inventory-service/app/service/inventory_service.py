@@ -14,7 +14,7 @@ from app.setting import INVENTORY_TOPIC
 
 # Product Item
 async def create_product_item(
-    # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
+    current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
     aio_kafka: Annotated[AIOKafkaProducer, Depends(get_kafka_producer)],
     session: DB_SESSION,
     product_id: str,
@@ -41,8 +41,8 @@ async def create_product_item(
     Returns:
         ProductItem: The created product item.
     """
-    # if not current_admin:
-    #     raise HTTPException(status_code=404, detail="Admin not found")
+    if not current_admin:
+        raise HTTPException(status_code=404, detail="Admin not found")
 
     product = session.exec(select(Product).where(Product.product_id == product_id)).first()
     if not product:
@@ -91,12 +91,12 @@ async def create_product_item(
         raise HTTPException(status_code=500, detail=f"Error Occurs while creating the product item: {e}")
 
 async def get_product_item(
-                    # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
+                    current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
                     session: DB_SESSION,
                     product_id: str):
     
-    # if not current_admin:
-    #     raise HTTPException(status_code=404, detail="Admin not found")
+    if not current_admin:
+        raise HTTPException(status_code=404, detail="Admin not found")
 
     product = session.exec(select(Product).where(Product.product_id == product_id)).first()
     if not product:
