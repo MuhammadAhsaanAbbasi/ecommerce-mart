@@ -199,7 +199,7 @@ async def order_checkout(order_details: OrderModel, user_id: int, session: DB_SE
                     'currency': 'pkr',
                     'product_data': {
                         'name': product,  # Assuming product_id can be used as a name
-                        'images': ["https://ecommerce-mart.s3.eu-north-1.amazonaws.com/products/Off-White-Tissue-Silk-Paithani-Saree1-474x617.jpg"],
+                        'images': [image_url],
                     },
                     'unit_amount': int(price * 100),  # Convert to cents
                 },
