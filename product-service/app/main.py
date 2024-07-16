@@ -43,7 +43,7 @@ app.add_middleware(
 )
 
 app.router.include_router(router=router, tags=["Product Service"])
-app.router.include_router(router=csg_router, tags=["Category, Size & Gender Service"])
+app.router.include_router(router=csg_router, tags=["Category, Size & Gender Service!!"])
 
 @app.get("/")
 def get_root():

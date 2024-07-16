@@ -73,7 +73,7 @@ async def create_product(
     try:
         for product_items, image in zip(product_details.product_item, images):
             try:
-                image_url = await upload_image(image)
+                image_url = upload_image(image)
             except Exception as e:
                 raise HTTPException(status_code=500, detail=f"Error Occurs during image upload: {e}")
             
