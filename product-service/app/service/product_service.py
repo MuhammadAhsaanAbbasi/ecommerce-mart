@@ -5,27 +5,20 @@ from ..utils.utils import search_algorithm_by_category, all_product_details
 from fastapi import Depends, HTTPException, UploadFile, File, Form
 from ..utils.admin_verify import get_current_active_admin_user
 from ..model.category_model import Category, Gender, Size
+from aiokafka import AIOKafkaProducer # type: ignore
 from ..kafka.producer import get_kafka_producer
 from ..model.category_model import Category
-from ..core.config import upload_image
-from aiokafka import AIOKafkaProducer # type: ignore
 from ..model.authentication import Admin
 import cloudinary.uploader # type: ignore
-import cloudinary # type: ignore
+from ..core.config import upload_image
 from typing import Annotated, List
+import cloudinary # type: ignore
 from ..core.db import DB_SESSION
 from sqlmodel import select
 from sqlalchemy import or_
 import json
 import uuid
 
-# # Configuration       
-# cloudinary.config( 
-#     cloud_name = CLOUDINARY_CLOUD, 
-#     api_key = CLOUDINARY_API_KEY, 
-#     api_secret = CLOUDINARY_API_SECRET, # Click 'View Credentials' below to copy your API secret
-#     secure=True
-# )
 
 # Create Product
 async def create_product(
