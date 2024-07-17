@@ -1,8 +1,9 @@
 from ..service.order_service import create_orders, get_orders_by_user, get_all_orders, get_orders_by_id, update_orders_status, delete_orders, get_orders_by_status_and_date, cancel_orders_by_customer, get_orders_by_tracking_id
 from ..model.order import OrderModel, Order, OrderItem, OrderUpdateStatus
-from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException
+from ..kafka.producer import AIOKafkaProducer, get_kafka_producer
 from ..utils.admin_verify import get_current_active_admin_user
 from ..utils.user_verify import get_current_active_user
+from fastapi import APIRouter, Depends, HTTPException
 from ..model.authentication import Users, Admin
 from typing import Annotated, Optional, List
 from ..core.db import DB_SESSION
@@ -15,11 +16,12 @@ order_router = APIRouter(prefix="/api/v1")
 # Create Order
 @order_router.post("/create_order")
 async def create_order(
+                    session: DB_SESSION,
                     order_details: OrderModel,
-                    session: DB_SESSION, 
                     current_user: Annotated[Users, Depends(get_current_active_user)],
+                    aio_producer: Annotated[AIOKafkaProducer, Depends(get_kafka_producer)],
                     ):
-    order = await create_orders(order_details, session, current_user)
+    order = await create_orders(order_details, session, current_user, aio_producer)
     return order
 
 # Get Order By User 

@@ -1,35 +1,63 @@
 from ..model.product import Product, ProductItem, ProductSize, Stock, SizeModel, ProductItemFormModel, ProductFormModel, Size
+from ..order_pb2 import OrderPayment as OrderPaymentEnum, OrderBase as OrderBaseProto, OrderItemForm as OrderItemFormProto, OrderModel as OrderModelProto # type: ignore
 from ..model.order import OrderModel, Order, OrderItem, OrderUpdateStatus, OrderItemDetail, OrderDetail, OrderStatus
 from ..utils.actions import create_order, all_order_details, order_checkout
-from fastapi import Depends, UploadFile, File, Form, HTTPException
+from ..kafka.producer import AIOKafkaProducer, get_kafka_producer 
 from ..utils.admin_verify import get_current_active_admin_user
 from ..utils.user_verify import get_current_active_user
 from datetime import datetime, timedelta, timezone
 from ..model.authentication import Users, Admin
 from typing import Annotated, Optional, List
+from fastapi import Depends, HTTPException
+from ..setting import ORDER_TOPIC
 from ..core.db import DB_SESSION
 from sqlmodel import select
 import json
+import uuid
 
 # Create Orders
 async def create_orders(
                     order_details: OrderModel,
                     session: DB_SESSION, 
                     current_user: Annotated[Users, Depends(get_current_active_user)],
+                    aio_producer: Annotated[AIOKafkaProducer, Depends(get_kafka_producer)],
                     ):
-    
-    if not current_user:
-        raise HTTPException(status_code=404, detail="User not found")
 
     if current_user.id is None:
         raise HTTPException(status_code=400, detail="User ID is invalid")
+    
+    try:
+        order_id = uuid.uuid4().hex
+        print(order_id)
+        if order_details.order_payment == "Cash On Delivery":
+            # Convert order details to protobuf message
+            order_proto = OrderModelProto(
+                base=OrderBaseProto(
+                    order_address=order_details.order_address,
+                    phone_number=order_details.phone_number,
+                    total_price=order_details.total_price,
+                    order_payment=OrderPaymentEnum.CASH_ON_DELIVERY
+                ),
+                items=[
+                    OrderItemFormProto(
+                        product_id=item.product_id,
+                        product_item_id=item.product_item_id,
+                        product_size_id=item.product_size_id,
+                        quantity=item.quantity
+                    ) for item in order_details.items
+                ]
+            ) 
 
-    if order_details.order_payment == "Cash On Delivery":
-        order = await create_order(order_details, current_user.id, session)
-        return order
-    else:
-        checkout = await order_checkout(order_details, current_user.id, session)
-        return checkout
+            serialized_order = order_proto.SerializeToString()
+
+            await aio_producer.send_and_wait(ORDER_TOPIC, serialized_order, partition=2)
+
+            return {'message': "Order Proceed Successfully!"}
+        else:
+            checkout = await order_checkout(order_details, order_id, current_user.id, session)
+            return checkout
+    except HTTPException as e:
+        raise e
 
 
 # Get User Orders

@@ -12,7 +12,8 @@ import stripe
 
 stripe.api_key = STRIPE_SECRET_KEY
 
-async def create_order(order_model: OrderModel, user_id: int, session: DB_SESSION):
+async def create_order(order_model: OrderModel, order_id:str, 
+                        user_id: int, session: DB_SESSION):
     order_item_table: List[OrderItem] = []
     try:
         # Check for an existing cart 
@@ -20,7 +21,7 @@ async def create_order(order_model: OrderModel, user_id: int, session: DB_SESSIO
 
         # Check stock levels and prepare order items
         for order_items in order_model.items:
-            product_item = session.exec(select(ProductItem).where(ProductItem.product_item_id == order_items.product_item_id)).first()
+            product_item = session.exec(select(ProductItem).where(ProductItem.id == order_items.product_item_id)).first()
 
             if not product_item:
                 raise HTTPException(status_code=404, detail="Product item not found")
@@ -30,12 +31,11 @@ async def create_order(order_model: OrderModel, user_id: int, session: DB_SESSIO
             if not product:
                 raise HTTPException(status_code=404, detail="Product not found")
 
-            product_size = session.exec(select(ProductSize).where(ProductSize.product_size_id == order_items.product_size_id)).first()
+            product_size = session.exec(select(ProductSize).where(ProductSize.id == order_items.product_size_id)).first()
 
             if not product_size:
                 raise HTTPException(status_code=404, detail="Product size not found")
 
-            
 
             stock = session.exec(select(Stock).where(Stock.product_size_id == product_size.id)).first()
             
@@ -82,8 +82,9 @@ async def create_order(order_model: OrderModel, user_id: int, session: DB_SESSIO
             phone_number=order_model.phone_number,
             order_payment=order_model.order_payment,
             total_price=order_model.total_price,
-            user_id=user_id,
             order_items=order_item_table,
+            order_id=order_id,
+            user_id=user_id,
         )
         session.add(order)
         session.commit()
@@ -164,7 +165,7 @@ async def fetch_product_details(product_id: str,
     
     return product_size.price, product_item.image_url, product.product_name
 
-def create_metadata(order_details: OrderModel, user_id: int) -> dict:
+def create_metadata(order_details: OrderModel, order_id: str, user_id: int) -> dict:
     items_metadata = [
         {
             'product_id': item.product_id,
@@ -177,6 +178,7 @@ def create_metadata(order_details: OrderModel, user_id: int) -> dict:
     
     return {
         'user_id': str(user_id),
+        'order_id': order_id,
         'order_address': order_details.order_address,
         'phone_number': order_details.phone_number,
         'total_amount': str(order_details.total_price),
@@ -185,7 +187,7 @@ def create_metadata(order_details: OrderModel, user_id: int) -> dict:
     }
 
 
-async def order_checkout(order_details: OrderModel, user_id: int, session: DB_SESSION):
+async def order_checkout(order_details: OrderModel, order_id: str, user_id: int, session: DB_SESSION):
     try:
         line_items = []
         for item in order_details.items:
@@ -206,7 +208,7 @@ async def order_checkout(order_details: OrderModel, user_id: int, session: DB_SE
                 'quantity': item.quantity,
             })
         
-        metadata = create_metadata(order_details, user_id)
+        metadata = create_metadata(order_details, order_id, user_id)
         
         stripe_session = stripe.checkout.Session.create(
             payment_method_types=['card'],
