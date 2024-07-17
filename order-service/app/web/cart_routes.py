@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends
 from ..core.db import DB_SESSION
 import json
 
-router = APIRouter(prefix="/api/v1")
+router = APIRouter(prefix="/api/v1/cart")
 
 
 @router.post("/create-cart")

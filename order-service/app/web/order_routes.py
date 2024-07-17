@@ -11,7 +11,7 @@ from datetime import datetime
 from sqlmodel import Session
 import json
 
-order_router = APIRouter(prefix="/api/v1")
+order_router = APIRouter(prefix="/api/v1/order")
 
 # Create Order
 @order_router.post("/create_order")

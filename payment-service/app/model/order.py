@@ -87,7 +87,8 @@ class OrderItemMetadata(SQLModel):
     quantity: int
 
 class OrderMetadata(SQLModel):
-    user_id: str
+    user_id: int
+    order_id: str
     order_address: str
     phone_number: str
     total_price: str
