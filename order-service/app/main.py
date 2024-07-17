@@ -10,7 +10,6 @@ from .model.order import *
 from .model.cart import *
 import asyncio
 
-
 async def task_initiator():
     asyncio.create_task(order_consumer())
 
@@ -18,6 +17,7 @@ async def task_initiator():
 async def life_span(app: FastAPI):
     print("Hello World..!!!")
     create_db_and_tables()
+    await task_initiator()
     yield
 
 app = FastAPI(

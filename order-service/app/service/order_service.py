@@ -1,5 +1,5 @@
 from ..model.product import Product, ProductItem, ProductSize, Stock, SizeModel, ProductItemFormModel, ProductFormModel, Size
-from ..order_pb2 import OrderPayment as OrderPaymentEnum, OrderBase as OrderBaseProto, OrderItemForm as OrderItemFormProto, OrderModel as OrderModelProto # type: ignore
+from ..order_pb2 import OrderBase as OrderBaseProto, OrderItemForm as OrderItemFormProto, OrderModel as OrderModelProto # type: ignore
 from ..model.order import OrderModel, Order, OrderItem, OrderUpdateStatus, OrderItemDetail, OrderDetail, OrderStatus
 from ..utils.actions import create_order, all_order_details, order_checkout
 from ..kafka.producer import AIOKafkaProducer, get_kafka_producer 
@@ -32,12 +32,13 @@ async def create_orders(
         if order_details.order_payment == "Cash On Delivery":
             # Convert order details to protobuf message
             order_proto = OrderModelProto(
+                user_id=current_user.id,
                 order_id=order_id,
                 base=OrderBaseProto(
                     order_address=order_details.order_address,
                     phone_number=order_details.phone_number,
                     total_price=order_details.total_price,
-                    order_payment=OrderPaymentEnum.CASH_ON_DELIVERY
+                    order_payment=order_details.order_payment
                 ),
                 items=[
                     OrderItemFormProto(

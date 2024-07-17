@@ -1,11 +1,12 @@
 # Other necessary imports
+from ..model.order import OrderModel, OrderItemForm, OrderBase, OrderPayment
 from aiokafka import AIOKafkaConsumer # type: ignore
 from aiokafka.errors import KafkaConnectionError # type: ignore
-from fastapi import HTTPException
-from ..model.order import OrderModel, OrderItemForm, OrderBase, OrderPayment
+from ..core.db import engine
+from app import order_pb2 # type: ignore
 from ..utils.actions import create_order
 from app.setting import ORDER_TOPIC
-from app import order_pb2 # type: ignore
+from fastapi import HTTPException
 from sqlmodel import Session
 
 ###################################################################################################################
@@ -25,17 +26,18 @@ async def order_consumer():
     consumer_kafka = await get_kafka_consumer([ORDER_TOPIC])
     try:
         async for msg in consumer_kafka:
-            order_proto = order_pb2.OrderModelProto()
+            order_proto = order_pb2.OrderModel()
             order_proto.ParseFromString(msg.value)
 
             # Construct OrderModel from protobuf message
+            user_id = order_proto.user_id
             order_id = order_proto.order_id
             order_base = order_proto.base
             order_model = OrderModel(
                 order_address=order_base.order_address,
                 phone_number=order_base.phone_number,
                 total_price=order_base.total_price,
-                order_payment=OrderPayment(order_base.order_payment.name),
+                order_payment=OrderPayment(order_base.order_payment),
                 items=[
                     OrderItemForm(
                         product_id=item.product_id,
@@ -47,10 +49,12 @@ async def order_consumer():
             )
 
             print(f"Order Model: {order_model}")
+            print(f"User Id: {user_id}")
+            print(f"Order Id: {order_id}")
 
             with Session(engine) as session:
                 try:
-                    user = create_order(order_model, session)
+                    user = create_order(order_model, order_id, user_id, session)
                     # print(f"Created user: {user['data']['email']}")
                 except HTTPException as e:
                     print(f"Error creating user: {e.detail}")

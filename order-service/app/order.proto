@@ -2,18 +2,12 @@ syntax = "proto3";
 
 package order;
 
-// Enum for OrderPayment
-enum OrderPayment {
-    CASH_ON_DELIVERY = 0;
-    ONLINE_PAYMENT = 1;
-}
-
 // Message for OrderBase
 message OrderBase {
     string order_address = 1;
     string phone_number = 2;
     float total_price = 3;
-    OrderPayment order_payment = 4;
+    string order_payment = 4;
 }
 
 // Message for OrderItemForm
@@ -26,7 +20,8 @@ message OrderItemForm {
 
 // Message for OrderModel
 message OrderModel {
-    string order_id = 1;
-    OrderBase base = 2;
-    repeated OrderItemForm items = 3;
+    int32 user_id = 1;
+    string order_id = 2;
+    OrderBase base = 3;
+    repeated OrderItemForm items = 4;
 }
