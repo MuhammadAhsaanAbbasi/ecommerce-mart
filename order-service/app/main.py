@@ -5,9 +5,14 @@ from contextlib import asynccontextmanager
 from .web.cart_routes  import router
 from .web.order_routes  import order_router
 from .core.db import create_db_and_tables
+from .kafka.order import order_consumer
 from .model.order import *
 from .model.cart import *
+import asyncio
 
+
+async def task_initiator():
+    asyncio.create_task(order_consumer())
 
 @asynccontextmanager
 async def life_span(app: FastAPI):

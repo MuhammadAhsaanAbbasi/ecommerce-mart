@@ -32,6 +32,7 @@ async def create_orders(
         if order_details.order_payment == "Cash On Delivery":
             # Convert order details to protobuf message
             order_proto = OrderModelProto(
+                order_id=order_id,
                 base=OrderBaseProto(
                     order_address=order_details.order_address,
                     phone_number=order_details.phone_number,
@@ -50,7 +51,7 @@ async def create_orders(
 
             serialized_order = order_proto.SerializeToString()
 
-            await aio_producer.send_and_wait(ORDER_TOPIC, serialized_order, partition=2)
+            await aio_producer.send_and_wait(topic=ORDER_TOPIC, value=serialized_order)
 
             return {'message': "Order Proceed Successfully!"}
         else:

@@ -26,6 +26,7 @@ message OrderItemForm {
 
 // Message for OrderModel
 message OrderModel {
-    OrderBase base = 1;
-    repeated OrderItemForm items = 2;
+    string order_id = 1;
+    OrderBase base = 2;
+    repeated OrderItemForm items = 3;
 }
