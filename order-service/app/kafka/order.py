@@ -54,8 +54,8 @@ async def order_consumer():
 
             with Session(engine) as session:
                 try:
-                    user = create_order(order_model, order_id, user_id, session)
-                    # print(f"Created user: {user['data']['email']}")
+                    order = await create_order(order_model, order_id, user_id, session)
+                    print(f"Created Order: {order}")
                 except HTTPException as e:
                     print(f"Error creating user: {e.detail}")
 

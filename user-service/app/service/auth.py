@@ -79,7 +79,7 @@ async def verify_and_generate_tokens(user_otp: str, user: Users, session: DB_SES
     }
 
 #  Create user 
-def create_user(user: Users, session: DB_SESSION, isGoogle: bool = False):
+async def create_user(user: Users, session: DB_SESSION, isGoogle: bool = False):
     existing_user = session.exec(select(Users).where(Users.email == user.email)).first()
     if existing_user:
         return False  # Return False if user already exists

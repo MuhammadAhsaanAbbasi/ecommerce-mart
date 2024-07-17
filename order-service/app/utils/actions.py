@@ -15,9 +15,9 @@ stripe.api_key = STRIPE_SECRET_KEY
 async def create_order(order_model: OrderModel, order_id:str, 
                         user_id: int, session: DB_SESSION):
     
-    order_available = session.exec(select(Order).where(Order.id == order_id, Order.user_id == user_id)).first()
+    order_available = session.exec(select(Order).where(Order.order_id == order_id, Order.user_id == user_id)).first()
     if order_available:
-        raise HTTPException(status_code=400, detail="Order already exists")
+        return False
     
     order_item_table: List[OrderItem] = []
     try:

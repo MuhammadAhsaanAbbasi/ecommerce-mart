@@ -36,7 +36,7 @@ async def user_consumer():
             )
             with Session(engine) as session:
                 try:
-                    user = create_user(user_data, session)
+                    user = await create_user(user_data, session)
                     # print(f"Created user: {user['data']['email']}")
                 except HTTPException as e:
                     print(f"Error creating user: {e.detail}")
