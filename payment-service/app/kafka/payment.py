@@ -1,12 +1,13 @@
 # Other necessary imports
-from aiokafka import AIOKafkaConsumer # type: ignore
 from aiokafka.errors import KafkaConnectionError # type: ignore
+from aiokafka import AIOKafkaConsumer # type: ignore
+from ..model.transaction import TransactionModel
+from ..utils.actions import create_transactions
+from app import transaction_pb2 # type: ignore
+from app.setting import PAYMENT_TOPIC
 from fastapi import HTTPException
-# from app.utils.auth import email_signup
-from app.model.models import ProductBaseForm, ProductFormModel, ProductItemFormModel, SizeModel
-from app.setting import INVENTORY_TOPIC
-from app import inventory_pb2 # type: ignore
-import resend # type: ignore
+from ..core.db import engine
+from sqlmodel import Session
 
 ###################################################################################################################
 async def get_kafka_consumer(topics: list[str]) -> AIOKafkaConsumer:
@@ -22,25 +23,25 @@ async def get_kafka_consumer(topics: list[str]) -> AIOKafkaConsumer:
 ###################################################################################################################
 
 async def product_item_consumer():
-    consumer_kafka = await get_kafka_consumer([INVENTORY_TOPIC])
+    consumer_kafka = await get_kafka_consumer([PAYMENT_TOPIC])
     try:
         async for msg in consumer_kafka:
-            product_item_proto = inventory_pb2.ProductItemFormProtoModel()
-            product_item_proto.ParseFromString(msg.value)
+            payment_proto = transaction_pb2.ProductItemFormProtoModel()
+            payment_proto.ParseFromString(msg.value)
+
+            user_id = payment_proto.userId
 
             # Construct ProductItemFormModel from protobuf message
-            product_item_form = ProductItemFormModel(
-                product_id=product_item_proto.product_id,
-                color=product_item_proto.color,
-                image_url=product_item_proto.image_url,
-                sizes=[
-                    SizeModel(size=size.size, price=size.price, stock=size.stock)
-                    for size in product_item_proto.sizes
-                ]
+            payment_form = TransactionModel(
+                stripeId=payment_proto.stripeId,
+                orderId=payment_proto.orderId,
+                amount=payment_proto.amount
             )
 
-            print(f"Product Item Form Model: {product_item_form}")
+            with Session(engine) as session:
+                transaction = await create_transactions(session, user_id, payment_form)
 
+                print(f"Transaction created: {transaction}")
     except KafkaConnectionError as e:
         print(f"Error connecting to Kafka: {e}")
     finally:
