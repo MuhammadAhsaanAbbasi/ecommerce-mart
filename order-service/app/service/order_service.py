@@ -127,7 +127,7 @@ async def get_orders_by_id(
                 order_items_detail.append(order_item_detail)
 
         order_detail = OrderDetail(
-                order_id=order.id,
+                order_id=order.order_id,
                 order_address=order.order_address,
                 phone_number=order.phone_number,
                 order_payment=order.order_payment,

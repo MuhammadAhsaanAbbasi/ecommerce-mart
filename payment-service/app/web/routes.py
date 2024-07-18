@@ -1,14 +1,18 @@
-from fastapi import APIRouter, Response, HTTPException, Request, Depends
-from ..kafka.producer import AIOKafkaProducer, get_kafka_producer
-from ..service.payment_service import create_transaction_order
-from ..setting import STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET
+from ..model.transaction import TransactionModel, Transaction, TransactionDetail
+from fastapi import APIRouter, Response, HTTPException, Request, Depends, Query
 from stripe.error import SignatureVerificationError # type: ignore
-from ..model.transaction import TransactionModel, Transaction
+from ..kafka.producer import AIOKafkaProducer, get_kafka_producer
+from ..setting import STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET
+from ..service.payment_service import create_transaction_order
+from ..utils.admin_verify import get_current_active_admin_user
 from typing import Annotated, Optional, List, Sequence
+from ..utils.actions import get_transactionBy_date
+from ..model.authentication import Users, Admin
+from ..model.order import OrderMetadata, Order
 from fastapi.responses import JSONResponse
-from ..model.order import OrderMetadata
 from ..core.db import DB_SESSION
-from sqlmodel import Session, select
+from datetime import datetime
+from sqlmodel import select
 import json
 import stripe
 
@@ -60,7 +64,27 @@ async def payment_webhook(request: Request,
     return Response(content="", status_code=200)
 
 
-@router.get("/transaction/all", response_model=Sequence[Transaction])
-async def get_all_transactions(session: Session):
-    transactions = session.exec(select(Transaction)).all()
-    return transactions
+@router.get("/transaction/all", response_model=List[TransactionDetail])
+async def get_all_transactions(
+    session: DB_SESSION,
+    current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
+    from_date: Optional[datetime] = Query(None),
+    to_date: Optional[datetime] = Query(None)
+):
+    transaction = await get_transactionBy_date(session, current_admin, from_date, to_date)
+    return transaction
+
+
+@router.get("/transaction/specific/{transaction_id}")
+async def get_transaction(transaction_id: str, session: DB_SESSION):
+    transaction = session.exec(select(Transaction).where(Transaction.transaction_id == transaction_id)).first()
+    if not transaction:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    return transaction
+
+@router.get("/transaction/order/{order_id}")
+async def get_transaction_by_order(order_id: str, session: DB_SESSION):
+    transaction = session.exec(select(Transaction).where(Transaction.order_id == order_id)).first()
+    if not transaction:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    return transaction

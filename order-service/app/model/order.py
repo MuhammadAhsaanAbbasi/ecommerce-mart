@@ -68,7 +68,7 @@ class OrderItemDetail(SQLModel):
     stock: int
 
 class OrderDetail(SQLModel):
-    order_id: int
+    order_id: str
     order_address: str
     phone_number: str
     order_payment: str
