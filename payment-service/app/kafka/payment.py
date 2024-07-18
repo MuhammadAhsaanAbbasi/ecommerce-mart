@@ -22,7 +22,7 @@ async def get_kafka_consumer(topics: list[str]) -> AIOKafkaConsumer:
 
 ###################################################################################################################
 
-async def product_item_consumer():
+async def payment_consumer():
     consumer_kafka = await get_kafka_consumer([PAYMENT_TOPIC])
     try:
         async for msg in consumer_kafka:

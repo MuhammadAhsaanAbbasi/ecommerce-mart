@@ -3,12 +3,12 @@ from ..kafka.producer import AIOKafkaProducer, get_kafka_producer
 from ..service.payment_service import create_transaction_order
 from ..setting import STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET
 from stripe.error import SignatureVerificationError # type: ignore
-from ..model.transaction import TransactionModel
-from typing import Annotated, Optional, List
+from ..model.transaction import TransactionModel, Transaction
+from typing import Annotated, Optional, List, Sequence
 from fastapi.responses import JSONResponse
 from ..model.order import OrderMetadata
 from ..core.db import DB_SESSION
-from sqlmodel import Session
+from sqlmodel import Session, select
 import json
 import stripe
 
@@ -58,3 +58,9 @@ async def payment_webhook(request: Request,
         return JSONResponse(content={"message": "OK", "transaction": transaction})
 
     return Response(content="", status_code=200)
+
+
+@router.get("/transaction/all", response_model=Sequence[Transaction])
+async def get_all_transactions(session: Session):
+    transactions = session.exec(select(Transaction)).all()
+    return transactions

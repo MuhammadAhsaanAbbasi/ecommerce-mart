@@ -14,7 +14,7 @@ import asyncio
 async def task_initiator():
     asyncio.create_task(user_consumer())
     asyncio.create_task(product_consumer())
-    asyncio.create_task(product_item_consumer())
+    # asyncio.create_task(product_item_consumer())
 
 @asynccontextmanager 
 async def life_span(app: FastAPI):
