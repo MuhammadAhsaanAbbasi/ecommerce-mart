@@ -55,4 +55,6 @@ async def payment_webhook(request: Request,
 
         transaction = await create_transaction_order(order_metadata, transaction_model, aio_producer)
 
+        return JSONResponse(content={"message": "OK", "transaction": transaction})
+
     return Response(content="", status_code=200)
