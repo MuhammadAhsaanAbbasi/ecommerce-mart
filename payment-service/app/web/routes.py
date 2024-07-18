@@ -1,8 +1,11 @@
-from fastapi import APIRouter, Response, HTTPException, Request
+from fastapi import APIRouter, Response, HTTPException, Request, Depends
+from ..kafka.producer import AIOKafkaProducer, get_kafka_producer
+from ..service.payment_service import create_transaction_order
 from ..setting import STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET
 from stripe.error import SignatureVerificationError # type: ignore
 from ..model.transaction import TransactionModel
 from typing import Annotated, Optional, List
+from fastapi.responses import JSONResponse
 from ..model.order import OrderMetadata
 from ..core.db import DB_SESSION
 from sqlmodel import Session
@@ -13,7 +16,8 @@ stripe.api_key = STRIPE_SECRET_KEY
 router = APIRouter(prefix="/api/v1/payment")
 
 @router.post("/stripe/webhook")
-async def payment_webhook(request: Request, session: DB_SESSION):
+async def payment_webhook(request: Request, 
+                        aio_producer: Annotated[AIOKafkaProducer, Depends(get_kafka_producer)]):
     payload = await request.body()
     sig_header = request.headers.get('stripe-signature')
 
@@ -48,5 +52,7 @@ async def payment_webhook(request: Request, session: DB_SESSION):
             amount=session_data['amount_total'],
             order_id=metadata['order_id'],
         )
+
+        transaction = await create_transaction_order(order_metadata, transaction_model, aio_producer)
 
     return Response(content="", status_code=200)
