@@ -1,9 +1,9 @@
-from ..model.transaction import TransactionModel, Transaction, TransactionDetail
+from ..model.transaction import TransactionModel, Transaction, TransactionDetail, RefundModel, Refund
 from fastapi import APIRouter, Response, HTTPException, Request, Depends, Query
-from stripe.error import SignatureVerificationError # type: ignore
+from stripe.error import SignatureVerificationError, StripeError # type: ignore
 from ..kafka.producer import AIOKafkaProducer, get_kafka_producer
 from ..setting import STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET
-from ..service.payment_service import create_transaction_order
+from ..service.payment_service import create_transaction_order, get_transaction_details
 from ..utils.admin_verify import get_current_active_admin_user
 from typing import Annotated, Optional, List, Sequence
 from ..utils.actions import get_transactionBy_date
@@ -52,8 +52,8 @@ async def payment_webhook(request: Request,
         
         # Store the transaction
         transaction_model = TransactionModel(
-            stripe_id=session_data['id'],
-            amount=session_data['amount_total'],
+            stripeId=session_data['id'],
+            amount=session_data['amount_total'] / 100,
             order_id=metadata['order_id'],
         )
 
@@ -76,15 +76,67 @@ async def get_all_transactions(
 
 
 @router.get("/transaction/specific/{transaction_id}")
-async def get_transaction(transaction_id: str, session: DB_SESSION):
+async def get_transaction(transaction_id: str, 
+                        session: DB_SESSION,
+                        current_admin: Annotated[Admin, Depends(get_current_active_admin_user)]):
+    if not current_admin:
+        raise HTTPException(status_code=403, detail="Unauthorized access")
+    
     transaction = session.exec(select(Transaction).where(Transaction.transaction_id == transaction_id)).first()
     if not transaction:
         raise HTTPException(status_code=404, detail="Transaction not found")
-    return transaction
+    
+    transaction_details = await get_transaction_details(transaction, session)
+
+    return transaction_details
 
 @router.get("/transaction/order/{order_id}")
-async def get_transaction_by_order(order_id: str, session: DB_SESSION):
+async def get_transaction_by_order(order_id: str, session: DB_SESSION,
+                                current_admin: Annotated[Admin, Depends(get_current_active_admin_user)]):
+    if not current_admin:
+        raise HTTPException(status_code=403, detail="Unauthorized access")
+    
     transaction = session.exec(select(Transaction).where(Transaction.order_id == order_id)).first()
     if not transaction:
         raise HTTPException(status_code=404, detail="Transaction not found")
-    return transaction
+    
+    transaction_details = await get_transaction_details(transaction, session)
+
+    return transaction_details
+
+
+@router.post("/transaction/refund/{transaction_id}")
+async def refund_transaction(transaction_id: str,
+                            refund_details: RefundModel,
+                        session: DB_SESSION,
+                        current_admin: Annotated[Admin, Depends(get_current_active_admin_user)]):
+    if not current_admin:
+        raise HTTPException(status_code=403, detail="Unauthorized access")
+
+    transaction = session.exec(select(Transaction).where(Transaction.transaction_id == transaction_id)).first()
+    if not transaction:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    
+    try:
+        refund = stripe.Refund.create(
+            payment_intent=transaction.stripeId,
+            amount=int(refund_details.amount * 100),
+            reason=refund_details.reason
+        )
+    except StripeError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    refund_model = Refund(
+        refund_id=refund.id,
+        transaction_id=transaction.id,
+        user_id=transaction.user_id,
+        amount=refund_details.amount,
+        reason=refund_details.reason,
+        status=refund.status
+    )
+
+    session.add(refund_model)
+    session.commit()
+    session.refresh(refund_model)
+
+    return refund_model

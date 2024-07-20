@@ -16,6 +16,7 @@ from sqlmodel import select
 import json
 import uuid
 
+# Create Transaction
 async def create_transaction(
         transaction_details: TransactionModel,
         user_id: int,
@@ -40,7 +41,7 @@ async def create_transaction(
     except HTTPException as e:
         raise e
 
-
+# Create Transaction & Order
 async def create_transaction_order(
         order_details: OrderMetadata,
         transaction_details: TransactionModel,
@@ -76,3 +77,32 @@ async def create_transaction_order(
         
     except HTTPException as e:
         raise e
+
+# Get Transaction Details
+async def get_transaction_details(transaction: Transaction, session: DB_SESSION):
+    user = session.exec(select(Users).where(Users.id == transaction.user_id)).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    order = session.exec(select(Order).where(Order.order_id == transaction.order_id)).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    transaction_details = TransactionDetail(
+        transaction_id=transaction.transaction_id,
+        stripeId=transaction.stripeId,
+        amount=transaction.amount,
+        order_id=transaction.order_id,
+        user_id=transaction.user_id,
+        username=user.username,
+        email=user.email,
+        imageUrl=user.imageUrl,
+        order_address=order.order_address,
+        phone_number=order.phone_number,
+        total_price=order.total_price,
+        order_status=order.order_status,
+        delivery_date=order.delivery_date,
+        order_date=order.order_date
+    )
+
+    return transaction_details
