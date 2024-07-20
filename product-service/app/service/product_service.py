@@ -22,7 +22,7 @@ import uuid
 
 # Create Product
 async def create_product(
-        current_admin: Annotated[Admin, Depends(get_current_active_admin_user)], 
+        # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)], 
         aio_producer: Annotated[AIOKafkaProducer, Depends(get_kafka_producer)],
         session: DB_SESSION,
         product_details: ProductFormModel,
@@ -48,8 +48,8 @@ async def create_product(
     Returns:
         Product: The created product.
     """
-    if not current_admin:
-        raise HTTPException(status_code=404, detail="Admin not found")
+    # if not current_admin:
+    #     raise HTTPException(status_code=404, detail="Admin not found")
     
     if len(product_details.product_item) != len(images):
         raise HTTPException(status_code=202, detail="The number of images does not match the number of product items")

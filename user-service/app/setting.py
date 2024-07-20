@@ -22,3 +22,8 @@ RESEND_API_KEY = config("RESEND_API_KEY", cast=str)
 REDIRECT_URI = config("REDIRECT_URI", cast=str)
 FRONTEND_CLIENT_SUCCESS_URI = config("FRONTEND_CLIENT_SUCCESS_URI", cast=str)
 FRONTEND_CLIENT_FAILURE_URI = config("FRONTEND_CLIENT_FAILURE_URI", cast=str)   
+
+BUCKET_NAME = config("BUCKET_NAME", cast=str)
+AWS_REGION = config("AWS_REGION", cast=str)
+AWS_ACCESS_KEY = config("AWS_ACCESS_KEY", cast=str)
+AWS_SECRET_KEY = config("AWS_SECRET_KEY", cast=str)

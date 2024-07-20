@@ -127,9 +127,13 @@ async def sign_up(user: Users, session:DB_SESSION, aio_producer: Annotated[AIOKa
     # Check the value on db
     existing_user  = session.exec(select(Users).where(Users.email == user.email)).first()
     if existing_user:
-            raise HTTPException(status_code=400, detail="Admin already exists")
+            raise HTTPException(status_code=400, detail="Email already exists")
+    
+    # Create Image Url
+    initial_letters = user.username[0:2].upper()
+    user.imageUrl = f"https://avatar.vercel.sh/{user.username}.svg?text={initial_letters}"
 
-# data produce on consumer
+    # data produce on consumer
     try:
         user_protobuf = user_pb2.User(username=user.username, email=user.email, hashed_password=user.hashed_password, imageUrl=user.imageUrl, is_active=user.is_active, is_verified=user.is_verified, role=user.role) # type: ignore
         print(f"Todo Protobuf: {user_protobuf}")

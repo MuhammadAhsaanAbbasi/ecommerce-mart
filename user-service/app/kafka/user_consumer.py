@@ -37,7 +37,8 @@ async def user_consumer():
             with Session(engine) as session:
                 try:
                     user = await create_user(user_data, session)
-                    # print(f"Created user: {user['data']['email']}")
+                    print(f"Created user: {user}") 
+
                 except HTTPException as e:
                     print(f"Error creating user: {e.detail}")
     except KafkaConnectionError as e:

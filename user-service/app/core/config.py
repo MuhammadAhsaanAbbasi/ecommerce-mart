@@ -1,13 +1,27 @@
-import logging
+from ..setting import BUCKET_NAME, AWS_REGION, AWS_ACCESS_KEY, AWS_SECRET_KEY
+from botocore.exceptions import NoCredentialsError # type: ignore
+from fastapi import HTTPException, UploadFile
+from fastapi import UploadFile, HTTPException
+import boto3 # type: ignore
+from typing import List
+import json
 
-
-def logger_config(module):
-    """
-    Logger function.
-    - can Extend Python loggin module and set a custom config.
-    """
-    logging.basicConfig(level=logging.INFO)
-
-    logger = logging.getLogger(module)
-
-    return logger
+async def upload_files_in_s3(file: UploadFile):
+    s3_client = boto3.client("s3",
+                            aws_access_key_id=AWS_ACCESS_KEY,
+                            aws_secret_access_key=AWS_SECRET_KEY
+                            )
+    try:
+        object_name = f"user/{file.filename}"
+        print(f"Object Name : {object_name}")
+        image_s3 = s3_client.upload_fileobj(
+                file.file,
+                BUCKET_NAME,
+                object_name
+            )
+        print(image_s3)
+        image_url = f"https://{BUCKET_NAME}.s3.{AWS_REGION}.amazonaws.com/{
+                object_name}"
+        return image_url
+    except NoCredentialsError as nce:
+            raise HTTPException(status_code=500, detail=str(nce))
