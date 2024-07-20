@@ -4,6 +4,7 @@ from enum import Enum
 from datetime import datetime
 from pydantic import EmailStr
 from .base import BaseIdModel
+from .order import OrderStatus
 from .authentication import Users
 import uuid
 
@@ -15,7 +16,7 @@ class TransactionModel(SQLModel):
 class TransactionStatus(str, Enum):
     pending = "Pending"
     completed = "Completed"
-    refunding = "Refunding"
+    refunded = "Refunded"
 
 class Transaction(BaseIdModel, TransactionModel, table=True):
     transaction_id: Optional[str] = Field(default=uuid.uuid4().hex)
@@ -35,7 +36,7 @@ class TransactionDetail(SQLModel):
     order_address: str
     phone_number: str
     total_price: float
-    order_status: str
+    order_status: Optional[OrderStatus]
     delivery_date: datetime
     order_date: datetime
 
@@ -65,3 +66,22 @@ class Refund(BaseIdModel, table=True):
     transaction_id: int = Field(foreign_key="transaction.id")
     user_id: int = Field(foreign_key="users.id")
     order_id: int = Field(foreign_key="order.id")
+
+class RefundDetails(SQLModel):
+    refund_id: str
+    amount: int
+    stripeId: str
+    status: RefundStatus
+    reason: RefundReason
+    refund_date: datetime
+    username: str
+    email: str
+    imageUrl: str
+    order_address: str
+    phone_number: str
+    order_status: OrderStatus
+    delivery_date: datetime
+    order_date: datetime
+    user_id: int
+    order_id: str
+    transaction_id: str

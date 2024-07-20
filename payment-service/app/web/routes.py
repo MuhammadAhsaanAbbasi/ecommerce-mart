@@ -1,12 +1,12 @@
-from ..model.transaction import TransactionModel, Transaction, TransactionDetail, RefundModel, Refund
+from ..model.transaction import TransactionModel, Transaction, TransactionDetail, RefundModel, Refund, TransactionStatus, RefundDetails
 from fastapi import APIRouter, Response, HTTPException, Request, Depends, Query
 from stripe.error import SignatureVerificationError, StripeError # type: ignore
 from ..kafka.producer import AIOKafkaProducer, get_kafka_producer
 from ..setting import STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET
-from ..service.payment_service import create_transaction_order, get_transaction_details
+from ..service.payment_service import create_transaction_order, get_transaction_details, get_refunds
+from ..utils.actions import get_transactionBy_date, get_all_refunds_details
 from ..utils.admin_verify import get_current_active_admin_user
 from typing import Annotated, Optional, List, Sequence
-from ..utils.actions import get_transactionBy_date
 from ..model.authentication import Users, Admin
 from ..model.order import OrderMetadata, Order
 from fastapi.responses import JSONResponse
@@ -126,10 +126,18 @@ async def refund_transaction(transaction_id: str,
     except StripeError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+    order = session.exec(select(Order).where(Order.order_id == transaction.order_id)).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    transaction.transaction_status = TransactionStatus.refunded
+    session.commit()
+
     refund_model = Refund(
         refund_id=refund.id,
         transaction_id=transaction.id,
         user_id=transaction.user_id,
+        order_id=order.id,
         amount=refund_details.amount,
         reason=refund_details.reason,
         status=refund.status
@@ -140,3 +148,17 @@ async def refund_transaction(transaction_id: str,
     session.refresh(refund_model)
 
     return refund_model
+
+@router.get("/transaction/refund/all", response_model=List[RefundDetails])
+async def get_all_refunds(session: DB_SESSION,
+                        current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
+                        from_date: Optional[datetime] = Query(None),
+                        to_date: Optional[datetime] = Query(None)):
+    refund = await get_all_refunds_details(session, current_admin, from_date, to_date)
+    return refund
+
+@router.get("/transaction/refund/{refund_id}", response_model=RefundDetails)
+async def get_refund(refund_id: str, session: DB_SESSION,
+                    current_admin: Annotated[Admin, Depends(get_current_active_admin_user)]):
+    refund = await get_refunds(refund_id, session, current_admin)
+    return refund
