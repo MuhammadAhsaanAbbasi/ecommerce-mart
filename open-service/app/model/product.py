@@ -5,6 +5,13 @@ from pydantic import BaseModel, EmailStr
 from .base import BaseIdModel
 import uuid
 
+class CategoryBaseModel(SQLModel):
+    category_name: str
+    category_desc: str
+
+# Category Class
+class Category(BaseIdModel,CategoryBaseModel, table=True):
+    category_image: Optional[str]
 
 # Size Model
 class Size(BaseIdModel, table=True):

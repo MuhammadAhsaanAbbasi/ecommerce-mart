@@ -1,115 +1,63 @@
-from ..model.product import Product, ProductItem, ProductSize, Stock, SizeModel, ProductItemFormModel, ProductFormModel, Size
-from ..order_pb2 import OrderBase as OrderBaseProto, OrderItemForm as OrderItemFormProto, OrderModel as OrderModelProto # type: ignore
-from ..transaction_pb2 import TransactionModelProto, TransactionProto as Transaction # type: ignore
-from ..model.order import OrderModel, Order, OrderItem, OrderUpdateStatus, OrderItemMetadata, OrderMetadata, OrderStatus
-from ..model.transaction import TransactionModel, Transaction, TransactionDetail, RefundDetails, Refund
-from ..service.payment_service import get_transaction_details
-from ..kafka.producer import AIOKafkaProducer, get_kafka_producer 
+from ..model.product import Product, ProductItem, ProductSize, Stock, SizeModel, ProductItemFormModel, ProductFormModel, Size, Category
 from ..utils.admin_verify import get_current_active_admin_user
 from ..utils.user_verify import get_current_active_user
 from fastapi import Depends, HTTPException, Query
-from ..setting import ORDER_TOPIC, PAYMENT_TOPIC
 from ..model.authentication import Users, Admin
-from typing import Annotated, Optional, List
+from typing import Annotated, Optional, List, Sequence
 from ..core.db import DB_SESSION
 from datetime import datetime
 from sqlmodel import select
 import json
 import uuid
 
-async def create_transactions(transaction_details: TransactionModel, 
-                                user_id: int, 
-                                session: DB_SESSION):
-    transaction = Transaction(
-        user_id=user_id,
-        **transaction_details.model_dump()
-    )
-    session.add(transaction)
-    session.commit()
-    session.refresh(transaction)
+async def get_categories(session: DB_SESSION):
+    categories = session.exec(select(Category)).all()
+    return {"data" : categories}
 
-    return {"message" : "Successfully Charged transaction", "data" : transaction}
+async def all_product_details(products: Sequence[Product], session: DB_SESSION):
+    all_product_detail = []
 
-async def get_transactionBy_date(
-    session: DB_SESSION,
-    current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
-    from_date: Optional[datetime] = Query(None),
-    to_date: Optional[datetime] = Query(None)
-):
-    if not current_admin:
-        raise HTTPException(status_code=404, detail="Admin not found")
-    
-    
-    if not Transaction.created_at:
-        raise HTTPException(status_code=400, detail="Order date not found")
-    
-    try:
-        query = select(Transaction)
-        
-        if from_date:
-            query = query.where(Transaction.created_at >= from_date)
-        if to_date:
-            query = query.where(Transaction.created_at <= to_date)
+    for product in products:
+        product_items = session.exec(select(ProductItem).where(ProductItem.product_id == product.id)).all()
+        product_items_table: List[ProductItemFormModel] = []
 
-        transactions = session.exec(query).all()
-        
-        transactions_details = []
-        for transaction in transactions:
-            transaction_details = await get_transaction_details(transaction, session)
+        for item in product_items:
+            product_sizes = session.exec(select(ProductSize).where(ProductSize.product_item_id == item.id)).all()
+            product_sizes_table: List[SizeModel] = []
+
+            for product_size in product_sizes:
+                size = session.exec(select(Size).where(Size.id == product_size.size)).first()
+                if not size:
+                    raise HTTPException(status_code=404, detail="Size not found")
+                stock = session.exec(select(Stock).where(Stock.product_size_id == product_size.id)).first()
+                if stock and stock.stock > 0:
+                    size_model = SizeModel(
+                        id=product_size.id,
+                        product_size_id=product_size.product_size_id, 
+                        size=size.size,
+                        price=product_size.price,
+                        stock=stock.stock
+                    )
+                    product_sizes_table.append(size_model)
             
-            transactions_details.append(
-                transaction_details
+            if product_sizes_table:
+                product_item_model = ProductItemFormModel(
+                    id=item.id,
+                    product_item_id=item.product_item_id,
+                    color=item.color,
+                    image_url=item.image_url,
+                    sizes=product_sizes_table
+                )
+                product_items_table.append(product_item_model)
+
+        product_details = ProductFormModel(
+                product_id=product.product_id,
+                product_name=product.product_name,
+                product_desc=product.product_desc,
+                category_id=product.category_id,
+                gender_id=product.gender_id,
+                product_item=product_items_table
             )
-        
-        return transactions_details
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        all_product_detail.append(product_details)
 
-async def get_all_refunds_details(session: DB_SESSION,
-                        current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
-                        from_date: Optional[datetime] = Query(None),
-                        to_date: Optional[datetime] = Query(None)):
-    if not current_admin:
-        raise HTTPException(status_code=403, detail="Unauthorized access")
-
-    query = select(Refund)
-
-    if from_date:
-        query = query.where(Refund.refund_date >= from_date)
-    if to_date:
-        query = query.where(Refund.refund_date <= to_date)
-
-    refunds = session.exec(query).all() 
-    
-    refunds_details = []
-    for refund in refunds:
-        order = session.exec(select(Order).where(Order.id == refund.order_id)).first()
-        if not order:
-            raise HTTPException(status_code=404, detail="Order not found")
-
-        user = session.exec(select(Users).where(Users.id == refund.user_id)).first()
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
-
-        refund_details = RefundDetails(
-                refund_id=refund.refund_id,
-                amount=refund.amount,
-                stripeId=refund.stripeId,
-                status=refund.status,
-                reason=refund.reason,
-                refund_date=refund.refund_date,
-                username=user.username,
-                email=user.email,
-                imageUrl=user.imageUrl,
-                order_address=order.order_address,
-                phone_number=order.phone_number,
-                order_status=order.order_status,
-                delivery_date=order.delivery_date,
-                order_date=order.order_date,
-                user_id=user.id,
-                order_id=order.order_id,
-                transaction_id=refund.transaction_id
-            )
-        refunds_details.append(refund_details)
-    
-    return refunds_details
+    return all_product_detail

@@ -20,8 +20,8 @@ async def life_span(app: FastAPI):
     yield
 
 app = FastAPI(
-    title="Payment Service",
-    description="This is a Payment Service",
+    title="Open Service",
+    description="This is a Open Service",
     version="1.0.0",
     terms_of_service="https://caxgpt.vercel.app/terms/",
     lifespan=life_span,
@@ -50,8 +50,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.router.include_router(router, tags=["Payment Services"])
+app.router.include_router(router, tags=["Open Services"])
 
 @app.get("/")
 def get_root():
-    return {"message": "welcome to Payment Service! Transaction a new payment"}
+    return {"message": "welcome to Open Services! Featured Products, all Products, all categories"}
