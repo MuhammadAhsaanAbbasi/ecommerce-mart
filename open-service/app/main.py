@@ -4,19 +4,18 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from .web.routes  import router
 from .core.db import create_db_and_tables
-from .model.transaction import *
-from .kafka.payment import payment_consumer
-import asyncio
+# from .kafka.payment import payment_consumer
+# import asyncio
 
-async def task_initiator():
-    asyncio.create_task(payment_consumer())
+# async def task_initiator():
+#     asyncio.create_task(payment_consumer())
 
 
 @asynccontextmanager
 async def life_span(app: FastAPI):
     print("Hello World..!!!")
     create_db_and_tables()
-    await task_initiator()
+    # await task_initiator()
     yield
 
 app = FastAPI(
@@ -33,7 +32,7 @@ app = FastAPI(
         "name": "Apache 2.0",
         "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
     },
-    root_path="/payment-service",
+    root_path="/open-service",
     root_path_in_servers=True,
     docs_url="/docs"
 )

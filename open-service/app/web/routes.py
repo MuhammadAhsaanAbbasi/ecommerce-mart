@@ -1,7 +1,7 @@
 from ..model.product import Product, ProductFormModel, ProductItem, ProductItemFormModel, ProductSize, Size, SizeModel, Category
 from fastapi import APIRouter, Response, HTTPException, Request, Depends, Query
-from ..kafka.producer import AIOKafkaProducer, get_kafka_producer
 from ..utils.admin_verify import get_current_active_admin_user
+from ..service.open_service import get_all_product_details
 from typing import Annotated, Optional, List, Sequence
 from ..model.authentication import Users, Admin
 from ..utils.actions import get_categories
@@ -9,7 +9,6 @@ from ..core.db import DB_SESSION
 from datetime import datetime
 from sqlmodel import select
 import json
-import stripe
 
 
 router = APIRouter(prefix="/api/v1/open")
