@@ -223,6 +223,22 @@ services:
 
 ####################################################################################################
 
+# # notification Service
+  open-service:
+    build:
+      context: ./open-service
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "8087:8087" 
+    volumes:
+      - ./open-service:/code  # Sync  local development directory with the container
+    depends_on:
+      - kafka
+      - postgres_db
+
+####################################################################################################
+
 # Postgres Service
   postgres_db:
     image: postgres:latest # Use the official PostgreSQL image

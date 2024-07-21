@@ -1,4 +1,4 @@
-from ..service.order_service import create_orders, get_orders_by_user, get_all_orders, get_orders_by_id, update_orders_status, delete_orders, get_orders_by_status_and_date, cancel_orders_by_customer, get_orders_by_tracking_id
+from ..service.order_service import create_orders, get_orders_by_user, get_all_orders, get_orders_by_id, update_orders_status, delete_orders, get_orders_by_status_and_date, cancel_orders_by_customer
 from ..model.order import OrderModel, Order, OrderItem, OrderUpdateStatus
 from ..kafka.producer import AIOKafkaProducer, get_kafka_producer
 from ..utils.admin_verify import get_current_active_admin_user
@@ -94,15 +94,4 @@ async def cancel_order_by_customer(
                     order_id: str,
 ):
     order = await cancel_orders_by_customer(current_user, session, order_id)
-    return order
-
-#Track Order
-@order_router.get("/track_order/{tracking_id}")
-async def track_order(
-                    session: DB_SESSION,
-                    tracking_id: str,
-                    ):
-    order = await get_orders_by_tracking_id(session, tracking_id)
-    if not order:
-        raise HTTPException(status_code=404, detail="Order not found")
     return order

@@ -7,7 +7,7 @@ from typing import Annotated, Optional, List, Sequence
 from ..core.db import DB_SESSION
 from datetime import datetime
 from sqlmodel import select
-import json
+import json 
 import uuid
 
 async def get_categories(session: DB_SESSION):
