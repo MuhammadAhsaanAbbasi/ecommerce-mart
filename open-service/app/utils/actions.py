@@ -61,3 +61,9 @@ async def all_product_details(products: Sequence[Product], session: DB_SESSION):
         all_product_detail.append(product_details)
 
     return all_product_detail
+
+async def single_product_details(product_name: str, session: DB_SESSION):
+    product = session.exec(select(Product).where(Product.product_name == product_name)).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return await all_product_details([product], session)

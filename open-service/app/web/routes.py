@@ -1,5 +1,5 @@
 from ..model.product import Product, ProductFormModel, ProductItem, ProductItemFormModel, ProductSize, Size, SizeModel, Category
-from ..service.open_service import get_all_product_details, get_features_product, get_orders_by_tracking_id
+from ..service.open_service import get_all_product_details, get_features_product, get_orders_by_tracking_id, get_openai_shop_assistant
 from fastapi import APIRouter, Response, HTTPException, Request, Depends, Query
 from ..utils.admin_verify import get_current_active_admin_user
 from typing import Annotated, Optional, List, Sequence
@@ -38,4 +38,7 @@ async def track_order(
         raise HTTPException(status_code=404, detail="Order not found")
     return order
 
-# @router.get('')
+@router.get("/shop/assistant")
+async def get_shop_assistant_response(session: DB_SESSION, input: str):
+    response = await get_openai_shop_assistant(input, session=session)
+    return response

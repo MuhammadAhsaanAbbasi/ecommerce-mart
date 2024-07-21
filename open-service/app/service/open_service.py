@@ -1,16 +1,25 @@
+# type: ignore
 from ..model.product import Product, ProductItem, ProductSize, Stock, SizeModel, ProductItemFormModel, ProductFormModel, Size
 from ..model.order import OrderModel, Order, OrderItem, OrderUpdateStatus, OrderItemDetail, OrderDetail, OrderStatus
+from openai.types.shared_params.function_definition import FunctionDefinition
 from ..utils.admin_verify import get_current_active_admin_user
-from ..utils.actions import all_product_details
+from ..utils.actions import all_product_details, single_product_details
 from ..utils.user_verify import get_current_active_user
 from fastapi import Depends, HTTPException, Query
 from ..model.authentication import Users, Admin
 from typing import Annotated, Optional, List, Sequence
 from ..core.db import DB_SESSION
+from openai.types.chat import ChatCompletionMessage
+from ..setting import OPENAI_API_KEY
 from datetime import datetime, timedelta
+from dotenv import load_dotenv, find_dotenv
 from sqlmodel import select
+from openai import OpenAI
 import json
-import uuid
+
+_ = load_dotenv(find_dotenv())
+
+client: OpenAI = OpenAI()
 
 async def get_all_product_details(session: DB_SESSION):
     products = session.exec(select(Product)).all()
@@ -84,3 +93,62 @@ async def get_orders_by_tracking_id(
         return order_detail
     except HTTPException as e:
         raise e
+
+
+async def get_openai_shop_assistant(input: str, session: DB_SESSION):
+    get_all_product_details_tool: FunctionDefinition = {
+                "name": "single_product_details",
+                "description": "Get all product details & Product Description",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "product" : {
+                            "type": "string",
+                            "description": "Product name just like Saree, Shalwar Kameez"
+                        }
+                    },
+                    "required": []
+                }
+            }
+
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant designed my output JSON in to very Interactive & Readable String Message"},
+            {"role": "user", "content": input}
+        ],
+    tools=[
+        {"type": "function", "function": get_all_product_details_tool},
+    ]
+    )
+
+    response_message = response.choices[0].message
+    tool_calls = response_message.tool_calls
+    if tool_calls:
+        available_functions = {
+            "single_product_details": single_product_details,
+        }
+        messages = []
+        for tool_call in tool_calls:
+            function_name = tool_call.function.name
+            function_to_call = available_functions.get(function_name)
+            messages.append(response_message)
+            if function_to_call:
+                function_args = json.loads(tool_call.function.arguments)
+                product = function_args.get("product")
+                function_response = await function_to_call(session=session, product_name=product)
+                messages.append(
+                    {
+                        "tool_call_id": tool_call.id,
+                        "role": "tool",
+                        "name": function_name,
+                        "content": str(function_response),
+                    }
+                )
+        second_response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=messages,
+        )
+        return second_response
+    else:
+        return response_message.content
