@@ -14,7 +14,7 @@ router = APIRouter(prefix="/api/v1/product")
 
 @router.post("/create_product")
 async def create_products(
-                        # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)], 
+                        current_admin: Annotated[Admin, Depends(get_current_active_admin_user)], 
                         aio_producer: Annotated[AIOKafkaProducer, Depends(get_kafka_producer)],
                         session: DB_SESSION,
                         product_details: Annotated[str, Form(...)],
@@ -39,8 +39,8 @@ async def create_products(
         raise HTTPException(status_code=400, detail="Invalid JSON data provided for product details")
 
     product_details_model = ProductFormModel(**product_details_dict)
-    # product = await create_product(current_admin, aio_producer, session, product_details_model, images)
-    product = await create_product(aio_producer, session, product_details_model, images)
+    product = await create_product(current_admin, aio_producer, session, product_details_model, images)
+    # product = await create_product(aio_producer, session, product_details_model, images)
     return {"message": "Create Product Successfully!", "data": product}
 
 @router.get("/get_all_products")
@@ -71,10 +71,10 @@ async def product_by_category(category:str, session: DB_SESSION):
 async def update_product(product_id:str,
                         product_input: ProductBaseForm,
                         session: DB_SESSION,
-                        # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)]
+                        current_admin: Annotated[Admin, Depends(get_current_active_admin_user)]
                         ):
-    # product = await updated_product(product_id, product_input, session, current_admin)
-    product = await updated_product(product_id, product_input, session)
+    product = await updated_product(product_id, product_input, session, current_admin)
+    # product = await updated_product(product_id, product_input, session)
     return product
 
 # Deleted Products
