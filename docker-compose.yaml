@@ -223,7 +223,7 @@ services:
 
 ####################################################################################################
 
-# # notification Service
+# # open Service
   open-service:
     build:
       context: ./open-service
@@ -233,6 +233,22 @@ services:
       - "8087:8087" 
     volumes:
       - ./open-service:/code  # Sync  local development directory with the container
+    depends_on:
+      - kafka
+      - postgres_db
+
+####################################################################################################
+
+# # Assistant Service
+  assistant-service:
+    build:
+      context: ./assistant-service
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "8088:8088" 
+    volumes:
+      - ./assistant-service:/code  # Sync  local development directory with the container
     depends_on:
       - kafka
       - postgres_db

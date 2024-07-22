@@ -5,18 +5,12 @@ from contextlib import asynccontextmanager
 from .web.routes  import router
 from .core.db import create_db_and_tables
 from .model.transaction import *
-from .kafka.payment import payment_consumer
-import asyncio
-
-async def task_initiator():
-    asyncio.create_task(payment_consumer())
 
 
 @asynccontextmanager
 async def life_span(app: FastAPI):
     print("Hello World..!!!")
     create_db_and_tables()
-    await task_initiator()
     yield
 
 app = FastAPI(
