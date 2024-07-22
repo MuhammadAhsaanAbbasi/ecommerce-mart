@@ -112,7 +112,7 @@ class SizeModel(SQLModel):
     product_size_id: Optional[str]
     size: Union[int , str]
     price: int
-    stock: int
+    stock: Optional[int]
 
 class ProductItemFormModel(SQLModel):
     """
@@ -152,3 +152,48 @@ class ProductFormModel(ProductBaseForm):
     """
     product_id: Optional[str]
     product_item: List[ProductItemFormModel]
+
+class SizeModelForm(SQLModel):
+    """
+    Model for representing size details in forms.
+
+    Attributes:
+        size (str | int): Size of the product item.
+        price (int): Price of the product item.
+        stock (int): Stock level of the product item.
+    """
+    size: Union[int , str]
+    price: int
+
+class ProductItemAssistFormModel(SQLModel):
+    """
+    Model for representing product item details in forms.
+
+    Attributes:
+    color (str): Color of the product item.
+    image_url (str): URL of the product item image.
+    sizes (list[SizeModel]): List of size details.
+    """
+    color: str
+    sizes: List[SizeModelForm]
+
+class ProductBaseAssistForm(SQLModel):
+    """
+    Base model for Product, used for shared attributes.
+
+    Attributes:
+        product_name (str): Name of the product.
+        description (str): Description of the product. 
+    """
+    product_name: str
+    product_desc: Optional[str]
+
+
+class ProductAssistFormModel(ProductBaseAssistForm):
+    """
+    Model for representing product details in forms.
+
+    Attributes:
+    product_item (list[ProductItemFormModel]): List of product item details.
+    """
+    product_item: List[ProductItemAssistFormModel]

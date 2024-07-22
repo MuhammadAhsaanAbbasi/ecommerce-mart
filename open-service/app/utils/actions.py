@@ -1,4 +1,4 @@
-from ..model.product import Product, ProductItem, ProductSize, Stock, SizeModel, ProductItemFormModel, ProductFormModel, Size, Category
+from ..model.product import Product, ProductItem, ProductSize, Stock, SizeModel, ProductItemFormModel, ProductFormModel, Size, Category, SizeModelForm, ProductAssistFormModel, ProductItemAssistFormModel
 from ..utils.admin_verify import get_current_active_admin_user
 from ..utils.user_verify import get_current_active_user
 from fastapi import Depends, HTTPException, Query
@@ -66,4 +66,37 @@ async def single_product_details(product_name: str, session: DB_SESSION):
     product = session.exec(select(Product).where(Product.product_name == product_name)).first()
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
-    return await all_product_details([product], session)
+    
+    product_items = session.exec(select(ProductItem).where(ProductItem.product_id == product.id)).all()
+    product_items_table: List[ProductItemAssistFormModel] = []
+
+    for item in product_items:
+        product_sizes = session.exec(select(ProductSize).where(ProductSize.product_item_id == item.id)).all()
+        product_sizes_table: List[SizeModelForm] = []
+
+        for product_size in product_sizes:
+            size = session.exec(select(Size).where(Size.id == product_size.size)).first()
+            if not size:
+                raise HTTPException(status_code=404, detail="Size not found")
+            stock = session.exec(select(Stock).where(Stock.product_size_id == product_size.id)).first()
+            if stock and stock.stock > 0:
+                    size_model = SizeModelForm(
+                        size=size.size,
+                        price=product_size.price,
+                    )
+                    product_sizes_table.append(size_model)
+            
+            if product_sizes_table:
+                product_item_model = ProductItemAssistFormModel(
+                    color=item.color,
+                    sizes=product_sizes_table
+                )
+                product_items_table.append(product_item_model)
+
+        product_details = ProductAssistFormModel(
+                product_name=product.product_name,
+                product_desc=product.product_desc,
+                product_item=product_items_table
+            )
+        
+        return product_details

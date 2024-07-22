@@ -114,7 +114,7 @@ async def get_openai_shop_assistant(input: str, session: DB_SESSION):
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
-            {"role": "system", "content": "You are a helpful assistant designed my output JSON in to very Interactive & Readable String Message"},
+            {"role": "system", "content": "You are a helpful assistant design the JSON output that you’d like to convert into a more interactive and readable message?"},
             {"role": "user", "content": input}
         ],
     tools=[
@@ -146,7 +146,7 @@ async def get_openai_shop_assistant(input: str, session: DB_SESSION):
                     }
                 )
         second_response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4o-mini",
             messages=messages,
         )
         return second_response
