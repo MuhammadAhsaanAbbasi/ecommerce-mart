@@ -1,5 +1,5 @@
 from ..model.product import Product, ProductFormModel, ProductItem, ProductItemFormModel, ProductSize, Size, SizeModel, Category
-from ..service.open_service import get_all_product_details, get_features_product, get_orders_by_tracking_id, get_openai_shop_assistant
+from ..service.open_service import get_features_product, get_all_product_details, get_orders_by_tracking_id, get_openai_shop_assistant # type: ignore 
 from fastapi import APIRouter, Response, HTTPException, Request, Depends, Query
 from ..utils.admin_verify import get_current_active_admin_user
 from typing import Annotated, Optional, List, Sequence
@@ -13,7 +13,7 @@ import json
 
 router = APIRouter(prefix="/api/v1/open")
 
-@router.get('/featured-products')
+@router.get('/new_arrivals')
 async def get_featured_products(session: DB_SESSION):
     product = await get_features_product(session)
     return product
