@@ -24,7 +24,6 @@ class Size(BaseIdModel, table=True):
             raise ValueError(f"Invalid size: {value}")
         return value
 
-
 # Product Base Model
 class ProductBase(BaseIdModel):
     """
@@ -36,6 +35,7 @@ class ProductBase(BaseIdModel):
     """
     product_name: str = Field(index=True)
     product_desc: Optional[str] = Field(default=None)
+    featured: bool = Field(default=False)
     category_id: int = Field(foreign_key="category.id")
     gender_id: int = Field(foreign_key="gender.id")
 
@@ -132,6 +132,7 @@ class ProductBaseForm(SQLModel):
     """
     product_name: str
     product_desc: Optional[str]
+    featured: bool
     category_id: Union[int , str]
     gender_id: Union[int , str]
 

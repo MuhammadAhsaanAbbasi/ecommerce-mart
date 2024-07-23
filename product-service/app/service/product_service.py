@@ -9,10 +9,10 @@ from aiokafka import AIOKafkaProducer # type: ignore
 from ..kafka.producer import get_kafka_producer
 from ..model.category_model import Category
 from ..model.authentication import Admin
-import cloudinary.uploader # type: ignore
 from ..core.config import upload_image
 from typing import Annotated, List
 import cloudinary # type: ignore
+from datetime import datetime, timedelta
 from ..core.db import DB_SESSION
 from sqlmodel import select
 from sqlalchemy import or_
@@ -128,8 +128,26 @@ async def create_product(
 
 
 # get all product details
-async def get_all_product_details(session: DB_SESSION):
-    products = session.exec(select(Product)).all()
+async def get_all_product_details(session: DB_SESSION,
+                                page: int = 1, 
+                                page_size: int = 10, 
+                                sort_by: str = 'created_at', 
+                                sort_order: str = 'desc'
+                                ):
+    offset = (page - 1) * page_size
+    query = select(Product)
+
+    # Apply sorting
+    if sort_order.lower() == 'desc':
+        query = query.order_by(getattr(Product, sort_by).desc())
+    else:
+        query = query.order_by(getattr(Product, sort_by).asc())
+
+    # Apply pagination
+    query = query.offset(offset).limit(page_size)
+    
+    # Execute the query
+    products = session.exec(query).all()
 
     product_details = await all_product_details(products, session)
 
@@ -236,19 +254,70 @@ async def search_product_results(input: str, session: DB_SESSION):
 
 
 # get product by category
-async def get_product_by_category(catogery:str, session: DB_SESSION):
+async def get_product_by_category(catogery:str, 
+                                session: DB_SESSION,
+                                page: int = 1, 
+                                page_size: int = 10, 
+                                sort_by: str = 'created_at', 
+                                sort_order: str = 'desc', 
+                                ):
+    offset = (page - 1) * page_size
     category = session.exec(select(Category).where(Category.category_name == catogery)).first()
 
     if not category:
         raise HTTPException(status_code=404,
                             detail="Category not found")
     
-    products = session.exec(select(Product).where(Product.category_id == category.id)).all()
+    query = select(Product).where(Product.category_id == category.id)
+
+    # Apply sorting
+    if sort_order.lower() == 'desc':
+        query = query.order_by(getattr(Product, sort_by).desc())
+    else:
+        query = query.order_by(getattr(Product, sort_by).asc())
+
+    # Apply pagination
+    query = query.offset(offset).limit(page_size)
+    
+    # Execute the query
+    products = session.exec(query).all()
 
     product_details = await all_product_details(products, session)
 
     return product_details
 
+async def get_new_arrivals_details(
+    session: DB_SESSION, 
+    page: int = 1, 
+    page_size: int = 10, 
+    sort_by: str = 'created_at', 
+    sort_order: str = 'desc', 
+):
+    offset = (page - 1) * page_size
+
+    # Get the current date and the date 14 days ago
+    current_date = datetime.now()
+    two_weeks_ago = current_date - timedelta(days=14)
+    
+    if not Product.created_at:
+        raise HTTPException(status_code=400, detail="Products date not found")
+    query = select(Product).where(Product.created_at >= two_weeks_ago)
+
+    # Apply sorting
+    if sort_order.lower() == 'desc':
+        query = query.order_by(getattr(Product, sort_by).desc())
+    else:
+        query = query.order_by(getattr(Product, sort_by).asc())
+
+    # Apply pagination
+    query = query.offset(offset).limit(page_size)
+    
+    # Execute the query
+    products = session.exec(query).all()
+
+    product_details = await all_product_details(products, session)
+    
+    return product_details
 
 # Updated Product
 async def updated_product(product_id:str,

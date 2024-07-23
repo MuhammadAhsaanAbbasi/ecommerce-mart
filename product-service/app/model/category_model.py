@@ -1,10 +1,17 @@
 from sqlmodel import SQLModel, Field, Relationship
 from typing import Optional, Union
+from enum import Enum
 from .base import BaseIdModel
+
+class CategoryType(str, Enum):
+    formal = "formal"
+    casual = "casual"
+    luxury = "luxury"
 
 class CategoryBaseModel(SQLModel):
     category_name: str
     category_desc: str
+    category_type: CategoryType
 
 # Category Class
 class Category(BaseIdModel,CategoryBaseModel, table=True):

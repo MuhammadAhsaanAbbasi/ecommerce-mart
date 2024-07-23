@@ -1,8 +1,8 @@
 from sqlmodel import SQLModel, Field,Relationship
 from typing import Optional, List, Literal, Union
-import datetime
 from pydantic import BaseModel, EmailStr
 from .base import BaseIdModel
+import datetime
 import uuid
 
 
@@ -36,6 +36,7 @@ class ProductBase(BaseIdModel):
     """
     product_name: str = Field(index=True)
     product_desc: Optional[str] = Field(default=None)
+    featured: bool = Field(default=False)
     category_id: int = Field(foreign_key="category.id")
     gender_id: int = Field(foreign_key="gender.id")
 
@@ -102,7 +103,8 @@ class SizeModel(SQLModel):
         stock (int): Stock level of the product item.
     """
     id: Optional[int] = Field(default=None)
-    size: int
+    product_size_id: Optional[str]
+    size: Union[int , str]
     price: int
     stock: int
 
@@ -116,6 +118,7 @@ class ProductItemFormModel(SQLModel):
     sizes (list[SizeModel]): List of size details.
     """
     id: Optional[int] = Field(default=None)
+    product_item_id: Optional[str]
     color: str
     image_url: Optional[str] = Field(default=None)
     sizes: List[SizeModel]
@@ -130,6 +133,7 @@ class ProductBaseForm(SQLModel):
     """
     product_name: str
     product_desc: Optional[str]
+    featured: bool
     category_id: Union[int , str]
     gender_id: Union[int , str]
 
@@ -141,5 +145,5 @@ class ProductFormModel(ProductBaseForm):
     Attributes:
     product_item (list[ProductItemFormModel]): List of product item details.
     """
-    id: Optional[int] = Field(default=None)
+    product_id: Optional[str]
     product_item: List[ProductItemFormModel]

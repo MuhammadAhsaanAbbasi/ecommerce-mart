@@ -13,7 +13,7 @@ import json
 
 router = APIRouter(prefix="/api/v1/open")
 
-@router.get('/new_arrivals')
+@router.get('/featured')
 async def get_featured_products(session: DB_SESSION):
     product = await get_features_product(session)
     return product

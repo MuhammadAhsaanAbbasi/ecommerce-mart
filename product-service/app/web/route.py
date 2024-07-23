@@ -1,4 +1,4 @@
-from ..service.product_service import get_all_product_details, get_specific_product_details, get_product_by_category, deleted_product, create_product, search_product_results, updated_product
+from ..service.product_service import get_all_product_details, get_specific_product_details, get_product_by_category, deleted_product, create_product, search_product_results, updated_product, get_new_arrivals_details
 from ..utils.admin_verify import get_current_active_admin_user
 from ..model.models import ProductBaseForm, ProductFormModel
 from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException
@@ -64,6 +64,11 @@ async def search_product(input:str, session: DB_SESSION):
 @router.get("/product_by_category/{category}")
 async def product_by_category(category:str, session: DB_SESSION):
     products = await get_product_by_category(category, session)
+    return products
+
+@router.get('/new_arrivals')
+async def new_arrivals(session: DB_SESSION):
+    products = await get_new_arrivals_details(session)
     return products
 
 # Update Product
