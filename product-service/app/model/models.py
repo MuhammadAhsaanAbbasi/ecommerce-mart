@@ -5,6 +5,10 @@ from pydantic import BaseModel, EmailStr
 from .base import BaseIdModel
 import uuid
 
+class Color(BaseIdModel, table=True):
+    color_name: str
+    color_value: str
+
 # Product Base Model
 class ProductBase(BaseIdModel):
     """
@@ -17,15 +21,13 @@ class ProductBase(BaseIdModel):
     product_name: str = Field(index=True)
     product_desc: Optional[str] = Field(default=None)
     featured: bool = Field(default=False)
-    category_id: int = Field(foreign_key="category.id")
-    gender_id: int = Field(foreign_key="gender.id")
+    category_id: uuid.UUID = Field(foreign_key="category.id")
 
 class Product(ProductBase, table=True):
     """
     Fields:
     product_name, product_desc, category_id, gender_id (required): inherited from ProductBase
     """
-    product_id: Optional[str] = Field(default_factory=lambda: uuid.uuid4().hex)
     product_item: List["ProductItem"] = Relationship(back_populates="product")
 
 class ProductItem(BaseIdModel, table=True):
@@ -33,10 +35,9 @@ class ProductItem(BaseIdModel, table=True):
     Fields:
     product_name, product_desc, category_id, gender_id (required): inherited from ProductBase]
     """
-    product_item_id: Optional[str] = Field(default_factory=lambda: uuid.uuid4().hex)
-    color: str
     image_url: str
-    product_id: int = Field(foreign_key="product.id")
+    color: uuid.UUID = Field(foreign_key="color.id")
+    product_id: uuid.UUID = Field(foreign_key="product.id")
     product: Optional["Product"] = Relationship(back_populates="product_item")
     sizes: List["ProductSize"] = Relationship(back_populates="product_item")
 
@@ -45,11 +46,10 @@ class ProductSize(BaseIdModel, table=True):
     Fields:
     product_name, product_desc, category_id, gender_id (required): inherited from ProductBase]
     """
-    product_size_id: Optional[str] = Field(default_factory=lambda: uuid.uuid4().hex)
     price: int = Field(ge=0)
-    size: int = Field(foreign_key="size.id")
+    size: uuid.UUID = Field(foreign_key="size.id")
     stock: "Stock" = Relationship(back_populates="product_size")
-    product_item_id: int = Field(foreign_key="productitem.id")
+    product_item_id: uuid.UUID = Field(foreign_key="productitem.id")
     product_item: Optional["ProductItem"] = Relationship(back_populates="sizes")
 
 class Stock(BaseIdModel, table=True):
@@ -57,7 +57,7 @@ class Stock(BaseIdModel, table=True):
     Fields:
     product_name, product_desc, category_id , gender_id (required): inherited from ProductBase]
     """
-    product_size_id: Optional[int] = Field(
+    product_size_id: Optional[uuid.UUID] = Field(
         # Foreign key linking to ProductSize
         default=None, foreign_key="productsize.id")
     stock: int = 0  # Stock level
@@ -111,7 +111,6 @@ class ProductBaseForm(SQLModel):
     product_desc: Optional[str]
     featured: bool
     category_id: Union[int , str]
-    gender_id: Union[int , str]
 
 
 class ProductFormModel(ProductBaseForm):
@@ -133,7 +132,6 @@ class SizeModelDetails(SQLModel):
         price (int): Price of the product item.
         stock (int): Stock level of the product item.
     """
-    id: Optional[int] = Field(default=None)
     product_size_id: Optional[str]
     size: Union[int , str]
     price: int
@@ -148,7 +146,6 @@ class ProductItemDetails(SQLModel):
     image_url (str): URL of the product item image.
     sizes (list[SizeModel]): List of size details.
     """
-    id: Optional[int] = Field(default=None)
     product_item_id: Optional[str]
     color: str
     image_url: Optional[str] = Field(default=None)
@@ -163,10 +160,3 @@ class ProductDetails(ProductBaseForm):
     """
     product_id: Optional[str]
     product_item: List[ProductItemFormModel]
-
-class ProductInput(SQLModel):
-    product_name: Optional[str] = None
-    product_desc: Optional[str] = None
-    featured: Optional[bool] = None
-    category_id: Optional[int] = None
-    gender_id: Optional[int] = None

@@ -18,11 +18,6 @@ class Category(BaseIdModel,CategoryBaseModel, table=True):
     category_image: Optional[str]
 
 
-# Gender Class
-class Gender(BaseIdModel, table=True):
-    gender_name: str = Field(index=True)
-
-
 class Size(BaseIdModel, table=True):
     """
     Represents a specific size within a size category.

@@ -1,6 +1,6 @@
 from ..service.product_service import get_all_product_details, get_specific_product_details, get_product_by_category, deleted_product, create_product, search_product_results, updated_product, get_new_arrivals_details
 from ..utils.admin_verify import get_current_active_admin_user
-from ..model.models import ProductBaseForm, ProductFormModel, ProductInput
+from ..model.models import ProductBaseForm, ProductFormModel
 from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException
 from aiokafka import AIOKafkaProducer # type: ignore
 from ..kafka.producer import get_kafka_producer
@@ -9,6 +9,7 @@ from ..core.db import DB_SESSION
 from ..model.authentication import Admin
 from sqlmodel import Session
 import json
+import uuid
 
 router = APIRouter(prefix="/api/v1/product")
 
@@ -73,7 +74,7 @@ async def new_arrivals(session: DB_SESSION):
 # Update Product
 @router.put("/update_product/{product_id}")
 async def update_product(product_id:str,
-                        product_input: ProductInput,
+                        product_input: ProductBaseForm,
                         session: DB_SESSION,
                         current_admin: Annotated[Admin, Depends(get_current_active_admin_user)]
                         ):
@@ -83,14 +84,6 @@ async def update_product(product_id:str,
     Args:
         input (str): The input to search for in category and product names.
         session (DB_SESSION): The database session.
-
-    update_details: {
-    "product_name": "Paithani Saree",
-    "product_desc": "Beautiful Paithani Saree is threaded with pure silk and features. Some of them include traditional motifs like peacocks, flowers, leaves, and many more. These Types of Sarees are known for their vibrant color combination and rich traditional design. Pathailani Sarees is one of the best traditional sarees of Pakistan.",
-    "featured": false,
-    "category_id": 1,
-    "gender_id": 1
-}
     """
     product = await updated_product(product_id, product_input, session, current_admin)
     # product = await updated_product(product_id, product_input, session)

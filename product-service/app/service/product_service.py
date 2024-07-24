@@ -1,10 +1,10 @@
-from ..model.models import Product, ProductSize, ProductItem, Stock, ProductBaseForm, ProductFormModel, ProductItemFormModel, SizeModel, ProductDetails, ProductItemDetails, SizeModelDetails, ProductInput
+from ..model.models import Product, ProductSize, ProductItem, Stock, ProductBaseForm, ProductFormModel, ProductItemFormModel, SizeModel, ProductDetails, ProductItemDetails, SizeModelDetails
 from ..product_pb2 import ProductFormModel as ProductFormModelProto, ProductItemFormModel as ProductItemFormModelProto, SizeModel as SizeModelProto # type: ignore
 from ..setting import CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET, CLOUDINARY_CLOUD, PRODUCT_TOPIC
 from ..utils.utils import search_algorithm_by_category, all_product_details
 from fastapi import Depends, HTTPException, UploadFile, File, Form
 from ..utils.admin_verify import get_current_active_admin_user
-from ..model.category_model import Category, Gender, Size
+from ..model.category_model import Category, Size
 from aiokafka import AIOKafkaProducer # type: ignore
 from ..kafka.producer import get_kafka_producer
 from ..model.category_model import Category
@@ -89,7 +89,6 @@ async def create_product(
             product_name=product_details.product_name,
             product_desc=product_details.product_desc,
             category_id=product_details.category_id,
-            gender_id=product_details.gender_id,
             product_item=product_item_tables
         )
         
@@ -102,7 +101,6 @@ async def create_product(
             product_name=product.product_name,
             product_desc=product.product_desc,
             category_id=int(product.category_id),
-            gender_id=int(product.gender_id),
             product_item=[
                 ProductItemFormModelProto(
                     color=item.color,
@@ -156,17 +154,15 @@ async def get_all_product_details(session: DB_SESSION,
 
 # get specific product details
 async def get_specific_product_details(product_id: str, session: DB_SESSION):
-    product = session.exec(select(Product).where(Product.product_id == product_id)).first()
+    product = session.exec(select(Product).where(Product.id == product_id)).first()
     
     if not product:
-        return None
+        raise HTTPException(status_code=404, detail="Product not found")
 
     # Fetch category and gender names
     category = session.exec(select(Category).where(Category.id == product.category_id)).first()
-    gender = session.exec(select(Gender).where(Gender.id == product.gender_id)).first()
 
     category_name = category.category_name if category else product.category_id
-    gender_name = gender.gender_name if gender else product.gender_id
 
     product_items = session.exec(select(ProductItem).where(ProductItem.product_id == product.id)).all()
     product_items_table: List[ProductItemDetails] = []
@@ -182,7 +178,6 @@ async def get_specific_product_details(product_id: str, session: DB_SESSION):
                 stock = session.exec(select(Stock).where(Stock.product_size_id == product_size.id)).first()
                 if stock and stock.stock > 0:
                     size_model = SizeModelDetails(
-                        product_size_id=product_size.product_size_id,
                         size=size.size,
                         price=product_size.price,
                         stock=stock.stock
@@ -191,7 +186,6 @@ async def get_specific_product_details(product_id: str, session: DB_SESSION):
             
             if product_sizes_table:
                 product_item_model = ProductItemDetails(
-                    product_item_id=item.product_item_id,
                     color=item.color,
                     image_url=item.image_url,
                     sizes=product_sizes_table
@@ -199,11 +193,9 @@ async def get_specific_product_details(product_id: str, session: DB_SESSION):
                 product_items_table.append(product_item_model)
 
     product_details = ProductDetails(
-            product_id=product.product_id,
             product_name=product.product_name,
             product_desc=product.product_desc,
             category_id=category_name,
-            gender_id=gender_name,
             product_item=product_items_table
         )
 
@@ -328,14 +320,14 @@ async def get_new_arrivals_details(
 
 # Updated Product
 async def updated_product(product_id:str,
-                        product_input: ProductInput,
+                        product_input: ProductBaseForm,
                         session: DB_SESSION,
                         current_admin: Annotated[Admin, Depends(get_current_active_admin_user)]
                         ):
     if not current_admin:
         raise HTTPException(status_code=404, detail="Admin not found")
     
-    product = session.exec(select(Product).where(Product.product_id == product_id)).first()
+    product = session.exec(select(Product).where(Product.id == product_id)).first()
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
     
@@ -372,7 +364,7 @@ async def deleted_product(product_id: str,
     if not current_admin:
         raise HTTPException(status_code=404, detail="Admin not found")
     
-    product = session.exec(select(Product).where(Product.product_id == product_id)).first()
+    product = session.exec(select(Product).where(Product.id == product_id)).first()
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
     
