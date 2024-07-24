@@ -1,4 +1,4 @@
-from ..model.models import Product, ProductSize, ProductItem, Stock, ProductBaseForm, ProductFormModel, ProductItemFormModel, SizeModel, ProductDetails, ProductItemDetails, SizeModelDetails
+from ..model.models import Product, ProductSize, ProductItem, Stock, ProductBaseForm, ProductFormModel, ProductItemFormModel, SizeModel, ProductDetails, ProductItemDetails, SizeModelDetails, ProductInput
 from ..product_pb2 import ProductFormModel as ProductFormModelProto, ProductItemFormModel as ProductItemFormModelProto, SizeModel as SizeModelProto # type: ignore
 from ..setting import CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET, CLOUDINARY_CLOUD, PRODUCT_TOPIC
 from ..utils.utils import search_algorithm_by_category, all_product_details
@@ -10,7 +10,7 @@ from ..kafka.producer import get_kafka_producer
 from ..model.category_model import Category
 from ..model.authentication import Admin
 from ..core.config import upload_image
-from typing import Annotated, List
+from typing import Annotated, List, Dict
 import cloudinary # type: ignore
 from datetime import datetime, timedelta
 from ..core.db import DB_SESSION
@@ -223,6 +223,13 @@ async def search_product_results(input: str, session: DB_SESSION):
 
     Returns:
         List[Product]: A list of products that match the input.
+        {
+  "product_name": "Paithani Saree",
+  "product_desc": "Beautiful Paithani Saree is threaded with pure silk and features. Some of them include traditional motifs like peacocks, flowers, leaves, and many more. These Types of Sarees are known for their vibrant color combination and rich traditional design. Pathailani Sarees is one of the best traditional sarees of Pakistan.",
+  "featured": false,
+  "category_id": 1,
+  "gender_id": 1
+}
     """
     categories = await search_algorithm_by_category(input, session)
         
@@ -321,7 +328,7 @@ async def get_new_arrivals_details(
 
 # Updated Product
 async def updated_product(product_id:str,
-                        product_input: ProductBaseForm,
+                        product_input: ProductInput,
                         session: DB_SESSION,
                         current_admin: Annotated[Admin, Depends(get_current_active_admin_user)]
                         ):

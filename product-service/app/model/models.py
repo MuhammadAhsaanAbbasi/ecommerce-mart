@@ -163,3 +163,10 @@ class ProductDetails(ProductBaseForm):
     """
     product_id: Optional[str]
     product_item: List[ProductItemFormModel]
+
+class ProductInput(SQLModel):
+    product_name: Optional[str] = None
+    product_desc: Optional[str] = None
+    featured: Optional[bool] = None
+    category_id: Optional[int] = None
+    gender_id: Optional[int] = None
