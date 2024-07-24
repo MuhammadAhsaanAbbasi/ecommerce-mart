@@ -35,7 +35,15 @@ async def get_features_product(session: DB_SESSION):
     
     if not Product.created_at:
         raise HTTPException(status_code=400, detail="Products date not found")
-    products = session.exec(select(Product).where(Product.created_at >= two_weeks_ago)).all()
+
+    products = session.exec(
+        select(Product)
+        .where(Product.featured == True)
+        .where(Product.created_at >= two_weeks_ago)
+    ).all()
+
+    if not products:
+        raise HTTPException(status_code=404, detail="No featured products found")
 
     product_details = await all_product_details(products, session)
     return product_details

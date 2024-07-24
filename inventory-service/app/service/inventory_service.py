@@ -1,4 +1,4 @@
-from ..model.models import Product, ProductSize, ProductItem, ProductItemFormModel, SizeModel, Stock, Size
+from ..model.models import Product, ProductSize, ProductItem, ProductItemFormModel, SizeModel, Stock, Size, SizeModelDetails
 from ..inventory_pb2 import ProductItemFormProtoModel as ProductItemFormModelProto, SizeProtoModel as SizeModelProto # type: ignore
 from fastapi import Depends, UploadFile, File, HTTPException
 from ..utils.admin_verify import get_current_active_admin_user
@@ -110,9 +110,12 @@ async def get_product_item(
     for item in product_items:
         sizes = session.exec(select(ProductSize).where(ProductSize.product_item_id == item.id)).all()
         size_models = []
-        for size in sizes:
-            stock = session.exec(select(Stock).where(Stock.product_size_id == size.id)).first()
-            size_models.append(SizeModel(size=size.size, price=size.price, stock=stock.stock if stock else 0))
+        for product_size in sizes:
+            stock = session.exec(select(Stock).where(Stock.product_size_id == product_size.id)).first()
+            size = session.exec(select(Size).where(Size.id == product_size.size)).first()
+            if not size:
+                raise HTTPException(status_code=404, detail="Size not found")
+            size_models.append(SizeModelDetails(size=size.size, price=product_size.price, stock=stock.stock if stock else 0))
         product_item_models.append(ProductItemFormModel(color=item.color, image_url=item.image_url, sizes=size_models))
 
     return product_item_models
