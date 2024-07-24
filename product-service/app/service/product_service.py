@@ -1,4 +1,4 @@
-from ..model.models import Product, ProductSize, ProductItem, Stock, ProductBaseForm, ProductFormModel, ProductItemFormModel, SizeModel
+from ..model.models import Product, ProductSize, ProductItem, Stock, ProductBaseForm, ProductFormModel, ProductItemFormModel, SizeModel, ProductDetails, ProductItemDetails, SizeModelDetails
 from ..product_pb2 import ProductFormModel as ProductFormModelProto, ProductItemFormModel as ProductItemFormModelProto, SizeModel as SizeModelProto # type: ignore
 from ..setting import CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET, CLOUDINARY_CLOUD, PRODUCT_TOPIC
 from ..utils.utils import search_algorithm_by_category, all_product_details
@@ -22,7 +22,7 @@ import uuid
 
 # Create Product
 async def create_product(
-        current_admin: Annotated[Admin, Depends(get_current_active_admin_user)], 
+        # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)], 
         aio_producer: Annotated[AIOKafkaProducer, Depends(get_kafka_producer)],
         session: DB_SESSION,
         product_details: ProductFormModel,
@@ -48,8 +48,8 @@ async def create_product(
     Returns:
         Product: The created product.
     """
-    if not current_admin:
-        raise HTTPException(status_code=404, detail="Admin not found")
+    # if not current_admin:
+    #     raise HTTPException(status_code=404, detail="Admin not found")
     
     if len(product_details.product_item) != len(images):
         raise HTTPException(status_code=202, detail="The number of images does not match the number of product items")
@@ -169,11 +169,11 @@ async def get_specific_product_details(product_id: str, session: DB_SESSION):
     gender_name = gender.gender_name if gender else product.gender_id
 
     product_items = session.exec(select(ProductItem).where(ProductItem.product_id == product.id)).all()
-    product_items_table: List[ProductItemFormModel] = []
+    product_items_table: List[ProductItemDetails] = []
 
     for item in product_items:
             product_sizes = session.exec(select(ProductSize).where(ProductSize.product_item_id == item.id)).all()
-            product_sizes_table: List[SizeModel] = []
+            product_sizes_table: List[SizeModelDetails] = []
 
             for product_size in product_sizes:
                 size = session.exec(select(Size).where(Size.id == product_size.size)).first()
@@ -181,8 +181,8 @@ async def get_specific_product_details(product_id: str, session: DB_SESSION):
                     raise HTTPException(status_code=404, detail="Size not found")
                 stock = session.exec(select(Stock).where(Stock.product_size_id == product_size.id)).first()
                 if stock and stock.stock > 0:
-                    size_model = SizeModel(
-                        id=product_size.product_size_id,
+                    size_model = SizeModelDetails(
+                        product_size_id=product_size.product_size_id,
                         size=size.size,
                         price=product_size.price,
                         stock=stock.stock
@@ -190,16 +190,16 @@ async def get_specific_product_details(product_id: str, session: DB_SESSION):
                     product_sizes_table.append(size_model)
             
             if product_sizes_table:
-                product_item_model = ProductItemFormModel(
-                    id=item.product_item_id,
+                product_item_model = ProductItemDetails(
+                    product_item_id=item.product_item_id,
                     color=item.color,
                     image_url=item.image_url,
                     sizes=product_sizes_table
                 )
                 product_items_table.append(product_item_model)
 
-    product_details = ProductFormModel(
-            id=product.product_id,
+    product_details = ProductDetails(
+            product_id=product.product_id,
             product_name=product.product_name,
             product_desc=product.product_desc,
             category_id=category_name,

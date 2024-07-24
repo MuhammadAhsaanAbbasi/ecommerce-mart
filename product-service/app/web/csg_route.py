@@ -12,7 +12,7 @@ csg_router = APIRouter(prefix="/api/v1/csg")
 # Category Routes
 @csg_router.post("/create_category") 
 async def create_category(
-                        current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
+                        # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
                         session: DB_SESSION,
                         category_input: Annotated[str, Form(...)],
                         category_image: UploadFile = File(...),
@@ -23,8 +23,8 @@ async def create_category(
     Args:
         {
     "category_name": "string",
-    "category_desc": "string"
-}
+    "category_desc": "string",
+    
     """
     try: 
         category_dict = json.loads(category_input)
@@ -32,7 +32,7 @@ async def create_category(
         raise HTTPException(status_code=400, detail="Invalid JSON data provided for product details")
 
     category_base_model = CategoryBaseModel(**category_dict)
-    category = await create_categories(category_base_model, current_admin, session,  category_image)
+    category = await create_categories(category_base_model, session,  category_image)
     return {"message": "Create Product Category Successfully!", "data" : category}
 
 @csg_router.get("/get_category")

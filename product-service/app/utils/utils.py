@@ -1,4 +1,4 @@
-from ..model.models import Product, ProductSize, ProductItem, Stock, ProductFormModel, ProductItemFormModel, SizeModel
+from ..model.models import Product, ProductSize, ProductItem, Stock, ProductFormModel, ProductItemFormModel, SizeModel, ProductDetails, ProductItemDetails, SizeModelDetails
 from ..model.category_model import Category, Size, Gender, CategoryBaseModel
 from fastapi import HTTPException, UploadFile, File, Form, Depends
 from ..utils.admin_verify import get_current_active_admin_user
@@ -10,11 +10,11 @@ from ..core.db import DB_SESSION
 
 # Create Categories
 async def create_categories(category_input: CategoryBaseModel,
-                            current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
+                            # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
                             session: DB_SESSION,
                             image: UploadFile = File(...)):
-    if not current_admin:
-        raise HTTPException(status_code=401, detail="Unauthorized Admin")
+    # if not current_admin:
+    #     raise HTTPException(status_code=401, detail="Unauthorized Admin")
     category_image = await upload_files_in_s3(image)
     category = Category(**category_input.model_dump(), category_image=category_image)
     session.add(category)
@@ -99,11 +99,11 @@ async def all_product_details(products: Sequence[Product], session: DB_SESSION):
 
     for product in products:
         product_items = session.exec(select(ProductItem).where(ProductItem.product_id == product.id)).all()
-        product_items_table: List[ProductItemFormModel] = []
+        product_items_table: List[ProductItemDetails] = []
 
         for item in product_items:
             product_sizes = session.exec(select(ProductSize).where(ProductSize.product_item_id == item.id)).all()
-            product_sizes_table: List[SizeModel] = []
+            product_sizes_table: List[SizeModelDetails] = []
 
             for product_size in product_sizes:
                 size = session.exec(select(Size).where(Size.id == product_size.size)).first()
@@ -111,7 +111,7 @@ async def all_product_details(products: Sequence[Product], session: DB_SESSION):
                     raise HTTPException(status_code=404, detail="Size not found")
                 stock = session.exec(select(Stock).where(Stock.product_size_id == product_size.id)).first()
                 if stock and stock.stock > 0:
-                    size_model = SizeModel(
+                    size_model = SizeModelDetails(
                         id=product_size.id,
                         product_size_id=product_size.product_size_id, 
                         size=size.size,
@@ -121,7 +121,7 @@ async def all_product_details(products: Sequence[Product], session: DB_SESSION):
                     product_sizes_table.append(size_model)
             
             if product_sizes_table:
-                product_item_model = ProductItemFormModel(
+                product_item_model = ProductItemDetails(
                     id=item.id,
                     product_item_id=item.product_item_id,
                     color=item.color,
@@ -130,7 +130,7 @@ async def all_product_details(products: Sequence[Product], session: DB_SESSION):
                 )
                 product_items_table.append(product_item_model)
 
-        product_details = ProductFormModel(
+        product_details = ProductDetails(
                 product_id=product.product_id,
                 product_name=product.product_name,
                 product_desc=product.product_desc,

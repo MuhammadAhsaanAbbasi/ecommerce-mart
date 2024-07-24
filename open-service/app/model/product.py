@@ -1,13 +1,20 @@
 from sqlmodel import SQLModel, Field,Relationship
 from typing import Optional, List, Literal, Union
-import datetime
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from .base import BaseIdModel
+from enum import Enum
+import datetime
 import uuid
+
+class CategoryType(str, Enum):
+    formal = "formal"
+    casual = "casual"
+    luxury = "luxury"
 
 class CategoryBaseModel(SQLModel):
     category_name: str
     category_desc: str
+    category_type: CategoryType
 
 # Category Class
 class Category(BaseIdModel,CategoryBaseModel, table=True):
@@ -43,6 +50,7 @@ class ProductBase(BaseIdModel):
     """
     product_name: str = Field(index=True)
     product_desc: Optional[str] = Field(default=None)
+    featured: bool = Field(default=False)
     category_id: int = Field(foreign_key="category.id")
     gender_id: int = Field(foreign_key="gender.id")
 
@@ -51,7 +59,7 @@ class Product(ProductBase, table=True):
     Fields:
     product_name, product_desc, category_id, gender_id (required): inherited from ProductBase
     """
-    product_id: Optional[str] = Field(default=uuid.uuid4().hex)
+    product_id: Optional[str] = Field(default_factory=lambda: uuid.uuid4().hex)
     product_item: List["ProductItem"] = Relationship(back_populates="product")
 
 class ProductItem(BaseIdModel, table=True):
@@ -59,7 +67,7 @@ class ProductItem(BaseIdModel, table=True):
     Fields:
     product_name, product_desc, category_id, gender_id (required): inherited from ProductBase]
     """
-    product_item_id: Optional[str] = Field(default=uuid.uuid4().hex)
+    product_item_id: Optional[str] = Field(default_factory=lambda: uuid.uuid4().hex)
     color: str
     image_url: str
     product_id: int = Field(foreign_key="product.id")
@@ -71,7 +79,7 @@ class ProductSize(BaseIdModel, table=True):
     Fields:
     product_name, product_desc, category_id, gender_id (required): inherited from ProductBase]
     """
-    product_size_id: Optional[str] = Field(default=uuid.uuid4().hex)
+    product_size_id: Optional[str] = Field(default_factory=lambda: uuid.uuid4().hex)
     price: int = Field(ge=0)
     size: int = Field(foreign_key="size.id")
     stock: "Stock" = Relationship(back_populates="product_size")
@@ -81,7 +89,7 @@ class ProductSize(BaseIdModel, table=True):
 class Stock(BaseIdModel, table=True):
     """
     Fields:
-    product_name, product_desc, category_id, gender_id (required): inherited from ProductBase]
+    product_name, product_desc, category_id , gender_id (required): inherited from ProductBase]
     """
     product_size_id: Optional[int] = Field(
         # Foreign key linking to ProductSize
@@ -108,11 +116,9 @@ class SizeModel(SQLModel):
         price (int): Price of the product item.
         stock (int): Stock level of the product item.
     """
-    id: Optional[int] = Field(default=None)
-    product_size_id: Optional[str]
-    size: Union[int , str]
+    size: int
     price: int
-    stock: Optional[int]
+    stock: int
 
 class ProductItemFormModel(SQLModel):
     """
@@ -123,8 +129,6 @@ class ProductItemFormModel(SQLModel):
     image_url (str): URL of the product item image.
     sizes (list[SizeModel]): List of size details.
     """
-    id: Optional[int] = Field(default=None)
-    product_item_id: Optional[str]
     color: str
     image_url: Optional[str] = Field(default=None)
     sizes: List[SizeModel]
@@ -139,6 +143,7 @@ class ProductBaseForm(SQLModel):
     """
     product_name: str
     product_desc: Optional[str]
+    featured: bool
     category_id: Union[int , str]
     gender_id: Union[int , str]
 
@@ -150,10 +155,10 @@ class ProductFormModel(ProductBaseForm):
     Attributes:
     product_item (list[ProductItemFormModel]): List of product item details.
     """
-    product_id: Optional[str]
     product_item: List[ProductItemFormModel]
 
-class SizeModelForm(SQLModel):
+
+class SizeModelDetails(SQLModel):
     """
     Model for representing size details in forms.
 
@@ -162,10 +167,13 @@ class SizeModelForm(SQLModel):
         price (int): Price of the product item.
         stock (int): Stock level of the product item.
     """
+    id: Optional[int] = Field(default=None)
+    product_size_id: Optional[str]
     size: Union[int , str]
     price: int
+    stock: int
 
-class ProductItemAssistFormModel(SQLModel):
+class ProductItemDetails(SQLModel):
     """
     Model for representing product item details in forms.
 
@@ -174,26 +182,18 @@ class ProductItemAssistFormModel(SQLModel):
     image_url (str): URL of the product item image.
     sizes (list[SizeModel]): List of size details.
     """
+    id: Optional[int] = Field(default=None)
+    product_item_id: Optional[str]
     color: str
-    sizes: List[SizeModelForm]
+    image_url: Optional[str] = Field(default=None)
+    sizes: List[SizeModel]
 
-class ProductBaseAssistForm(SQLModel):
-    """
-    Base model for Product, used for shared attributes.
-
-    Attributes:
-        product_name (str): Name of the product.
-        description (str): Description of the product. 
-    """
-    product_name: str
-    product_desc: Optional[str]
-
-
-class ProductAssistFormModel(ProductBaseAssistForm):
+class ProductDetails(ProductBaseForm):
     """
     Model for representing product details in forms.
 
     Attributes:
     product_item (list[ProductItemFormModel]): List of product item details.
     """
-    product_item: List[ProductItemAssistFormModel]
+    product_id: Optional[str]
+    product_item: List[ProductItemFormModel]
