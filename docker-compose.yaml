@@ -160,18 +160,18 @@ services:
 ####################################################################################################
 
 # order Service
-  # order-service:
-  #   build:
-  #     context: ./order-service
-  #     dockerfile: Dockerfile
-  #   restart: always
-  #   ports:
-  #     - "8083:8083" 
-  #   volumes:
-  #     - ./order-service:/code  # Sync  local development directory with the container
-  #   depends_on:
-  #     - kafka
-  #     - postgres_db
+  order-service:
+    build:
+      context: ./order-service
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "8083:8083" 
+    volumes:
+      - ./order-service:/code  # Sync  local development directory with the container
+    depends_on:
+      - kafka
+      - postgres_db
 
 ####################################################################################################
 
