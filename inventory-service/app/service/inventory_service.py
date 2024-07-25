@@ -1,10 +1,10 @@
-from ..model.models import Product, ProductSize, ProductItem, ProductItemFormModel, SizeModel, Stock, Size, SizeModelDetails
+from ..model.models import Color, Product, ProductSize, ProductItem, ProductItemFormModel, Stock, Size, SizeModelDetails, ProductItemDetails, ProductItemUpdateModel
 from ..inventory_pb2 import ProductItemFormProtoModel as ProductItemFormModelProto, SizeProtoModel as SizeModelProto # type: ignore
 from fastapi import Depends, UploadFile, File, HTTPException
 from ..utils.admin_verify import get_current_active_admin_user
 from ..kafka.producer import get_kafka_producer, AIOKafkaProducer
-from ..utils.auth import upload_image
-from typing import Annotated, List
+from ..utils.action import upload_image
+from typing import Annotated, List, Optional
 from ..model.authentication import Admin
 from ..core.db import DB_SESSION
 from sqlmodel import select
@@ -44,7 +44,7 @@ async def create_product_item(
     if not current_admin:
         raise HTTPException(status_code=404, detail="Admin not found")
 
-    product = session.exec(select(Product).where(Product.product_id == product_id)).first()
+    product = session.exec(select(Product).where(Product.id == product_id)).first()
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
 
@@ -90,40 +90,56 @@ async def create_product_item(
         session.rollback()
         raise HTTPException(status_code=500, detail=f"Error Occurs while creating the product item: {e}")
 
-async def get_product_item(
+async def get_product_item_details(
                     current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
                     session: DB_SESSION,
-                    product_id: str):
-    
+                    product_item_id: str):
     if not current_admin:
         raise HTTPException(status_code=404, detail="Admin not found")
 
-    product = session.exec(select(Product).where(Product.product_id == product_id)).first()
+    product_item = session.exec(select(ProductItem).where(ProductItem.id == product_item_id)).first()
+    if not product_item:
+        raise HTTPException(status_code=404, detail="Product items not found")
+
+    product = session.exec(select(Product).where(Product.id == product_item.product_id)).first()
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
 
-    product_items = session.exec(select(ProductItem).where(ProductItem.product_id == product.id)).all()
-    if not product_items:
-        raise HTTPException(status_code=404, detail="Product items not found")
+    sizes = session.exec(select(ProductSize).where(ProductSize.product_item_id == product_item.id)).all()
+    size_models = []
+    for product_size in sizes:
+        stock = session.exec(select(Stock).where(Stock.product_size_id == product_size.id)).first()
+        size = session.exec(select(Size).where(Size.id == product_size.size)).first()
+        if not size:
+            raise HTTPException(status_code=404, detail="Size not found")
 
-    product_item_models = []
-    for item in product_items:
-        sizes = session.exec(select(ProductSize).where(ProductSize.product_item_id == item.id)).all()
-        size_models = []
-        for product_size in sizes:
-            stock = session.exec(select(Stock).where(Stock.product_size_id == product_size.id)).first()
-            size = session.exec(select(Size).where(Size.id == product_size.size)).first()
-            if not size:
-                raise HTTPException(status_code=404, detail="Size not found")
-            size_models.append(SizeModelDetails(size=size.size, price=product_size.price, stock=stock.stock if stock else 0))
-        product_item_models.append(ProductItemFormModel(color=item.color, image_url=item.image_url, sizes=size_models))
+        size_models.append(
+                SizeModelDetails(
+                    product_size_id=product_size.id,
+                    size=size.size, 
+                    price=product_size.price, 
+                    stock=stock.stock if stock else 0))
+
+    color = session.exec(select(Color).where(Color.id == product_item.color)).first()
+    if not color:
+        raise HTTPException(status_code=404, detail="Color not found")
+
+    product_item_models = ProductItemDetails(
+                product_item_id=product_item.id,
+                product_name=product.product_name,
+                color_name=color.color_name,
+                color_value=color.color_value,
+                color=product_item.color, 
+                image_url=product_item.image_url, 
+                sizes=size_models
+                )
 
     return product_item_models
 
 async def delete_product_item(
                     current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
                     session: DB_SESSION,
-                    product_item_id: int):
+                    product_item_id: str):
     if not current_admin:
         raise HTTPException(status_code=404, detail="Admin not found")
 
@@ -143,42 +159,60 @@ async def delete_product_item(
     session.commit()
     return product_item
 
-async def update_product_item_image(
+async def update_product_item(
+    product_item_id: str,
+    product_item_data: ProductItemUpdateModel,
     current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
     session: DB_SESSION,
-    product_item_id: int,
-    image: UploadFile = File(...)
+    image: Optional[UploadFile] = None
 ):
-    """
-    Update the image URL of a product item.
-
-    Args:
-        current_admin (Admin): The current active admin user.
-        session (DB_SESSION): The database session for performing operations.
-        product_item_id (int): The ID of the product item to be updated.
-        image (UploadFile): The new image to be uploaded for the product item.
-
-    Returns:
-        ProductItem: The updated product item.
-    """
     if not current_admin:
-        raise HTTPException(status_code=404, detail="Admin not found")
+        raise HTTPException(status_code=401, detail="Unauthorized Admin")
 
     product_item = session.exec(select(ProductItem).where(ProductItem.id == product_item_id)).first()
     if not product_item:
         raise HTTPException(status_code=404, detail="Product item not found")
 
-    try:
-        image_url = await upload_image(image)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error occurs during image upload: {e}")
+    if image:
+        try:
+            image_url = await upload_image(image)
+            product_item.image_url = image_url
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error occurs during image upload: {e}")
 
-    # Update the image URL of the product item
-    product_item.image_url = image_url
+    product_item.color = product_item_data.color
 
-    # Commit the changes to the database
-    # session.add(product_item)
+    for size_data in product_item_data.sizes:
+        product_size = session.exec(select(ProductSize).where(
+            ProductSize.id == size_data.size
+        )).first()
+        
+        if product_size:
+            product_size.price = size_data.price
+            if product_size.stock:
+                product_size.stock.stock = size_data.stock
+            else:
+                stock = Stock(
+                    product_size_id=product_size.id,
+                    stock=size_data.stock
+                )
+                product_size.stock = stock
+                session.add(stock)
+        else:
+            product_size = ProductSize(
+                size=size_data.size,
+                price=size_data.price,
+                product_item_id=product_item_id
+            )
+            stock = Stock(
+                product_size_id=product_size.id,
+                stock=size_data.stock
+            )
+            product_size.stock = stock
+            session.add(product_size)
+            session.add(stock)
+
     session.commit()
-    # session.refresh(product_item)
-
-    return {"message": "Product Item Image Updated Successfully!"}
+    session.refresh(product_item)
+    
+    return {"message": "Product Item Updated Successfully!"}

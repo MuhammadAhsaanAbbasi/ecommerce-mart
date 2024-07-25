@@ -1,10 +1,10 @@
-from ..service.inventory_service import create_product_item, get_product_item, delete_product_item, update_product_item_image
-from ..service.product_size import create_product_size, get_product_size, delete_product_size, update_product_size
-from ..model.models import ProductItem, ProductItemFormModel, SizeModel, Stock
+from ..service.inventory_service import create_product_item, get_product_item_details, delete_product_item, update_product_item
+from ..service.product_size import create_product_size, delete_product_size
+from ..model.models import ProductItemFormModel, SizeModel, Stock, ProductItemUpdateModel
 from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException
 from ..kafka.producer import get_kafka_producer, AIOKafkaProducer
 from ..utils.admin_verify import get_current_active_admin_user
-from typing import Annotated
+from typing import Annotated, Optional
 from ..core.db import DB_SESSION
 from ..model.authentication import Admin
 import json
@@ -12,7 +12,7 @@ import json
 router = APIRouter(prefix="/api/v1/inventory")
 
 # Product Item Routes
-@router.post("/create_product_item")
+@router.post("/create/product_item")
 async def create_product_items(
     current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
     aio_kafka: Annotated[AIOKafkaProducer, Depends(get_kafka_producer)],
@@ -42,19 +42,19 @@ async def create_product_items(
     return {"message": "Create Product Item Successfully!", "data": product_item}
 
 @router.get("/product_item")
-async def get_product_items(
+async def get_product_items_details(
                     current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
                     session: DB_SESSION,
-                    product_id: str):
-    product_items = await get_product_item(current_admin, session, product_id)
-    # product_items = await get_product_item(session, product_id)
+                    product_item_id: str):
+    product_items = await get_product_item_details(current_admin, session, product_item_id)
+    # product_items = await get_product_item_details(session, product_item_id)
     return {"message" : "Item of Product Get Successfully!", "data" : product_items}
 
 @router.delete("/product_item")
 async def delete_product_items(
                     current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
                     session: DB_SESSION,
-                    product_item_id: int):
+                    product_item_id: str):
     product_item = await delete_product_item(current_admin, session, product_item_id)
     # product_item = await delete_product_item(session, product_item_id)
     return {"message" : "Item of Product Delete Successfully!", "data" : product_item}
@@ -71,53 +71,49 @@ async def create_product_sizes(
     # product_size = await create_product_size(session, product_size_detail, product_item_id)
     return {"message" : "Size of Product Create Successfully!", "data" : product_size }
 
-@router.get("/product_size")
-async def get_product_sizes(
-                        current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
-                        session: DB_SESSION,
-                        product_item_id: str):
-    product_sizes = await get_product_size(current_admin, session, product_item_id)
-    # product_sizes = await get_product_size(session, product_item_id)
-    return {"message" : "Size of Product Get Successfully!", "data" : product_sizes }
-
 @router.delete("/product_size")
 async def delete_product_sizes(
                         current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
                         session: DB_SESSION,
-                        product_size_id: int):
+                        product_size_id: str):
     product_size = await delete_product_size(current_admin, session, product_size_id)
     # product_size = await delete_product_size(session, product_size_id)
     return {"message" : "Size of Product Delete Successfully!", "data" : product_size}
 
-# Update Product Item
-@router.put("/update_product_size")
-async def update_product_sizes(
-    current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
-    session: DB_SESSION,
-    product_size_detail: SizeModel,
-    product_size_id: int
-):
-    product_size = await update_product_size(current_admin, session, product_size_detail, product_size_id)
-    # product_size = await update_product_size(session, product_size_detail, product_size_id)
-    return {"message": "Size of Product Updated Successfully!", "data": product_size}
 
-@router.put("/product_item")
+# Update Product Item & Size
+@router.put("/update/product_item_size/{product_item_id}")
 async def update_product_item_route(
+    product_item_id: str,
+    product_item_input: Annotated[str, Form(...)],
     current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
     session: DB_SESSION,
-    product_item_id: int,
-    image: UploadFile = File(...)
+    image: Optional[UploadFile] = None
 ):
     """
     Update the image URL of an existing product item.
 
     Args:
-        product_item_id (int): The ID of the product item to be updated.
-        image (UploadFile): The new image to be uploaded for the product item.
+        product_item_input : Annotated[str, Form(...)] = {
+            "color": "string",
+            "sizes": [
+    {
+        "size": "size id",
+        "price": 0,
+        "stock": 0
+        }
+    ]
+}
 
     Returns:
         dict: A success message and updated product item data.
     """
-    product_item = await update_product_item_image(current_admin, session, product_item_id, image)
-    # product_item = await update_product_item_image(session, product_item_id, image)
-    return product_item
+    try: 
+        product_item_details_dict = json.loads(product_item_input)
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="Invalid JSON data provided for product details")
+
+    product_item_details_model = ProductItemUpdateModel(**product_item_details_dict)
+    product_item = await update_product_item(product_item_id, product_item_details_model, current_admin, session, image)
+    # product_item = await update_product_item(product_item_id, product_item_details_model, session, image)
+    return product_item 

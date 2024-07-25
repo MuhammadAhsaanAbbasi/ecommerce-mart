@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 message SizeProtoModel {
-    int32 size = 1;
+    string size = 1;
     int32 price = 2;
     int32 stock = 3;
 }

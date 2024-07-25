@@ -112,6 +112,7 @@ class SizeModelDetails(SQLModel):
     stock: int
 
 class ProductItemDetails(SQLModel):
+    product_name: str
     product_item_id: Optional[str]
     color_name: str
     color_value: str
@@ -119,6 +120,6 @@ class ProductItemDetails(SQLModel):
     image_url: Optional[str] = Field(default=None)
     sizes: List[SizeModelDetails]
 
-class ProductDetails(ProductBaseForm):
-    product_id: Optional[str]
-    product_item: List[ProductItemDetails]
+class ProductItemUpdateModel(SQLModel):
+    color: str
+    sizes: List[SizeModel]

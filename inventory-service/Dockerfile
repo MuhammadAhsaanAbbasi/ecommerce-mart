@@ -1,36 +1,71 @@
-# We will use this Dockerfile for Cloud and Kubernetes Environment
-# Dependency Resolution Stage:
-    FROM python:3.12-slim as base
+# # We will use this Dockerfile for Cloud and Kubernetes Environment
+# # Dependency Resolution Stage:
+#     FROM python:3.12-slim as base
 
-    LABEL maintainer="mahsaanabbasi@gmail.com"
+#     LABEL maintainer="mahsaanabbasi@gmail.com"
 
-    WORKDIR /tmp
+#     WORKDIR /tmp
 
-    RUN pip install poetry
+#     RUN pip install poetry
 
-    COPY ./pyproject.toml ./poetry.lock* /tmp/
+#     COPY ./pyproject.toml ./poetry.lock* /tmp/
 
-    RUN poetry export -f requirements.txt --output requirements.txt --without-hashes
+#     RUN poetry export -f requirements.txt --output requirements.txt --without-hashes
 
-    # Application Build Stage:
-    FROM python:3.12-slim
+#     # Application Build Stage:
+#     FROM python:3.12-slim
 
-    WORKDIR /code
+#     WORKDIR /code
 
 
-    COPY --from=base /tmp/requirements.txt /code/requirements.txt
+#     COPY --from=base /tmp/requirements.txt /code/requirements.txt
 
-    RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
+#     RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
-    COPY ./app /code/app
-    # We will comment COPY .env /code/ later 
-    # COPY .env /code/
-    # Set up a non-root user for better security
-    RUN useradd --create-home --home-dir /home/appuser appuser \
-        && chown -R appuser:appuser /code
+#     COPY ./app /code/app
+#     # We will comment COPY .env /code/ later 
+#     # COPY .env /code/
+#     # Set up a non-root user for better security
+#     RUN useradd --create-home --home-dir /home/appuser appuser \
+#         && chown -R appuser:appuser /code
 
-    USER appuser
+#     USER appuser
 
-    EXPOSE 8000
+#     EXPOSE 8000
 
-    CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+#     CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+# Use an official Python runtime as a parent image
+FROM python:3.12
+
+LABEL maintainer="mahsaanabbasi@gmail.com"
+
+# Set the working directory in the container
+WORKDIR /code
+
+# Install system dependencies required for potential Python packages
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    protobuf-compiler \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Poetry
+RUN pip install poetry
+
+# Copy the current directory contents into the container at /code
+COPY ./pyproject.toml /code/
+
+# Configuration to avoid creating virtual environments inside the Docker container
+RUN poetry config virtualenvs.create false
+
+# Install dependencies including development ones
+RUN poetry install
+
+COPY . /code/
+
+# Make port 8000 available to the world outside this container
+EXPOSE 8084
+
+# Run the app. CMD can be overridden when starting the container
+CMD ["poetry", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0","--port", "8084", "--reload"]

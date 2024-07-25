@@ -4,8 +4,11 @@ from typing import Annotated
 from fastapi import Depends
 import os
 
-connection_string = os.getenv('DATABASE_URL')
-engine = create_engine(str(connection_string), connect_args={"sslmode": "require"})
+connectionstring = str(DATABASE_URL).replace(
+    "postgresql", "postgresql+psycopg2"
+) 
+
+engine = create_engine(connectionstring, connect_args={"sslmode" : "require"}, pool_recycle=600, echo=True)
 
 def create_db_and_tables():
     SQLModel.metadata.create_all(engine)
