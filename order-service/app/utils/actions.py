@@ -1,5 +1,5 @@
 from ..model.product import Product, ProductItem, ProductSize, Stock, SizeModel, ProductItemFormModel, ProductFormModel, Size
-from ..model.order import OrderModel, Order, OrderItem, OrderUpdateStatus, OrderItemDetail, OrderDetail
+from ..model.order import OrderModel, Order, OrderItem, OrderItemDetail, OrderDetail
 from ..setting import STRIPE_SECRET_KEY, NEXT_PUBLIC_APP_URL
 from fastapi.responses import RedirectResponse
 from fastapi import Depends, HTTPException
@@ -15,7 +15,7 @@ stripe.api_key = STRIPE_SECRET_KEY
 async def create_order(order_model: OrderModel, order_id:str, 
                         user_id: int, session: DB_SESSION):
     
-    order_available = session.exec(select(Order).where(Order.order_id == order_id, Order.user_id == user_id)).first()
+    order_available = session.exec(select(Order).where(Order.id == order_id, Order.user_id == user_id)).first()
     if order_available:
         return False
     
@@ -31,7 +31,7 @@ async def create_order(order_model: OrderModel, order_id:str,
             if not product_item:
                 raise HTTPException(status_code=404, detail="Product item not found")
             
-            product = session.exec(select(Product).where(Product.product_id == order_items.product_id)).first()
+            product = session.exec(select(Product).where(Product.id == order_items.product_id)).first()
 
             if not product:
                 raise HTTPException(status_code=404, detail="Product not found")
@@ -83,12 +83,16 @@ async def create_order(order_model: OrderModel, order_id:str,
 
         # Create order
         order = Order(
-            order_address=order_model.order_address,
+            address=order_model.address,
+            email=order_model.email,
+            country=order_model.country,
+            city=order_model.city,
+            postal_code=order_model.postal_code,
             phone_number=order_model.phone_number,
             order_payment=order_model.order_payment,
             total_price=order_model.total_price,
             order_items=order_item_table,
-            order_id=order_id,
+            id=order_id,
             user_id=user_id,
         )
         session.add(order)
@@ -135,7 +139,11 @@ async def all_order_details(user_orders: Sequence[Order], session: DB_SESSION):
 
             order_detail = OrderDetail(
                 order_id=order.id,
-                order_address=order.order_address,
+                address=order.address,
+                email=order.email,
+                country=order.country,
+                city=order.city,
+                postal_code=order.postal_code,
                 phone_number=order.phone_number,
                 order_payment=order.order_payment,
                 total_price=order.total_price,
@@ -152,11 +160,11 @@ async def all_order_details(user_orders: Sequence[Order], session: DB_SESSION):
         raise e
 
 async def fetch_product_details(product_id: str, 
-                                product_item_id: int,
-                                product_size_id: int,
+                                product_item_id: str,
+                                product_size_id: str,
                                 session: DB_SESSION):
     
-    product = session.exec(select(Product).where(Product.product_id == product_id)).first()
+    product = session.exec(select(Product).where(Product.id == product_id)).first()
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
     
@@ -184,8 +192,12 @@ def create_metadata(order_details: OrderModel, order_id: str, user_id: int) -> d
     return {
         'user_id': str(user_id),
         'order_id': order_id,
-        'order_address': order_details.order_address,
-        'phone_number': order_details.phone_number,
+        "city":order_details.city,
+        "email":order_details.email,
+        "country":order_details.country,
+        "address":order_details.address,
+        "postal_code":order_details.postal_code,
+        "phone_number":order_details.phone_number,
         'total_amount': str(order_details.total_price),
         'order_payment': order_details.order_payment.value,
         'items': json.dumps(items_metadata)  # Convert items list to JSON string

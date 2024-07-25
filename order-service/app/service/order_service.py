@@ -1,6 +1,6 @@
 from ..model.product import Product, ProductItem, ProductSize, Stock, SizeModel, ProductItemFormModel, ProductFormModel, Size
 from ..order_pb2 import OrderBase as OrderBaseProto, OrderItemForm as OrderItemFormProto, OrderModel as OrderModelProto # type: ignore
-from ..model.order import OrderModel, Order, OrderItem, OrderUpdateStatus, OrderItemDetail, OrderDetail, OrderStatus
+from ..model.order import OrderModel, Order, OrderItem, OrderItemDetail, OrderDetail, OrderStatus
 from ..utils.actions import create_order, all_order_details, order_checkout
 from ..kafka.producer import AIOKafkaProducer, get_kafka_producer 
 from ..utils.admin_verify import get_current_active_admin_user
@@ -35,7 +35,11 @@ async def create_orders(
                 user_id=current_user.id,
                 order_id=order_id,
                 base=OrderBaseProto(
-                    order_address=order_details.order_address,
+                    email=order_details.email,
+                    country=order_details.country,
+                    city=order_details.city,
+                    postal_code=order_details.postal_code,
+                    address=order_details.address,
                     phone_number=order_details.phone_number,
                     total_price=order_details.total_price,
                     order_payment=order_details.order_payment
@@ -94,7 +98,7 @@ async def get_orders_by_id(
                     session: DB_SESSION,
                     order_id: str,
                     ):
-    order = session.exec(select(Order).where(Order.order_id == order_id)).first()
+    order = session.exec(select(Order).where(Order.id == order_id)).first()
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
     
@@ -127,8 +131,12 @@ async def get_orders_by_id(
                 order_items_detail.append(order_item_detail)
 
         order_detail = OrderDetail(
-                order_id=order.order_id,
-                order_address=order.order_address,
+                order_id=order.id,
+                address=order.address,
+                email=order.email,
+                country=order.country,
+                city=order.city,
+                postal_code=order.postal_code,
                 phone_number=order.phone_number,
                 order_payment=order.order_payment,
                 total_price=order.total_price,
@@ -148,21 +156,25 @@ async def get_orders_by_id(
 async def update_orders_status(
                     current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
                     session: DB_SESSION,
-                    order_update_status: OrderUpdateStatus
+                    order_id: str,
+                    order_status: OrderStatus
                     ):
+    if not current_admin:
+        raise HTTPException(status_code=404, detail="Admin not found")
+
     try:
         # Retrieve the order by order_id
-        order = session.exec(select(Order).where(Order.order_id == order_update_status.order_id)).first()
+        order = session.exec(select(Order).where(Order.id == order_id)).first()
         
         # Check if the order exists
         if not order:
             raise HTTPException(status_code=404, detail="Order not found")
         
         # Update the status of the order
-        if order_update_status.status not in OrderStatus.__members__:
+        if order_status not in OrderStatus.__members__:
             raise HTTPException(status_code=400, detail="Invalid order status")
 
-        order.order_status = OrderStatus[order_update_status.status]
+        order.order_status = OrderStatus[order_status]
 
         # Commit the changes to the database
         session.add(order)
@@ -183,9 +195,10 @@ async def delete_orders(
                     ):
     if not current_admin:
         raise HTTPException(status_code=404, detail="Admin not found")
+
     try:
         # Retrieve the order by order_id
-        order = session.exec(select(Order).where(Order.order_id == order_id)).first()
+        order = session.exec(select(Order).where(Order.id == order_id)).first()
         
         # Check if the order exists
         if not order:

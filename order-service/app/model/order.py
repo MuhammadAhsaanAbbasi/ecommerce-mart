@@ -5,7 +5,6 @@ from datetime import timezone, datetime, timedelta
 from .base import BaseIdModel
 import uuid
 
-
 class OrderItemBase(SQLModel):
     product_id: str = Field(foreign_key="product.id")
     product_item_id: str = Field(foreign_key="productitem.id")
@@ -53,10 +52,6 @@ class Order(BaseIdModel, OrderBase, table=True):
 class OrderItem(BaseIdModel, OrderItemBase, table=True):
     order_id: int = Field(foreign_key="order.id")
     order: Optional["Order"] = Relationship(back_populates="order_items")
-
-class OrderUpdateStatus(SQLModel):
-    order_id: str
-    status: str
 
 class OrderItemDetail(SQLModel):
     product: str

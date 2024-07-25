@@ -1,5 +1,5 @@
 from ..service.order_service import create_orders, get_orders_by_user, get_all_orders, get_orders_by_id, update_orders_status, delete_orders, get_orders_by_status_and_date, cancel_orders_by_customer
-from ..model.order import OrderModel, Order, OrderItem, OrderUpdateStatus
+from ..model.order import OrderModel, Order, OrderItem, OrderStatus
 from ..kafka.producer import AIOKafkaProducer, get_kafka_producer
 from ..utils.admin_verify import get_current_active_admin_user
 from ..utils.user_verify import get_current_active_user
@@ -14,7 +14,7 @@ import json
 order_router = APIRouter(prefix="/api/v1/order")
 
 # Create Order
-@order_router.post("/create_order")
+@order_router.post("/create/order")
 async def create_order(
                     session: DB_SESSION,
                     order_details: OrderModel,
@@ -53,15 +53,14 @@ async def get_order_by_id(
     return order
 
 # Update Order Status
-@order_router.put("/update_order_status/{order_id}")
+@order_router.put("/update/order_status/{order_id}")
 async def update_order_status(
                     current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
                     session: DB_SESSION,
                     order_id: str,
-                    status: str
+                    order_status: OrderStatus
 ):
-    order_update_details = OrderUpdateStatus(order_id=order_id, status=status)
-    order = await update_orders_status(current_admin, session, order_update_details )
+    order = await update_orders_status(current_admin, session, order_id, order_status )
     return order
 
 # Delete Order By Admin
@@ -87,7 +86,7 @@ async def get_order_by_status_and_date(
     return orders
 
 # Cancel Order By Customer Only User
-@order_router.delete("/cancel_order_by_customer")
+@order_router.delete("/cancel_order_by_customer/{order_id}")
 async def cancel_order_by_customer(
                     current_user: Annotated[Users, Depends(get_current_active_user)],
                     session: DB_SESSION,
