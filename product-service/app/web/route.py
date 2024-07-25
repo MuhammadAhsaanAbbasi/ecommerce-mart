@@ -15,6 +15,7 @@ router = APIRouter(prefix="/api/v1/product")
 
 @router.post("/create_product")
 async def create_products(
+    current_admin: Annotated[Admin, Depends(get_current_active_admin_user)], 
     aio_producer: Annotated[AIOKafkaProducer, Depends(get_kafka_producer)],
     session: DB_SESSION,
     product_details: Annotated[str, Form(...)],
@@ -25,11 +26,11 @@ async def create_products(
 
     Args:
         product_details : Annotated[str, Form(...)] = { 
-        "product_name": "string", "product_desc": "string",  featured: True
-        "category_id": int, "gender_id": int, 
+        "product_name": "string", "product_desc": "string",  "featured": True
+        "category_id": "id",
         "product_item": [ 
-        { "color": "string", 
-        "sizes": [ { "size": int, "price": int, "stock": int } ] 
+        { "color": "color_id", 
+        "sizes": [ { "size": "id", "price": int, "stock": int } ] 
         } ]
         }
     """
@@ -39,8 +40,8 @@ async def create_products(
         raise HTTPException(status_code=400, detail="Invalid JSON data provided for product details")
 
     product_details_model = ProductFormModel(**product_details_dict)
-    # product = await create_product(current_admin, aio_producer, session, product_details_model, images)
-    product = await create_product(aio_producer, session, product_details_model, images)
+    product = await create_product(current_admin, aio_producer, session, product_details_model, images)
+    # product = await create_product(aio_producer, session, product_details_model, images)
     return {"message": "Create Product Successfully!", "data": product}
 
 @router.get("/get_all_products")

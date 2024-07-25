@@ -29,12 +29,12 @@ async def get_categories(session: DB_SESSION):
 
 async def update_categories(category_id: str, 
                         category_input: CategoryBaseModel,
-                        # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
+                        current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
                         session: DB_SESSION,
                         image: Optional[UploadFile] = None,
                         ):
-    # if not current_admin:
-    #     raise HTTPException(status_code=401, detail="Unauthorized Admin")
+    if not current_admin:
+        raise HTTPException(status_code=401, detail="Unauthorized Admin")
 
     category = session.exec(select(Category).where(Category.id == category_id)).first()
     if not category:
@@ -75,7 +75,11 @@ async def get_sizies(session: DB_SESSION):
 # Update Colors
 async def update_color(color_id: str,
                         color_details: Color,
+                        current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
                         session: DB_SESSION):
+    if not current_admin:
+        raise HTTPException(status_code=401, detail="Unauthorized Admin")
+    
     color = session.exec(select(Color).where(Color.id == color_id)).first()
     if not color:
         raise HTTPException(status_code=404, detail="Invalid color id")
@@ -119,10 +123,16 @@ async def all_product_details(products: Sequence[Product], session: DB_SESSION):
                         stock=stock.stock
                     )
                     product_sizes_table.append(size_model)
-            
+
             if product_sizes_table:
+                color = session.exec(select(Color).where(Color.id == item.color)).first()
+                if not color:
+                    raise HTTPException(status_code=404, detail="Color not found")
+
                 product_item_model = ProductItemDetails(
                     product_item_id=item.id,
+                    color_name=color.color_name,
+                    color_value=color.color_value,
                     color=item.color,
                     image_url=item.image_url,
                     sizes=product_sizes_table
@@ -130,12 +140,13 @@ async def all_product_details(products: Sequence[Product], session: DB_SESSION):
                 product_items_table.append(product_item_model)
 
         product_details = ProductDetails(
-                product_id=product.id,
-                product_name=product.product_name,
-                product_desc=product.product_desc,
-                category_id=product.category_id,
-                product_item=product_items_table
-            )
+            product_id=product.id,
+            product_name=product.product_name,
+            product_desc=product.product_desc,
+            featured=product.featured,
+            category_id=product.category_id,
+            product_item=product_items_table
+        )
         all_product_detail.append(product_details)
 
     return all_product_detail

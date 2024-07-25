@@ -36,6 +36,7 @@ async def create_category(
 
     category_base_model = CategoryBaseModel(**category_dict)
     category = await create_categories(category_base_model, current_admin, session, category_image)
+    # category = await create_categories(category_base_model, session, category_image)
     return {"message": "Create Product Category Successfully!", "data" : category}
 
 @csc_router.get("/categories/all")
@@ -54,7 +55,7 @@ async def get_specific_category(category_id: str,
 @csc_router.put("/update_category/{category_id}")
 async def update_category(category_id: str, 
                         session: DB_SESSION,
-                        # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
+                        current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
                         category_input: Annotated[str, Form(...)],
                         image: Optional[UploadFile] = None,
                         ):
@@ -74,7 +75,7 @@ async def update_category(category_id: str,
         raise HTTPException(status_code=400, detail="Invalid JSON data provided for product details")
 
     category_base_model = CategoryBaseModel(**category_dict)
-    category = await update_categories(category_id, category_base_model, session, image) 
+    category = await update_categories(category_id, category_base_model, current_admin, session, image) 
     return category
 
 @csc_router.delete("/delete_category/{category_id}")
@@ -122,17 +123,35 @@ async def delete_size(size_id: str,
 
 # Color Routes
 @csc_router.post('/color/create')
-async def create_colors(color_details: Color, session: DB_SESSION):
-    return {"Message": "Create Color"}
+async def create_colors(color_details: Color, 
+                        current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
+                        session: DB_SESSION):
+    if not current_admin:
+        raise HTTPException(status_code=401, detail="Unauthorized Admin")
+    
+    color = Color(**color_details.model_dump())
+    session.add(color)
+    session.commit()
+    session.refresh(color)
+    return {"Message": "Create Color", "details": color}
 
 @csc_router.get('/colors')
-async def get_colors(session: DB_SESSION):
+async def get_colors(session: DB_SESSION,
+                    current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],):
+    if not current_admin:
+        raise HTTPException(status_code=401, detail="Unauthorized Admin")
+    
     colors = session.exec(select(Color)).all()
     return {"data" : colors}
 
 @csc_router.get("/color/{color_id}")
 async def get_specific_color (color_id: str, 
-                        session: DB_SESSION):
+                        session: DB_SESSION,
+                        current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
+                        ):
+    if not current_admin:
+        raise HTTPException(status_code=401, detail="Unauthorized Admin")
+    
     color = session.exec(select(Color).where(Color.id == color_id)).first()
     if not color:
         raise HTTPException(status_code=404, detail="Product not found")
@@ -141,13 +160,18 @@ async def get_specific_color (color_id: str,
 @csc_router.put('/color/{color_id}')
 async def update_colors(color_id: str,
                         color_details: Color,
+                        current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
                         session: DB_SESSION):
-    colors = await update_color(color_id, color_details, session)
-    return {"message": "Update Color"}
-
+    color = await update_color(color_id, color_details, current_admin, session)
+    return color
 
 @csc_router.delete('/color/{color_id}')
-async def delete_color(color_id: str, session: DB_SESSION):
+async def delete_color(color_id: str, 
+                    current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
+                    session: DB_SESSION):
+    if not current_admin:
+        raise HTTPException(status_code=401, detail="Unauthorized Admin")
+    
     color = session.exec(select(Color).where(Color.id == color_id)).first()
     if not color:
         raise HTTPException(status_code=404, detail="Color not found")

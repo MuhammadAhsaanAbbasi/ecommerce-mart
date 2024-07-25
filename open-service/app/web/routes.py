@@ -10,7 +10,6 @@ from datetime import datetime
 from sqlmodel import select
 import json
 
-
 router = APIRouter(prefix="/api/v1/open")
 
 @router.get('/featured')
@@ -41,4 +40,4 @@ async def track_order(
 @router.get("/shop/assistant")
 async def get_shop_assistant_response(session: DB_SESSION, input: str):
     response = await get_openai_shop_assistant(input, session=session)
-    return response
+    return response 

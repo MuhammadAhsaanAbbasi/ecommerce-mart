@@ -1,4 +1,4 @@
-from ..model.models import Product, ProductSize, ProductItem, Stock, ProductBaseForm, ProductFormModel, ProductItemFormModel, SizeModel, ProductDetails, ProductItemDetails, SizeModelDetails
+from ..model.models import Color, Product, ProductSize, ProductItem, Stock, ProductBaseForm, ProductFormModel, ProductItemFormModel, SizeModel, ProductDetails, ProductItemDetails, SizeModelDetails
 from ..product_pb2 import ProductFormModel as ProductFormModelProto, ProductItemFormModel as ProductItemFormModelProto, SizeModel as SizeModelProto # type: ignore
 from ..setting import CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET, CLOUDINARY_CLOUD, PRODUCT_TOPIC
 from ..utils.utils import search_algorithm_by_category, all_product_details
@@ -22,7 +22,7 @@ import uuid
 
 # Create Product
 async def create_product(
-        # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)], 
+        current_admin: Annotated[Admin, Depends(get_current_active_admin_user)], 
         aio_producer: Annotated[AIOKafkaProducer, Depends(get_kafka_producer)],
         session: DB_SESSION,
         product_details: ProductFormModel,
@@ -48,8 +48,8 @@ async def create_product(
     Returns:
         Product: The created product.
     """
-    # if not current_admin:
-    #     raise HTTPException(status_code=404, detail="Admin not found")
+    if not current_admin:
+        raise HTTPException(status_code=404, detail="Admin not found")
     
     if len(product_details.product_item) != len(images):
         raise HTTPException(status_code=202, detail="The number of images does not match the number of product items")
@@ -75,12 +75,10 @@ async def create_product(
                 stock_tables = Stock(stock=product_size.stock)
                 product_size_schema = ProductSize(size=product_size.size, 
                                                 price=product_size.price, 
-                                                product_size_id=uuid.uuid4().hex,
                                                 stock=stock_tables)
                 product_size_tables.append(product_size_schema)
             
             product_item = ProductItem(color=product_items.color, 
-                                        product_item_id=uuid.uuid4().hex,
                                         image_url=image_url, 
                                         sizes=product_size_tables)
             product_item_tables.append(product_item)
@@ -100,7 +98,7 @@ async def create_product(
         product_proto = ProductFormModelProto(
             product_name=product.product_name,
             product_desc=product.product_desc,
-            category_id=int(product.category_id),
+            category_id=product.category_id,
             product_item=[
                 ProductItemFormModelProto(
                     color=item.color,
@@ -185,8 +183,12 @@ async def get_specific_product_details(product_id: str, session: DB_SESSION):
                     product_sizes_table.append(size_model)
             
             if product_sizes_table:
+                color = session.exec(select(Color).where(Color.id == item.color)).first()
+                if not color:
+                    raise HTTPException(status_code=404, detail="Color not found")
                 product_item_model = ProductItemDetails(
-                    color=item.color,
+                    color_name=color.color_name,
+                    color_value=color.color_value,
                     image_url=item.image_url,
                     sizes=product_sizes_table
                 )

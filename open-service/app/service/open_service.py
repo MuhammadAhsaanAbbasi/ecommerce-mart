@@ -1,6 +1,6 @@
 # type: ignore
 from ..model.product import Product, ProductItem, ProductSize, Stock, SizeModel, ProductItemFormModel, ProductFormModel, Size
-from ..model.order import OrderModel, Order, OrderItem, OrderUpdateStatus, OrderItemDetail, OrderDetail, OrderStatus
+from ..model.order import Order, OrderItem, OrderItemDetail, OrderDetail
 from openai.types.shared_params.function_definition import FunctionDefinition
 from ..utils.admin_verify import get_current_active_admin_user
 from ..utils.actions import all_product_details, single_product_details
