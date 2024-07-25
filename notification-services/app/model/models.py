@@ -59,3 +59,29 @@ class ProductFormModel(ProductBaseForm):
     product_item (list[ProductItemFormModel]): List of product item details.
     """
     product_item: List[ProductItemFormModel]
+
+class SizeModelDetails(SQLModel):
+    """
+    Model for representing size details in forms.
+
+    Attributes:
+        size (str | int): Size of the product item.
+        price (int): Price of the product item.
+        stock (int): Stock level of the product item.
+    """
+    product_size_id: Optional[str]
+    size: Union[int , str]
+    price: int
+    stock: int
+
+class ProductItemDetails(SQLModel):
+    product_item_id: Optional[str]
+    color_name: str
+    color_value: str
+    color: str
+    image_url: Optional[str] = Field(default=None)
+    sizes: List[SizeModelDetails]
+
+class ProductDetails(ProductBaseForm):
+    product_id: Optional[str]
+    product_item: List[ProductItemDetails]

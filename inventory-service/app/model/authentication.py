@@ -1,8 +1,16 @@
 from sqlmodel import SQLModel, Field,Relationship
 from typing import Optional
-from pydantic import BaseModel, EmailStr
-from .base import BaseIdModel
+from pydantic import BaseModel
+from datetime import datetime
 import uuid
+
+class BaseIdModel(SQLModel):
+    id: int | None = Field(default=None, primary_key=True)
+    created_at: datetime | None = Field(default_factory=datetime.now)
+    updated_at: datetime | None = Field(
+        default_factory=datetime.utcnow, sa_column_kwargs={"onupdate": datetime.now}
+    )
+
 
 class UserBase(SQLModel):
     kid: Optional[str] = Field(default=uuid.uuid4().hex)

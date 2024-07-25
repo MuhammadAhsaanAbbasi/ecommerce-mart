@@ -19,7 +19,6 @@ class TransactionStatus(str, Enum):
     refunded = "Refunded"
 
 class Transaction(BaseIdModel, TransactionModel, table=True):
-    transaction_id: Optional[str] = Field(default=uuid.uuid4().hex)
     transaction_status: Optional[TransactionStatus] = Field(default="Pending")
     user_id: int = Field(foreign_key="users.id")
 
