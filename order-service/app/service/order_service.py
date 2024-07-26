@@ -39,8 +39,8 @@ async def create_orders(
                     country=order_details.country,
                     city=order_details.city,
                     postal_code=order_details.postal_code,
-                    address=order_details.address,
-                    phone_number=order_details.phone_number,
+                    address=order_details.address, 
+                    phone_number=order_details.phone_number, 
                     total_price=order_details.total_price,
                     order_payment=order_details.order_payment
                 ),
@@ -66,12 +66,13 @@ async def create_orders(
         raise e
 
 
-# Get User Orders
 async def get_orders_by_user(
-                    current_user: Annotated[Users, Depends(get_current_active_user)],
-                    session: DB_SESSION,
-                    ):
-    user_orders = session.exec(select(Order).where(Order.user_id == current_user.id)).all()
+        current_user: Annotated[Users, Depends(get_current_active_user)],
+        session: DB_SESSION,
+        limit: int,
+        offset: int,
+    ):
+    user_orders = session.exec(select(Order).where(Order.user_id == current_user.id).offset(offset).limit(limit)).all()
     if not user_orders:
         raise HTTPException(status_code=404, detail="Order not found")
     order_details = await all_order_details(user_orders, session)
@@ -82,11 +83,13 @@ async def get_orders_by_user(
 async def get_all_orders(
                     current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
                     session: DB_SESSION,
+                    limit: int,
+                    offset: int,
                     ):
     if not current_admin:
         raise HTTPException(status_code=404, detail="Admin not found")
     
-    all_orders = session.exec(select(Order)).all()
+    all_orders = session.exec(select(Order).offset(offset).limit(limit)).all()
 
     order_details = await all_order_details(all_orders, session)
 

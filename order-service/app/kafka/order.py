@@ -1,5 +1,5 @@
 # Other necessary imports
-from ..model.order import OrderModel, OrderItemForm, OrderBase, OrderPayment
+from ..model.order import OrderModel, OrderItemBase, OrderBase, OrderPayment
 from aiokafka import AIOKafkaConsumer # type: ignore
 from aiokafka.errors import KafkaConnectionError # type: ignore
 from ..core.db import engine
@@ -34,12 +34,16 @@ async def order_consumer():
             order_id = order_proto.order_id
             order_base = order_proto.base
             order_model = OrderModel(
-                order_address=order_base.order_address,
-                phone_number=order_base.phone_number,
+                email=order_base.email,
+                country=order_base.country,
+                city=order_base.city,
+                postal_code=order_base.postal_code,
+                address=order_base.address, 
+                phone_number=order_base.phone_number, 
                 total_price=order_base.total_price,
                 order_payment=OrderPayment(order_base.order_payment),
                 items=[
-                    OrderItemForm(
+                    OrderItemBase(
                         product_id=item.product_id,
                         product_item_id=item.product_item_id,
                         product_size_id=item.product_size_id,

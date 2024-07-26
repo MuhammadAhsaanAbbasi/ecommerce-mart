@@ -3,6 +3,7 @@ from ..model.order import OrderModel, Order, OrderItem, OrderItemDetail, OrderDe
 from ..setting import STRIPE_SECRET_KEY, NEXT_PUBLIC_APP_URL
 from fastapi.responses import RedirectResponse
 from fastapi import Depends, HTTPException
+from ..model.authentication import Users
 from ..model.cart import Cart, CartItem
 from typing import List, Sequence
 from ..core.db import DB_SESSION
@@ -107,7 +108,6 @@ async def create_order(order_model: OrderModel, order_id:str,
 
 async def all_order_details(user_orders: Sequence[Order], session: DB_SESSION):
     all_order_detail = []
-
     try:
         for order in user_orders:
             order_items = session.exec(select(OrderItem).where(OrderItem.order_id == order.id)).all()
@@ -137,6 +137,10 @@ async def all_order_details(user_orders: Sequence[Order], session: DB_SESSION):
                     )
                     order_items_detail.append(order_item_detail)
 
+            user = session.exec(select(Users).where(Users.id == order.user_id)).first()
+            if not user:
+                raise HTTPException(status_code=404, detail="User not found")
+
             order_detail = OrderDetail(
                 order_id=order.id,
                 address=order.address,
@@ -151,7 +155,10 @@ async def all_order_details(user_orders: Sequence[Order], session: DB_SESSION):
                 tracking_id=order.tracking_id,
                 delivery_date=order.delivery_date,
                 order_date=order.order_date,
-                order_items=order_items_detail
+                order_items=order_items_detail,
+                user_name=user.username,
+                user_email=user.email,
+                user_image_url=user.imageUrl
             )
             all_order_detail.append(order_detail)
             

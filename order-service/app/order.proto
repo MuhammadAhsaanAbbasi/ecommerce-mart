@@ -19,7 +19,7 @@ message OrderItemForm {
     string product_id = 1;
     string product_item_id = 2;
     string product_size_id = 3;
-    string quantity = 4;
+    int32 quantity = 4;
 }
 
 // Message for OrderModel

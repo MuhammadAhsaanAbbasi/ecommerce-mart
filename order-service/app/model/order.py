@@ -50,7 +50,7 @@ class Order(BaseIdModel, OrderBase, table=True):
 
 
 class OrderItem(BaseIdModel, OrderItemBase, table=True):
-    order_id: int = Field(foreign_key="order.id")
+    order_id: str = Field(foreign_key="order.id") 
     order: Optional["Order"] = Relationship(back_populates="order_items")
 
 class OrderItemDetail(SQLModel):
@@ -68,3 +68,6 @@ class OrderDetail(OrderBase):
     delivery_date: datetime
     order_date: datetime
     order_items: List[OrderItemDetail]
+    user_name: str
+    user_email: str
+    user_image_url: Optional[str]

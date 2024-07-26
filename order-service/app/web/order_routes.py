@@ -27,10 +27,13 @@ async def create_order(
 # Get Order By User 
 @order_router.get("/get_order_by_user")
 async def get_order_by_user(
-                    current_user: Annotated[Users, Depends(get_current_active_user)],
-                    session: DB_SESSION,
-                    ):
-    orders = await get_orders_by_user(current_user, session)
+        current_user: Annotated[Users, Depends(get_current_active_user)],
+        session: DB_SESSION,
+        page: int = 1, 
+        limit: int = 5, 
+    ):
+    offset = (page - 1) * limit
+    orders = await get_orders_by_user(current_user, session, limit, offset)
     return orders
 
 # Get All Orders
@@ -38,8 +41,11 @@ async def get_order_by_user(
 async def get_all_order(
                     current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
                     session: DB_SESSION,
+                    page: int = 1, 
+                    limit: int = 10, 
                     ):
-    orders = await get_all_orders(current_admin, session)
+    offset = (page - 1) * limit
+    orders = await get_all_orders(current_admin, session, limit, offset)
     # order = await get_all_orders(session)
     return orders
 
