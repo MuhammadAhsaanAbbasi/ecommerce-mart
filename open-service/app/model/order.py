@@ -5,31 +5,30 @@ from datetime import timezone, datetime, timedelta
 from .base import BaseIdModel
 import uuid
 
-
 class OrderItemBase(SQLModel):
-    product_id: int = Field(foreign_key="product.id")
-    product_item_id: int = Field(foreign_key="productitem.id")
-    product_size_id: int = Field(foreign_key="productsize.id")
+    product_id: str = Field(foreign_key="product.id")
+    product_item_id: str = Field(foreign_key="productitem.id")
+    product_size_id: str = Field(foreign_key="productsize.id")
     quantity: int
 
 class OrderPayment(str, Enum):
     cash_on_delivery = "Cash On Delivery" 
     online_payment = "Online Payment"
 
-class OrderBase(SQLModel):
-    order_address: str
-    phone_number: str 
+class OrderDelivery(SQLModel):
+    email: str
+    country: str
+    city: str
+    postal_code: str
+    address: str
+    phone_number: str
+
+class OrderBase(OrderDelivery):
     total_price: float
     order_payment: OrderPayment = Field(default="Cash On Delivery")
 
-class OrderItemForm(SQLModel):
-    product_id: str
-    product_item_id: int
-    product_size_id: int
-    quantity: int
-
 class OrderModel(OrderBase):
-    items: List[OrderItemForm]
+    items: List[OrderItemBase]
 
 class OrderStatus(str, Enum):
     processing = "Processing"
@@ -42,7 +41,6 @@ def calculate_delivery_date():
     return datetime.now(timezone.utc) + timedelta(days=7)
 
 class Order(BaseIdModel, OrderBase, table=True):
-    order_id: Optional[str] = Field(default=uuid.uuid4().hex)
     tracking_id: Optional[str] = Field(default=uuid.uuid4().hex)
     order_status: Optional[OrderStatus] = Field(default="Processing")
     delivery_date: datetime | None = Field(default_factory=calculate_delivery_date)
@@ -52,12 +50,8 @@ class Order(BaseIdModel, OrderBase, table=True):
 
 
 class OrderItem(BaseIdModel, OrderItemBase, table=True):
-    order_id: int = Field(foreign_key="order.id")
+    order_id: str = Field(foreign_key="order.id") 
     order: Optional["Order"] = Relationship(back_populates="order_items")
-
-class OrderUpdateStatus(SQLModel):
-    order_id: str
-    status: str
 
 class OrderItemDetail(SQLModel):
     product: str
@@ -67,14 +61,13 @@ class OrderItemDetail(SQLModel):
     quantity: int
     stock: int
 
-class OrderDetail(SQLModel):
+class OrderDetail(OrderBase):
     order_id: str
-    order_address: str
-    phone_number: str
-    order_payment: str
-    total_price: float
     tracking_id: str
     order_status: str
     delivery_date: datetime
     order_date: datetime
     order_items: List[OrderItemDetail]
+    user_name: str
+    user_email: str
+    user_image_url: Optional[str]

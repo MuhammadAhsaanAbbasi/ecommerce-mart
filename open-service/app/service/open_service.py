@@ -85,18 +85,29 @@ async def get_orders_by_tracking_id(
                 )
                 order_items_detail.append(order_item_detail)
 
+        user = session.exec(select(Users).where(Users.id == order.user_id)).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
         order_detail = OrderDetail(
-                order_id=order.id,
-                order_address=order.order_address,
-                phone_number=order.phone_number,
-                order_payment=order.order_payment,
-                total_price=order.total_price,
-                order_status=order.order_status,
-                tracking_id=order.tracking_id,
-                delivery_date=order.delivery_date,
-                order_date=order.order_date,
-                order_items=order_items_detail
-            )
+            order_id=order.id,
+            address=order.address,
+            email=order.email,
+            country=order.country,
+            city=order.city,
+            postal_code=order.postal_code,
+            phone_number=order.phone_number,
+            order_payment=order.order_payment,
+            total_price=order.total_price,
+            order_status=order.order_status,
+            tracking_id=order.tracking_id,
+            delivery_date=order.delivery_date,
+            order_date=order.order_date,
+            order_items=order_items_detail,
+            user_name=user.username,
+            user_email=user.email,
+            user_image_url=user.imageUrl
+        )
 
         return order_detail
     except HTTPException as e:
