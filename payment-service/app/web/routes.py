@@ -43,9 +43,13 @@ async def payment_webhook(request: Request,
         order_metadata = OrderMetadata(
             user_id=int(metadata['user_id']),
             order_id=metadata['order_id'],
-            order_address=metadata['order_address'],
+            city=metadata['city'],
+            email=metadata['email'],
+            country=metadata['country'],
+            postal_code=metadata['postal_code'],
+            address=metadata['order_address'],
             phone_number=metadata['phone_number'],
-            total_price=session_data['amount_total'],
+            total_price=session_data['amount_total'] / 100,
             order_payment=metadata['order_payment'],
             items=items_json  # This should be a list of dictionaries
         )
@@ -68,10 +72,13 @@ async def payment_webhook(request: Request,
 async def get_all_transactions(
     session: DB_SESSION,
     current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
+    page: int = 1, 
+    limit: int = 5, 
     from_date: Optional[datetime] = Query(None),
     to_date: Optional[datetime] = Query(None)
 ):
-    transaction = await get_transactionBy_date(session, current_admin, from_date, to_date)
+    offset = (page - 1) * limit
+    transaction = await get_transactionBy_date(session, current_admin, offset, limit, from_date, to_date)
     return transaction
 
 
@@ -82,7 +89,7 @@ async def get_transaction(transaction_id: str,
     if not current_admin:
         raise HTTPException(status_code=403, detail="Unauthorized access")
     
-    transaction = session.exec(select(Transaction).where(Transaction.transaction_id == transaction_id)).first()
+    transaction = session.exec(select(Transaction).where(Transaction.id == transaction_id)).first()
     if not transaction:
         raise HTTPException(status_code=404, detail="Transaction not found")
     
@@ -113,7 +120,7 @@ async def refund_transaction(transaction_id: str,
     if not current_admin:
         raise HTTPException(status_code=403, detail="Unauthorized access")
 
-    transaction = session.exec(select(Transaction).where(Transaction.transaction_id == transaction_id)).first()
+    transaction = session.exec(select(Transaction).where(Transaction.id == transaction_id)).first()
     if not transaction:
         raise HTTPException(status_code=404, detail="Transaction not found")
     
@@ -126,7 +133,7 @@ async def refund_transaction(transaction_id: str,
     except StripeError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-    order = session.exec(select(Order).where(Order.order_id == transaction.order_id)).first()
+    order = session.exec(select(Order).where(Order.id == transaction.order_id)).first()
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
 

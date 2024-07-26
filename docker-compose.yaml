@@ -192,18 +192,18 @@ services:
 ####################################################################################################
 
 # payment Service
-  # payment-service:
-  #   build:
-  #     context: ./payment-service
-  #     dockerfile: Dockerfile
-  #   restart: always
-  #   ports:
-  #     - "8085:8085" 
-  #   volumes:
-  #     - ./payment-service:/code  # Sync  local development directory with the container
-  #   depends_on:
-  #     - kafka
-  #     - postgres_db
+  payment-service:
+    build:
+      context: ./payment-service
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "8085:8085" 
+    volumes:
+      - ./payment-service:/code  # Sync  local development directory with the container
+    depends_on:
+      - kafka
+      - postgres_db
 
 ####################################################################################################
 

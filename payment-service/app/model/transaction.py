@@ -11,7 +11,7 @@ import uuid
 class TransactionModel(SQLModel):
     stripeId: str
     amount: int
-    order_id: str
+    order_id: str = Field(foreign_key="order.id")
 
 class TransactionStatus(str, Enum):
     pending = "Pending"
@@ -32,7 +32,11 @@ class TransactionDetail(SQLModel):
     username: str
     email: str
     imageUrl: str
-    order_address: str
+    order_email: str
+    country: str
+    city: str
+    postal_code: str
+    address: str
     phone_number: str
     total_price: float
     order_status: Optional[OrderStatus]
@@ -62,9 +66,9 @@ class Refund(BaseIdModel, table=True):
     status: RefundStatus
     reason: RefundReason
     refund_date: datetime = Field(default=datetime.now())
-    transaction_id: int = Field(foreign_key="transaction.id")
+    transaction_id: str = Field(foreign_key="transaction.id")
     user_id: int = Field(foreign_key="users.id")
-    order_id: int = Field(foreign_key="order.id")
+    order_id: str = Field(foreign_key="order.id")
 
 class RefundDetails(SQLModel):
     refund_id: str
@@ -76,7 +80,11 @@ class RefundDetails(SQLModel):
     username: str
     email: str
     imageUrl: str
-    order_address: str
+    order_email: str
+    country: str
+    city: str
+    postal_code: str
+    address: str
     phone_number: str
     order_status: OrderStatus
     delivery_date: datetime

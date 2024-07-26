@@ -1,6 +1,6 @@
 from ..model.product import Product, ProductItem, ProductSize, Stock, SizeModel, ProductItemFormModel, ProductFormModel, Size
 from ..order_pb2 import OrderBase as OrderBaseProto, OrderItemForm as OrderItemFormProto, OrderModel as OrderModelProto # type: ignore
-from ..model.order import OrderModel, Order, OrderItem, OrderUpdateStatus, OrderItemMetadata, OrderMetadata, OrderStatus
+from ..model.order import OrderModel, Order, OrderItem, OrderItemMetadata, OrderMetadata, OrderStatus
 from ..transaction_pb2 import TransactionModelProto, TransactionProto as Transaction # type: ignore
 from ..model.transaction import TransactionModel, TransactionDetail, Refund, RefundDetails
 from ..kafka.producer import AIOKafkaProducer, get_kafka_producer 
@@ -52,8 +52,12 @@ async def create_transaction_order(
                 user_id=order_details.user_id,
                 order_id=order_details.order_id,
                 base=OrderBaseProto(
-                    order_address=order_details.order_address,
-                    phone_number=order_details.phone_number,
+                    email=order_details.email,
+                    country=order_details.country,
+                    city=order_details.city,
+                    postal_code=order_details.postal_code,
+                    address=order_details.address, 
+                    phone_number=order_details.phone_number, 
                     total_price=order_details.total_price,
                     order_payment=order_details.order_payment
                 ),
@@ -65,7 +69,7 @@ async def create_transaction_order(
                         quantity=item.quantity
                     ) for item in order_details.items
                 ]
-            )
+            ) 
         
         serialized_order = order_proto_details.SerializeToString()
 
@@ -84,7 +88,7 @@ async def get_transaction_details(transaction: Transaction, session: DB_SESSION)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    order = session.exec(select(Order).where(Order.order_id == transaction.order_id)).first()
+    order = session.exec(select(Order).where(Order.id == transaction.order_id)).first()
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
 
@@ -97,7 +101,11 @@ async def get_transaction_details(transaction: Transaction, session: DB_SESSION)
         username=user.username,
         email=user.email,
         imageUrl=user.imageUrl,
-        order_address=order.order_address,
+        order_email=order.email,
+        country=order.country,
+        city=order.city,
+        postal_code=order.postal_code,
+        address=order.address,
         phone_number=order.phone_number,
         total_price=order.total_price,
         order_status=order.order_status,
@@ -130,23 +138,27 @@ async def get_refunds(refund_id: str, session: DB_SESSION,
 
     
     refund_details = RefundDetails(
-        refund_id=refund.refund_id,
-        amount=refund.amount,
-        stripeId=refund.stripeId,
-        status=refund.status,
-        reason=refund.reason,
-        refund_date=refund.refund_date,
-        username=user.username,
-        email=user.email,
-        imageUrl=user.imageUrl,
-        order_address=order.order_address,
-        phone_number=order.phone_number,
-        order_status=order.order_status,
-        delivery_date=order.delivery_date,
-        order_date=order.order_date,
-        user_id=user.id,
-        order_id=order.order_id,
-        transaction_id=refund.transaction_id
-    )
+                refund_id=refund.refund_id,
+                amount=refund.amount,
+                stripeId=refund.stripeId,
+                status=refund.status,
+                reason=refund.reason,
+                refund_date=refund.refund_date,
+                username=user.username,
+                email=user.email,
+                imageUrl=user.imageUrl,
+                order_email=order.email,
+                country=order.country,
+                city=order.city,
+                postal_code=order.postal_code,
+                address=order.address,
+                phone_number=order.phone_number,
+                order_status=order.order_status,
+                delivery_date=order.delivery_date,
+                order_date=order.order_date,
+                user_id=user.id,
+                order_id=order.id,
+                transaction_id=refund.transaction_id
+            )
 
     return refund_details
