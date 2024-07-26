@@ -1,13 +1,15 @@
-from ..service.product_service import get_all_product_details, get_specific_product_details, get_product_by_category, deleted_product, create_product, search_product_results, updated_product, get_new_arrivals_details
+from ..service.product_service import get_all_product_details, get_specific_product_details, get_product_by_category, deleted_product, create_product, search_product_results, updated_product, get_new_arrivals_details, may_also_like_products_details
 from ..utils.admin_verify import get_current_active_admin_user
-from ..model.models import ProductBaseForm, ProductFormModel
+from ..model.models import ProductBaseForm, ProductFormModel, ProductDetails, Product, ProductItemDetails, SizeModelDetails
 from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException
 from aiokafka import AIOKafkaProducer # type: ignore
 from ..kafka.producer import get_kafka_producer
 from typing import Annotated, Optional, List, Dict
 from ..core.db import DB_SESSION
 from ..model.authentication import Admin
-from sqlmodel import Session
+from sqlmodel import Session, select
+from sqlalchemy.orm import joinedload
+from random import sample
 import json
 import uuid
 
@@ -97,4 +99,9 @@ async def delete_product(product_id:str,
                         current_admin: Annotated[Admin, Depends(get_current_active_admin_user)]
                         ):
     product = await deleted_product(product_id, current_admin, session)
-    return product  
+    return product
+
+@router.get("/products/may-also-like/{product_id}")
+async def may_also_like_products(product_id: str, session: DB_SESSION):
+    products = await may_also_like_products_details(product_id, session)
+    return  products

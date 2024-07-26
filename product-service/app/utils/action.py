@@ -98,6 +98,19 @@ async def search_algorithm_by_category(input: str, session: DB_SESSION):
     categories = session.exec(select(Category).where(Category.category_name.startswith(input))).all()
     return categories
 
+async def search_algorithm_by_category_type(product_id: str, session: DB_SESSION):
+    product = session.exec(select(Product).where(Product.id == product_id)).first()
+    
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    
+    category = session.exec(select(Category).where(Category.id == product.category_id)).first()
+    
+    if not category:
+        raise HTTPException(status_code=404, detail="Category not found")
+    
+    categories = session.exec(select(Category).where(Category.category_type == category.category_type)).all()
+    return categories
 
 async def all_product_details(products: Sequence[Product], session: DB_SESSION):
     all_product_detail = []

@@ -1,7 +1,7 @@
 from ..model.models import Color, Product, ProductSize, ProductItem, Stock, ProductBaseForm, ProductFormModel, ProductItemFormModel, SizeModel, ProductDetails, ProductItemDetails, SizeModelDetails
 from ..product_pb2 import ProductFormModel as ProductFormModelProto, ProductItemFormModel as ProductItemFormModelProto, SizeModel as SizeModelProto # type: ignore
 from ..setting import CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET, CLOUDINARY_CLOUD, PRODUCT_TOPIC
-from ..utils.utils import search_algorithm_by_category, all_product_details
+from ..utils.action import search_algorithm_by_category, all_product_details, search_algorithm_by_category_type
 from fastapi import Depends, HTTPException, UploadFile, File, Form
 from ..utils.admin_verify import get_current_active_admin_user
 from ..model.category_model import Category, Size
@@ -10,14 +10,15 @@ from ..kafka.producer import get_kafka_producer
 from ..model.category_model import Category
 from ..model.authentication import Admin
 from ..core.config import upload_image
-from typing import Annotated, List, Dict
+from typing import Annotated, List, Sequence
 import cloudinary # type: ignore
 from datetime import datetime, timedelta
 from ..core.db import DB_SESSION
 from sqlmodel import select
 from sqlalchemy import or_
-import json
+from random import sample
 import uuid
+from typing import List
 
 
 # Create Product
@@ -218,12 +219,12 @@ async def search_product_results(input: str, session: DB_SESSION):
     Returns:
         List[Product]: A list of products that match the input.
         {
-  "product_name": "Paithani Saree",
-  "product_desc": "Beautiful Paithani Saree is threaded with pure silk and features. Some of them include traditional motifs like peacocks, flowers, leaves, and many more. These Types of Sarees are known for their vibrant color combination and rich traditional design. Pathailani Sarees is one of the best traditional sarees of Pakistan.",
-  "featured": false,
-  "category_id": 1,
-  "gender_id": 1
-}
+            "product_name": "Paithani Saree",
+            "product_desc": "Beautiful Paithani Saree is threaded with pure silk and features. Some of them include traditional motifs like peacocks, flowers, leaves, and many more. These Types of Sarees are known for their vibrant color combination and rich traditional design. Pathailani Sarees is one of the best traditional sarees of Pakistan.",
+            "featured": false,
+            "category_id": 1,
+            "gender_id": 1
+        }
     """
     categories = await search_algorithm_by_category(input, session)
         
@@ -394,3 +395,37 @@ async def deleted_product(product_id: str,
     session.commit()
 
     return {"data": f"Product with ID {product_id} and all its related items have been deleted"}
+
+
+async def may_also_like_products_details(product_id: str, session: DB_SESSION):
+    """
+    Search for products by input in both category and product tables.
+
+    Args:
+        product_id (str): The product_id is the id of the product_id to search Products.
+        session (DB_SESSION): The database session.
+
+    Returns:
+        List[Product]: A list of products that match the id.
+        {
+            "product_name": "Paithani Saree",
+            "product_desc": "Beautiful Paithani Saree is threaded with pure silk and features. Some of them include traditional motifs like peacocks, flowers, leaves, and many more. These Types of Sarees are known for their vibrant color combination and rich traditional design. Pathailani Sarees is one of the best traditional sarees of Pakistan.",
+            "featured": false,
+            "category_id": 1,
+            "gender_id": 1
+        }
+    """
+    categories = await search_algorithm_by_category_type(product_id, session)
+
+    if categories:
+        categories_ids = [category.id for category in categories]
+
+        # Use or_ to combine multiple conditions
+        conditions = [Product.category_id == category_id for category_id in categories_ids]
+        products = session.exec(select(Product).where(or_(*conditions))).all()
+        suggested_products: Sequence[Product] = sample(products, min(len(products), 6))
+        product_details = await all_product_details(suggested_products, session)
+        return product_details
+    else:
+        products = []
+        return products
