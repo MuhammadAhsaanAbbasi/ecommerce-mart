@@ -167,7 +167,7 @@ def validate_refresh_token(db,token: str, session: DB_SESSION):
     )
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        email: Union[str, None] = payload.get("username")
+        email: Union[str, None] = payload.get("sub")
         if email is None:
             raise credentials_exception
     except JWTError:
@@ -186,7 +186,7 @@ async def tokens_service(db, refresh_token: str, session: DB_SESSION):
     access_token = create_access_token(user, expires_delta=access_token_expires)
 
     refresh_token_expires = timedelta(minutes=float(REFRESH_TOKEN_EXPIRE_MINUTES))
-    refresh_token = create_refresh_token(data={"email": user.email}, expires_delta=refresh_token_expires)
+    refresh_token = create_refresh_token(data={"sub": user.email}, expires_delta=refresh_token_expires)
     print(ACCESS_TOKEN_EXPIRE_MINUTES)
     return {
         "access_token": access_token,

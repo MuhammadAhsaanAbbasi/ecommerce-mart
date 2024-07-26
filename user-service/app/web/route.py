@@ -168,9 +168,38 @@ async def login_access_token(form_data: Annotated[OAuth2PasswordRequestForm, Dep
 
 # token route
 @router.post("/user/refresh_token", response_model=Token)
-async def get_tokens(session: DB_SESSION, refresh_token:Annotated[str, Depends(oauth2_scheme)]): 
-    tokens = await tokens_service(db=Users, refresh_token=refresh_token, session=session)
-    return tokens
+async def tokens_manager(
+    session: DB_SESSION,
+    grant_type: str = Form(...),
+    refresh_token: Optional[str] = Form(None),
+):
+    """
+    Token URl For OAuth Code Grant Flow
+
+    Args:
+        grant_type (str): Grant Type
+        refresh_token (Optional[str], optional)
+
+    Returns:
+        access_token (str)
+        token_type (str)
+        expires_in (int)
+        refresh_token (str)
+    """
+
+    if grant_type == "refresh_token":
+        if not refresh_token:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Refresh token is required for grant_type 'refresh_token'")
+        
+        return await tokens_service(db=Users,refresh_token=refresh_token, session=session)
+
+    elif grant_type == "authorization_code":
+        # Handle the authorization code grant type
+        # This would involve validating the authorization code and possibly exchanging it for tokens
+        pass  # Replace with actual logic
+
+    else:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Unsupported grant type")
 
 # user routes
 @router.get("/user/me", response_model=Users)
