@@ -226,30 +226,28 @@ async def delete_orders(
         raise HTTPException(status_code=400, detail=f"Failed to delete order: {e}")
 
 
-# Get Order By Status
-async def get_orders_by_status_and_date(
-                    current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
-                    session: DB_SESSION,
-                    status: Optional[str],
-                    from_date: Optional[datetime],
-                    to_date: Optional[datetime]
-                    ):
-    # Validate the Admin
-    if not current_admin:
-        raise HTTPException(status_code=404, detail="Admin not found")
+# Fetch Orders
+async def fetch_orders(
+        # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
+        session: DB_SESSION,
+        limit: int,
+        offset: int,
+        status: Optional[str],
+        from_date: Optional[datetime],
+        to_date: Optional[datetime]
+    ):
+    # if not current_admin:
+    #     raise HTTPException(status_code=404, detail="Admin not found")
     
-    # Validate the status
-    if status not in OrderStatus.__members__:
+    if status and status not in OrderStatus.__members__:
         raise HTTPException(status_code=400, detail="Invalid order status")
     
     if not Order.order_date:
         raise HTTPException(status_code=400, detail="Order date not found")
 
     try:
-        # Build the query
-        query = select(Order)
+        query = select(Order).offset(offset).limit(limit)
         
-        # Add filters based on the provided parameters
         if status:
             query = query.where(Order.order_status == status)
         if from_date:
@@ -257,13 +255,11 @@ async def get_orders_by_status_and_date(
         if to_date:
             query = query.where(Order.order_date <= to_date)
         
-        # Retrieve orders that match the query
         orders = session.exec(query).all()
         
         if not orders:
             raise HTTPException(status_code=404, detail="No orders found with the given criteria")
 
-        # Process the orders and return their details
         order_details = await all_order_details(orders, session)
 
         return order_details

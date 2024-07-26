@@ -1,4 +1,4 @@
-from ..service.order_service import create_orders, get_orders_by_user, get_all_orders, get_orders_by_id, update_orders_status, delete_orders, get_orders_by_status_and_date, cancel_orders_by_customer
+from ..service.order_service import create_orders, get_orders_by_user, get_orders_by_id, update_orders_status, delete_orders, fetch_orders, cancel_orders_by_customer
 from ..model.order import OrderModel, Order, OrderItem, OrderStatus
 from ..kafka.producer import AIOKafkaProducer, get_kafka_producer
 from ..utils.admin_verify import get_current_active_admin_user
@@ -38,15 +38,18 @@ async def get_order_by_user(
 
 # Get All Orders
 @order_router.get("/get_all_orders")
-async def get_all_order(
-                    current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
-                    session: DB_SESSION,
-                    page: int = 1, 
-                    limit: int = 10, 
-                    ):
+async def get_all_orders(
+        # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
+        session: DB_SESSION,
+        page: int = 1, 
+        limit: int = 5, 
+        status: Optional[str] = None,
+        from_date: Optional[datetime] = None,
+        to_date: Optional[datetime] = None
+    ):
     offset = (page - 1) * limit
-    orders = await get_all_orders(current_admin, session, limit, offset)
-    # order = await get_all_orders(session)
+    # orders = await fetch_orders(current_admin, session, limit, offset, status, from_date, to_date)
+    orders = await fetch_orders(session, limit, offset, status, from_date, to_date)
     return orders
 
 # Get Order Details by Id
@@ -78,18 +81,6 @@ async def delete_order(
 ):
     order = await delete_orders(current_admin, session, order_id)
     return order
-
-# Get Order By Status Only Admin
-@order_router.get("/get_order_by_status_and_date")
-async def get_order_by_status_and_date(
-                    current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
-                    session: DB_SESSION,
-                    status: Optional[str] = None,
-                    from_date: Optional[datetime] = None,
-                    to_date: Optional[datetime] = None
-):
-    orders = await get_orders_by_status_and_date(current_admin, session, status, from_date, to_date)
-    return orders
 
 # Cancel Order By Customer Only User
 @order_router.delete("/cancel_order_by_customer/{order_id}")
