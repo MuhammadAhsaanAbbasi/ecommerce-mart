@@ -13,13 +13,23 @@ import json
 router = APIRouter(prefix="/api/v1/open")
 
 @router.get('/featured')
-async def get_featured_products(session: DB_SESSION):
-    product = await get_features_product(session)
+async def get_featured_products(session: DB_SESSION,
+                            page: int = 1, 
+                            page_size: int = 16, 
+                            sort_by: str = 'created_at', 
+                            sort_order: str = 'desc'
+                        ):
+    product = await get_features_product(session, page, page_size, sort_by, sort_order )
     return product
 
 @router.get('/all-products')
-async def get_all_products(session: DB_SESSION):
-    products = await get_all_product_details(session)
+async def get_all_product(session: DB_SESSION,
+                            page: int = 1, 
+                            page_size: int = 16, 
+                            sort_by: str = 'created_at', 
+                            sort_order: str = 'desc'
+                        ):
+    products = await get_all_product_details(session, page, page_size, sort_by, sort_order )
     return products
 
 @router.get('/all-categories')

@@ -21,14 +21,39 @@ _ = load_dotenv(find_dotenv())
 
 client: OpenAI = OpenAI()
 
-async def get_all_product_details(session: DB_SESSION):
-    products = session.exec(select(Product)).all()
+# get all product details
+async def get_all_product_details(session: DB_SESSION,
+                                page: int, 
+                                page_size: int, 
+                                sort_by: str, 
+                                sort_order: str
+                                ):
+    offset = (page - 1) * page_size
+    query = select(Product)
+
+    # Apply sorting
+    if sort_order.lower() == 'desc':
+        query = query.order_by(getattr(Product, sort_by).desc())
+    else:
+        query = query.order_by(getattr(Product, sort_by).asc())
+
+    # Apply pagination
+    query = query.offset(offset).limit(page_size)
+    
+    # Execute the query
+    products = session.exec(query).all()
 
     product_details = await all_product_details(products, session)
 
     return product_details
 
-async def get_features_product(session: DB_SESSION):
+async def get_features_product(session: DB_SESSION,
+                                page: int, 
+                                page_size: int, 
+                                sort_by: str, 
+                                sort_order: str
+                                ):
+    offset = (page - 1) * page_size
     # Get all features Product which create 14 days ago from now
     current_date = datetime.now()
     two_weeks_ago = current_date - timedelta(days=14)
@@ -36,12 +61,19 @@ async def get_features_product(session: DB_SESSION):
     if not Product.created_at:
         raise HTTPException(status_code=400, detail="Products date not found")
 
-    products = session.exec(
-        select(Product)
-        .where(Product.featured == True)
-        .where(Product.created_at >= two_weeks_ago)
-    ).all()
+    query = select(Product).where(Product.featured == True).where(Product.created_at >= two_weeks_ago)
 
+    # Apply sorting
+    if sort_order.lower() == 'desc':
+        query = query.order_by(getattr(Product, sort_by).desc())
+    else:
+        query = query.order_by(getattr(Product, sort_by).asc())
+
+    # Apply pagination
+    query = query.offset(offset).limit(page_size)
+    
+    # Execute the query
+    products = session.exec(query).all()
     if not products:
         raise HTTPException(status_code=404, detail="No featured products found")
 

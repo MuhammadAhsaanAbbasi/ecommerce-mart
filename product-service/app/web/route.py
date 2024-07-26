@@ -49,7 +49,7 @@ async def create_products(
 @router.get("/get_all_products")
 async def get_all_product(session: DB_SESSION,
                             page: int = 1, 
-                            page_size: int = 10, 
+                            page_size: int = 16, 
                             sort_by: str = 'created_at', 
                             sort_order: str = 'desc'
                         ):
@@ -73,7 +73,7 @@ async def search_product(input:str, session: DB_SESSION):
 async def product_by_category(category:str, 
                             session: DB_SESSION,
                             page: int = 1, 
-                            page_size: int = 10, 
+                            page_size: int = 16, 
                             sort_by: str = 'created_at', 
                             sort_order: str = 'desc',
                             ):
@@ -83,7 +83,7 @@ async def product_by_category(category:str,
 @router.get('/new_arrivals')
 async def new_arrivals(session: DB_SESSION,
                         page: int = 1, 
-                        page_size: int = 10, 
+                        page_size: int = 16,
                         sort_by: str = 'created_at', 
                         sort_order: str = 'desc', 
                         ):
