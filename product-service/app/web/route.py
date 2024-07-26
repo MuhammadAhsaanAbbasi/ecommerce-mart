@@ -47,8 +47,13 @@ async def create_products(
     return {"message": "Create Product Successfully!", "data": product}
 
 @router.get("/get_all_products")
-async def get_all_product(session: DB_SESSION):
-    products = await get_all_product_details(session)
+async def get_all_product(session: DB_SESSION,
+                            page: int = 1, 
+                            page_size: int = 10, 
+                            sort_by: str = 'created_at', 
+                            sort_order: str = 'desc'
+                        ):
+    products = await get_all_product_details(session, page, page_size, sort_by, sort_order )
     return products
 
 # specific_product details
@@ -65,13 +70,24 @@ async def search_product(input:str, session: DB_SESSION):
 
 # Products By Category
 @router.get("/product_by_category/{category}")
-async def product_by_category(category:str, session: DB_SESSION):
-    products = await get_product_by_category(category, session)
+async def product_by_category(category:str, 
+                            session: DB_SESSION,
+                            page: int = 1, 
+                            page_size: int = 10, 
+                            sort_by: str = 'created_at', 
+                            sort_order: str = 'desc',
+                            ):
+    products = await get_product_by_category(category, session, page, page_size, sort_by, sort_order)
     return products
 
 @router.get('/new_arrivals')
-async def new_arrivals(session: DB_SESSION):
-    products = await get_new_arrivals_details(session)
+async def new_arrivals(session: DB_SESSION,
+                        page: int = 1, 
+                        page_size: int = 10, 
+                        sort_by: str = 'created_at', 
+                        sort_order: str = 'desc', 
+                        ):
+    products = await get_new_arrivals_details(session, page, page_size, sort_by, sort_order)
     return products
 
 # Update Product

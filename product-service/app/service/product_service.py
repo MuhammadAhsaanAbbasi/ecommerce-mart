@@ -126,10 +126,10 @@ async def create_product(
 
 # get all product details
 async def get_all_product_details(session: DB_SESSION,
-                                page: int = 1, 
-                                page_size: int = 10, 
-                                sort_by: str = 'created_at', 
-                                sort_order: str = 'desc'
+                                page: int, 
+                                page_size: int, 
+                                sort_by: str, 
+                                sort_order: str
                                 ):
     offset = (page - 1) * page_size
     query = select(Product)
@@ -258,10 +258,10 @@ async def search_product_results(input: str, session: DB_SESSION):
 # get product by category
 async def get_product_by_category(catogery:str, 
                                 session: DB_SESSION,
-                                page: int = 1, 
-                                page_size: int = 10, 
-                                sort_by: str = 'created_at', 
-                                sort_order: str = 'desc', 
+                                page: int, 
+                                page_size: int, 
+                                sort_by: str, 
+                                sort_order: str, 
                                 ):
     offset = (page - 1) * page_size
     category = session.exec(select(Category).where(Category.category_name == catogery)).first()
@@ -290,10 +290,10 @@ async def get_product_by_category(catogery:str,
 
 async def get_new_arrivals_details(
     session: DB_SESSION, 
-    page: int = 1, 
-    page_size: int = 10, 
-    sort_by: str = 'created_at', 
-    sort_order: str = 'desc', 
+    page: int, 
+    page_size: int, 
+    sort_by: str, 
+    sort_order: str, 
 ):
     offset = (page - 1) * page_size
 
