@@ -206,22 +206,29 @@ async def tokens_manager(
 async def read_users_me(current_user: Annotated[Users, Depends(get_current_active_user)]):
     return current_user
 
-@router.put("/user/reset-password")
-async def reset_password(reset_password:str, current_user: Annotated[Users, Depends(get_current_user)], session:DB_SESSION):
-    if current_user:
-        current_user.hashed_password = get_value_hash(reset_password)
-        session.commit()
-        session.refresh(current_user)
-        return {"message" : "Password Reset Successfully"}
-    else:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid User Details & Credentials Token",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+# @router.put("/user/reset-password/{token}")
+# async def reset_password(current_user: Annotated[Users, Depends(get_current_user)], 
+#                         session: DB_SESSION,
+#                         token: str,
+#                         reset_password:str,
+#                         ):
+#     if current_user:
+#         current_user.hashed_password = get_value_hash(reset_password)
+#         session.commit()
+#         session.refresh(current_user)
+#         return {"message" : "Password Reset Successfully"}
+#     else:
+#         raise HTTPException(
+#             status_code=status.HTTP_400_BAD_REQUEST,
+#             detail="Invalid User Details & Credentials Token",
+#             headers={"WWW-Authenticate": "Bearer"},
+#         )
 
 @router.put("/user/update")
-async def update_user(current_user: Annotated[Users, Depends(get_current_active_user)], user:UserBase, session:DB_SESSION):
+async def update_user(current_user: Annotated[Users, Depends(get_current_active_user)], 
+                    user:UserBase, 
+                    session:DB_SESSION
+                    ):
     if current_user:
         current_user.username = user.username
         current_user.imageUrl = user.imageUrl
@@ -242,3 +249,4 @@ async def  subscribe_email(subscribe:SubscribeEmail, session:DB_SESSION):
     session.commit()
     session.refresh(new_subscribe)
     return {"message": "Thank you for subscribing!"}
+

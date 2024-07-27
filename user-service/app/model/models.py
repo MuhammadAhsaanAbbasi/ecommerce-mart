@@ -1,8 +1,8 @@
 from sqlmodel import SQLModel, Field,Relationship
 from typing import Optional
-import datetime
 from pydantic import BaseModel, EmailStr
 from .base import BaseIdModel
+from enum import Enum
 import uuid
 
 class SubscribeEmail(BaseIdModel, table=True):
@@ -18,8 +18,17 @@ class UserBase(BaseIdModel):
     is_verified: bool = Field(default=False)
     otp: Optional[str] = Field(default=None, index=True)
 
+
+class UserGender(str,Enum):
+    male = "male"
+    female = "female"
+    other = "other"
+
 # Users Model
 class Users(UserBase, table=True):
+    date_of_birth: Optional[str]
+    gender: Optional[UserGender]
+    phone_number: Optional[str] = Field(default=None, index=True)
     role: str = Field(default="user")
 
 
