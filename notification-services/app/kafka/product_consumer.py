@@ -2,7 +2,6 @@
 from aiokafka import AIOKafkaConsumer # type: ignore
 from aiokafka.errors import KafkaConnectionError # type: ignore
 from fastapi import HTTPException
-from app.utils.auth import email_signup
 from app.model.models import ProductBaseForm, ProductFormModel, ProductItemFormModel, SizeModel
 from app.setting import PRODUCT_TOPIC
 from app import product_pb2 # type: ignore

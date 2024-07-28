@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package order;
+
+// Message for OrderBase
+message OrderBase {
+    string email = 1;
+    string country = 2;
+    string city = 3;
+    string postal_code = 4;
+    string address = 5;
+    string phone_number = 6;
+    float total_price = 7;
+    string order_payment = 8;
+}
+
+// Message for OrderItemForm
+message OrderItemForm {
+    string product_id = 1;
+    string product_item_id = 2;
+    string product_size_id = 3;
+    int32 quantity = 4;
+}
+
+// Message for OrderModel
+message OrderModel {
+    int32 user_id = 1;
+    string order_id = 2;
+    OrderBase base = 3;
+    repeated OrderItemForm items = 4;
+}

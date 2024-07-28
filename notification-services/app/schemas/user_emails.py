@@ -67,3 +67,4 @@ email_signup = f"""
 </body>
 </html>
 """
+
