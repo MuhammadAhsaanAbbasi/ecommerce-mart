@@ -1,6 +1,6 @@
 from ..model.product import Color, Product, ProductItem, ProductSize, Stock, Size, ProductItemFormModel, ProductFormModel, SizeModelDetails, ProductItemDetails, ProductDetails
 from fastapi import Depends, UploadFile, File, Form, HTTPException
-from ..model.cart import CartItemModel, Cart, CartItem, CartToken
+from ..model.cart import CartItemModel, Cart, CartItem, CartToken, CartDetails, CartItemDetail
 from ..utils.user_verify import get_current_active_user
 from ..model.authentication import Users
 from jose import jwt, JWTError
@@ -123,6 +123,7 @@ async def get_all_carts(
             product_id=product.id,
             product_name=product.product_name,
             product_desc=product.product_desc,
+            featured=product.featured,
             category_id=product.category_id,
             product_item=[product_item_model]
         )
@@ -281,6 +282,64 @@ async def get_product_from_token(token: str, session: DB_SESSION):
         product_details = payload.get("product_details")
         if product_details is None or not isinstance(product_details, dict):
             raise HTTPException(status_code=401, detail="Invalid token details")
-        return CartToken(**product_details)  # Deserialize to CartToken
+        cart_token = CartToken(**product_details)
+
+        # Create the response in the same format as get_all_carts
+        product = session.exec(select(Product).where(Product.id == cart_token.product_id)).first()
+        if not product:
+            raise HTTPException(status_code=404, detail="Product not found")
+
+        product_item = session.exec(select(ProductItem).where(ProductItem.id == cart_token.product_item_id)).first()
+        if not product_item:
+            raise HTTPException(status_code=404, detail="Product item not found")
+
+        product_size = session.exec(select(ProductSize).where(ProductSize.id == cart_token.product_size_id)).first()
+        if not product_size:
+            raise HTTPException(status_code=404, detail="Product size not found")
+
+        stock = session.exec(select(Stock).where(Stock.product_size_id == product_size.id)).first()
+        size = session.exec(select(Size).where(Size.id == product_size.size)).first()
+
+        size_model = SizeModelDetails(
+            product_size_id=product_size.id,
+            size=size.size if size else "",
+            price=product_size.price,
+            stock=stock.stock if stock else 0
+        )
+
+        color = session.exec(select(Color).where(Color.id == product_item.color)).first()
+
+        product_item_model = ProductItemDetails(
+            product_item_id=product_item.id,
+            color=product_item.color,
+            color_name=color.color_name if color else "None",
+            color_value=color.color_value if color else "None",
+            image_url=product_item.image_url,
+            sizes=[size_model]
+        )
+
+        product_details = ProductDetails(
+            product_id=product.id,
+            product_name=product.product_name,
+            product_desc=product.product_desc,
+            featured=product.featured,
+            category_id=product.category_id,
+            product_item=[product_item_model]
+        )
+
+        cart_item_total_price = cart_token.quantity * product_size.price
+
+        cart_item_detail = CartItemDetail(
+            cart_item_id=cart_token.product_id,
+            quantity=cart_token.quantity,
+            cart_item_total_price=cart_item_total_price,
+            product_details=product_details
+        )
+        cart_details = CartDetails(
+            cart_items=[cart_item_detail],
+            total_price=cart_item_total_price
+        )
+
+        return cart_details.model_dump()
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid token")

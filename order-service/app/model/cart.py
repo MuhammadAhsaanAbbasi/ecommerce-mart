@@ -1,6 +1,7 @@
 from sqlmodel import SQLModel, Field, Relationship
 from typing import Optional, List
 from .base import BaseIdModel
+from ..model.product import ProductDetails
 
 
 class CartItemModel(SQLModel):
@@ -22,3 +23,13 @@ class CartToken(SQLModel):
     product_id: str = Field(default=None, foreign_key="product.id")
     product_item_id: str = Field(default=None, foreign_key="productitem.id")
     product_size_id: str = Field(default=None, foreign_key="productsize.id")
+
+class CartItemDetail(SQLModel):
+    cart_item_id: str
+    quantity: int
+    cart_item_total_price: float
+    product_details: ProductDetails
+
+class CartDetails(SQLModel):
+    cart_items: List[CartItemDetail]
+    total_price: float

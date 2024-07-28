@@ -21,6 +21,8 @@ types-requests = "^2.32.0.20240602"
 protobuf = "^5.27.1"
 aiokafka = "^0.10.0"
 email-validator = "^2.1.1"
+boto3 = "^1.34.143"
+orjson = "^3.10.6"
 
 [build-system]
 requires = ["poetry-core"]

@@ -1,15 +1,16 @@
-from fastapi import APIRouter, Depends,  Form, Request, HTTPException, status
-from fastapi.responses import RedirectResponse, JSONResponse, Response
-from ..service.auth import login_for_access_token, google_user, verify_and_generate_tokens
+from fastapi import APIRouter, Depends,  Form, Request, HTTPException, status, UploadFile, File
+from ..service.auth import login_for_access_token, google_user, verify_and_generate_tokens, update_user_details
 from ..utils.auth import get_current_active_user, tokens_service, oauth2_scheme, get_current_user, get_value_hash
-from ..setting import USER_SIGNUP_TOPIC
+from ..model.models import Users, Token, UserBase, SubscribeEmail, UserModel, UserUpdate
+from fastapi.responses import RedirectResponse, JSONResponse, Response
 from fastapi.security.oauth2 import OAuth2PasswordRequestForm
-from ..model.models import Users, Token, UserBase, SubscribeEmail
+from ..user_pb2 import User as UserProto  # type: ignore
 from ..kafka.user_producer import get_kafka_producer
 from aiokafka import AIOKafkaProducer # type: ignore
 from aiokafka.errors import KafkaTimeoutError # type: ignore
 from typing import Annotated, Any, Optional
 from passlib.context import CryptContext
+from ..setting import USER_SIGNUP_TOPIC
 from sqlmodel import Session, select
 from ..core.db import DB_SESSION
 from datetime import timedelta
@@ -92,6 +93,7 @@ async def auth(request: Request, session: DB_SESSION):
         print(idinfo['name'])
         print(idinfo['email'])
         print(idinfo['picture'])
+        print(idinfo)
         
         user_email = idinfo['email']
 
@@ -123,7 +125,7 @@ async def auth(request: Request, session: DB_SESSION):
 
 # Sign-up Routes
 @router.post("/signup")
-async def sign_up(user: Users, session:DB_SESSION, aio_producer: Annotated[AIOKafkaProducer, Depends(get_kafka_producer)]):
+async def sign_up(user: UserModel, session:DB_SESSION, aio_producer: Annotated[AIOKafkaProducer, Depends(get_kafka_producer)]):
     # Check the value on db
     existing_user  = session.exec(select(Users).where(Users.email == user.email)).first()
     if existing_user:
@@ -135,7 +137,14 @@ async def sign_up(user: Users, session:DB_SESSION, aio_producer: Annotated[AIOKa
 
     # data produce on consumer
     try:
-        user_protobuf = user_pb2.User(username=user.username, email=user.email, hashed_password=user.hashed_password, imageUrl=user.imageUrl, is_active=user.is_active, is_verified=user.is_verified, role=user.role) # type: ignore
+        user_protobuf = UserProto(username=user.username, 
+                                    email=user.email, 
+                                    hashed_password=user.hashed_password, 
+                                    imageUrl=user.imageUrl,
+                                    phone_number=user.phone_number,
+                                    date_of_birth=user.date_of_birth,
+                                    gender=user.gender,
+                                    )
         print(f"Todo Protobuf: {user_protobuf}")
 
         # Serialize the message to a byte string
@@ -224,23 +233,32 @@ async def read_users_me(current_user: Annotated[Users, Depends(get_current_activ
 #             headers={"WWW-Authenticate": "Bearer"},
 #         )
 
-@router.put("/user/update")
-async def update_user(current_user: Annotated[Users, Depends(get_current_active_user)], 
-                    user:UserBase, 
-                    session:DB_SESSION
-                    ):
-    if current_user:
-        current_user.username = user.username
-        current_user.imageUrl = user.imageUrl
-        session.commit()
-        session.refresh(current_user)
-        return current_user
-    else:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid User Details & Credentials Token",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+# @router.put("/user/update")
+# async def update_user(current_user: Annotated[Users, Depends(get_current_active_user)],                   
+#                     session:DB_SESSION,
+#                     user_input: Annotated[str, Form(...)],
+#                     image: Optional[UploadFile] = None,
+#                     ):
+#     """
+#     Create a new product in the database.
+
+#     Args:
+#         {
+#         "username": "string",
+#         "email": "string",
+#         "date_of_birth": "string",
+#         "gender": "male",
+#         "phone_number": "string"
+#     }
+#     """
+#     try:
+#         user_dict = json.loads(user_input)
+#     except json.JSONDecodeError:
+#         raise HTTPException(status_code=400, detail="Invalid JSON data provided for product details")
+
+#     user_update_model = UserUpdate(**user_dict)
+#     user_details = await update_user_details(current_user.id, user_update_model, session, image) 
+#     return user_details
 
 @router.post("/subscribe_email")
 async def  subscribe_email(subscribe:SubscribeEmail, session:DB_SESSION):

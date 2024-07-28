@@ -1,6 +1,6 @@
 from ..setting import ALGORITHM, SECRET_KEY, ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_MINUTES, RESEND_API_KEY
 from app.service.kong_consumer import create_consumer_in_kong, create_jwt_credentials_in_kong 
-from ..model.models import Users, TokenData, Admin, UserBase
+from ..model.models import Users, TokenData, Admin, UserBase, UserModel
 from fastapi.security.oauth2 import OAuth2PasswordBearer
 from datetime import datetime, timedelta, timezone
 from fastapi import HTTPException, Depends, status
@@ -206,7 +206,7 @@ def generate_otp():
 
 
 # Generate & Send Otp
-def generate_and_send_otp(user: UserBase, session: Session, user_id: int | None = None, image_url: str | None = None):
+async def generate_and_send_otp(user: UserModel, session: Session, user_id: int | None = None, image_url: str | None = None):
     """
     Generate a random OTP using generate_otp function and that add some info of user in db and send a otp on the email.
     """
@@ -215,10 +215,10 @@ def generate_and_send_otp(user: UserBase, session: Session, user_id: int | None 
     print(otp)
     
     # hashed otp
-    user.otp = get_value_hash(otp)
+    user_otp = get_value_hash(otp)
     user.hashed_password = get_value_hash(user.hashed_password)
     user.imageUrl = image_url
-    normal_user = Users(**user.model_dump())
+    normal_user = Users(**user.model_dump(), otp=user_otp)
     session.add(normal_user)
     session.commit()
     session.refresh(normal_user)

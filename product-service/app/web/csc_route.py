@@ -67,7 +67,7 @@ async def update_category(category_id: str,
     "category_name": "string",
     "category_desc": "string"
     "category_type":  formal = "formal"   casual = "casual"     luxury = "luxury"
-}
+        }
     """
     try:
         category_dict = json.loads(category_input)

@@ -85,4 +85,4 @@ async def proceed_to_checkout(
             raise HTTPException(status_code=401, detail="Token does not belong to the current user")
     else:
         cart_details = await get_product_from_token(token, session)
-        return cart_details
+        return ORJSONResponse({"token_details": cart_details})

@@ -208,18 +208,18 @@ services:
 ####################################################################################################
 
 # # notification Service
-#   notification-service:
-#     build:
-#       context: ./notification-services
-#       dockerfile: Dockerfile
-#     restart: always
-#     ports:
-#       - "8086:8086" 
-#     volumes:
-#       - ./notification-services:/code  # Sync  local development directory with the container
-#     depends_on:
-#       - kafka
-#       - postgres_db
+  notification-service:
+    build:
+      context: ./notification-services
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "8086:8086" 
+    volumes:
+      - ./notification-services:/code  # Sync  local development directory with the container
+    depends_on:
+      - kafka
+      - postgres_db
 
 # ####################################################################################################
 

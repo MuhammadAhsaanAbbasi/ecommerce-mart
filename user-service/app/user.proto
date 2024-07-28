@@ -5,9 +5,9 @@ message User {
     string email = 2;
     string hashed_password = 3;
     string imageUrl = 4;
-    bool is_active = 5;
-    bool is_verified = 6;
-    string role = 7;
+    string phone_number = 8;
+    string date_of_birth = 9;
+    string gender = 10;
 }
 
 message EmailUser {

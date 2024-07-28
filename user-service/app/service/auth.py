@@ -4,16 +4,17 @@ from ..setting import ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_MINUTES,
 from fastapi.security.oauth2 import OAuth2PasswordRequestForm
 from aiokafka.errors import KafkaTimeoutError # type: ignore
 from aiokafka import AIOKafkaProducer # type: ignore
-from ..model.models import Users, Token, Admin, UserBase
+from ..model.models import Users, Token, Admin, UserBase, UserModel, UserUpdate
 from ..kafka.user_producer import get_kafka_producer
-from fastapi import Depends, HTTPException, Form
+from fastapi import Depends, HTTPException, UploadFile, File
+from ..user_pb2 import EmailUser as EmailUserProto  # type: ignore
 from fastapi.responses import RedirectResponse
 from passlib.context import CryptContext
-from typing import Annotated
+from typing import Annotated, Optional
 from sqlmodel import select
 from ..core.db import DB_SESSION
+from ..core.config import upload_files_in_s3
 from datetime import timedelta
-from app import user_pb2
 import string
 import secrets
 
@@ -43,14 +44,14 @@ async def verify_and_generate_tokens(user_otp: str, user: Users, session: DB_SES
         refresh_token = create_refresh_token(data={"email": user.email}, expires_delta=refresh_token_expires)
 
         # Create protobuf message
-        user_protobuf = user_pb2.EmailUser(
+        user_protobuf = EmailUserProto(
             username=user.username,
             email=user.email,
             imageUrl=user.imageUrl,
             is_active=user.is_active,
             is_verified=user.is_verified,
             role=user.role
-        ) # type: ignore
+        )
 
         # Serialize the message to a byte string
         serialized_user = user_protobuf.SerializeToString()
@@ -79,13 +80,13 @@ async def verify_and_generate_tokens(user_otp: str, user: Users, session: DB_SES
     }
 
 #  Create user 
-async def create_user(user: Users, session: DB_SESSION, isGoogle: bool = False):
-    existing_user = session.exec(select(Users).where(Users.email == user.email)).first()
+async def create_user(user_details: UserModel, session: DB_SESSION, isGoogle: bool = False):
+    existing_user = session.exec(select(Users).where(Users.email == user_details.email)).first()
     if existing_user:
         return False  # Return False if user already exists
 
     if isGoogle:
-        user.is_verified = True
+        user = Users(**user_details.model_dump(), is_verified=True)
         session.add(user)
         session.commit()
         session.refresh(user)
@@ -96,7 +97,7 @@ async def create_user(user: Users, session: DB_SESSION, isGoogle: bool = False):
             raise HTTPException(status_code=500, detail=f"Error creating JWT credentials in Kong: {e}")
         return {"detail": "User created successfully"}
 
-    data = generate_and_send_otp(user, session)
+    await generate_and_send_otp(user_details, session)
     return {"detail": "OTP sent successfully"}
 
 # Create Admin 
@@ -176,7 +177,7 @@ async def google_user(session: DB_SESSION, username:str, email:str, picture:str)
             password_length = 12  # You can choose the length of the password
             characters = string.ascii_letters + string.digits + string.punctuation
             random_password = ''.join(secrets.choice(characters) for i in range(password_length))
-            user_data = Users(username=username, email=email, hashed_password=random_password, imageUrl=picture)
+            user_data = UserModel(username=username, email=email, hashed_password=random_password, imageUrl=picture)
             
             new_user = create_user(user_data, session, isGoogle=True)
             return new_user
@@ -203,3 +204,27 @@ async def google_user(session: DB_SESSION, username:str, email:str, picture:str)
         # Re-raise general exceptions to be handled in the web layer
         raise e
 
+async def update_user_details(user_id: int, 
+                        user_input: UserUpdate,
+                        session: DB_SESSION,
+                        image: Optional[UploadFile] = None,
+                        ):
+
+    user = session.exec(select(Users).where(Users.id == user_id)).first()
+    if not user:
+            raise HTTPException(status_code=404, detail="Category not found")
+
+    if not image:        
+        category_data = user_input.model_dump()
+    else:
+        user_image = await upload_files_in_s3(image)
+        user_data = user_input.model_dump()
+        user_data["imageUrl"] = user_image
+
+    for field, value in user_data.items():
+        setattr(user, field, value)
+    
+    session.commit()
+    session.refresh(user)
+
+    return {"message" : "Update User Details Successfully!"}
