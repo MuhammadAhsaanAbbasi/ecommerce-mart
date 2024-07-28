@@ -1,7 +1,8 @@
 from sqlmodel import SQLModel, Field,Relationship
 from typing import Optional
-from datetime import datetime
 from pydantic import BaseModel
+from datetime import datetime
+from enum import Enum
 import uuid
 
 class BaseIdModel(SQLModel):
@@ -18,21 +19,36 @@ class UserBase(BaseIdModel):
     email: str = Field(index=True)
     hashed_password: Optional[str] = Field(default=None, index=True)
     imageUrl: Optional[str] = Field(default=None)
-    is_active: bool = Field(default=True)
-    is_verified: bool = Field(default=False)
+    is_active: Optional[bool] = Field(default=True)
+    is_verified: Optional[bool] = Field(default=False)
     otp: Optional[str] = Field(default=None, index=True)
 
-# User Model
-class Users(UserBase, table=True):
-    role: str = Field(default="user")
+class UserGender(str,Enum):
+    male = "male"
+    female = "female"
+    other = "other"
 
+# User Model
+class UserModel(SQLModel):
+    username: str
+    email: str
+    hashed_password: str
+    phone_number: str
+    imageUrl: Optional[str] = Field(default=None)
+    date_of_birth: Optional[str]
+    gender: Optional[UserGender]
+
+
+# Users Model
+class Users(UserBase, table=True):
+    date_of_birth: Optional[str]
+    gender: Optional[UserGender]
+    phone_number: Optional[str] = Field(default=None, index=True)
+    role: Optional[str] = Field(default="user")
 
 # Admin Model
-class Admin(UserBase, table=True):
+class Admin(UserBase, BaseIdModel, table=True):
     role: str = Field(default="admin")
-
-# class Secretkey(SQLModel, table=True):
-#     key: str = Field()
 
 class Token(SQLModel):
     access_token: str

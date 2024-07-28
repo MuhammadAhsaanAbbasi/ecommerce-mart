@@ -59,11 +59,22 @@ class Stock(BaseIdModel, table=True):
         else:
             return "Low"
 
+class ReviewModel(BaseIdModel, table=True):
+    rating: float
+    review: str
+    product_id: str = Field(foreign_key="product.id")
+
+
+class Review(BaseIdModel, table=True):
+    rating: float
+    review: str
+    product_id: str = Field(foreign_key="product.id")
+    user_id: int = Field(foreign_key="user.id")
+
 class SizeModel(SQLModel):
     size: str
     price: int
     stock: int
-
 
 class ProductItemFormModel(SQLModel):
     color: str

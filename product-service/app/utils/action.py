@@ -1,12 +1,13 @@
-from ..model.models import Color, Product, ProductSize, ProductItem, Stock, ProductFormModel, ProductItemFormModel, SizeModel, ProductDetails, ProductItemDetails, SizeModelDetails
+from ..model.models import Color, Product, ProductSize, ProductItem, Stock, ProductDetails, ProductItemDetails, SizeModelDetails, Review, ReviewModel
 from ..model.category_model import Category, Size, CategoryBaseModel
 from fastapi import HTTPException, UploadFile, File, Form, Depends
 from ..utils.admin_verify import get_current_active_admin_user
-from sqlmodel import SQLModel, select, Session
+from ..utils.user_verify import get_current_active_user
 from typing import List, Sequence, Annotated, Optional
 from ..core.config import upload_files_in_s3
-from ..model.authentication import Admin
+from ..model.authentication import Admin, Users
 from ..core.db import DB_SESSION
+from sqlmodel import select
 
 # Create Categories
 async def create_categories(category_input: CategoryBaseModel,
@@ -163,3 +164,18 @@ async def all_product_details(products: Sequence[Product], session: DB_SESSION):
         all_product_detail.append(product_details)
 
     return all_product_detail
+
+async def create_review(session: DB_SESSION,
+                        review_details: ReviewModel,
+                        current_user: Annotated[Users, Depends(get_current_active_user)]
+                        ):
+    review = session.exec(select(Review).where(Review.user_id == current_user.id).where(Review.product_id == review_details.product_id)).one_or_none()
+    if review is None:
+        new_review = Review(**review_details.model_dump(), user_id=current_user.id)
+        session.add(new_review)
+        session.commit()
+        session.refresh(new_review)
+
+        return new_review.model_dump()
+    else:
+        raise HTTPException(status_code=400, detail="User already reviewed this product")

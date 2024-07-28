@@ -4,6 +4,7 @@ from fastapi.security.oauth2 import OAuth2PasswordBearer
 from fastapi import HTTPException, Depends, status
 from jose import jwt, JWTError
 from ..core.db import DB_SESSION
+from sqlmodel import select, Session
 from typing import Annotated, Union, Optional
 from .admin_verify import get_user
 import json

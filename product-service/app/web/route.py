@@ -1,19 +1,22 @@
 from ..service.product_service import get_all_product_details, get_specific_product_details, get_product_by_category, deleted_product, create_product, search_product_results, updated_product, get_new_arrivals_details, may_also_like_products_details
-from ..utils.admin_verify import get_current_active_admin_user
-from ..model.models import ProductBaseForm, ProductFormModel, ProductDetails, Product, ProductItemDetails, SizeModelDetails
+from ..model.models import ProductBaseForm, ProductFormModel, ProductDetails, Review, ReviewModel
 from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException
+from ..utils.admin_verify import get_current_active_admin_user
+from ..utils.user_verify import get_current_active_user
 from aiokafka import AIOKafkaProducer # type: ignore
-from ..kafka.producer import get_kafka_producer
 from typing import Annotated, Optional, List, Dict
-from ..core.db import DB_SESSION
-from ..model.authentication import Admin
-from sqlmodel import Session, select
+from ..model.authentication import Admin, Users
+from ..kafka.producer import get_kafka_producer
+from fastapi.responses import ORJSONResponse
+from ..utils.action import create_review
 from sqlalchemy.orm import joinedload
+from sqlmodel import Session, select
+from ..core.db import DB_SESSION
 from random import sample
 import json
 import uuid
 
-router = APIRouter(prefix="/api/v1/product")
+router = APIRouter(prefix="/api/v1/products")
 
 @router.post("/create_product")
 async def create_products(
@@ -117,7 +120,15 @@ async def delete_product(product_id:str,
     product = await deleted_product(product_id, current_admin, session)
     return product
 
-@router.get("/products/may-also-like/{product_id}")
+@router.get("/may-also-like/{product_id}")
 async def may_also_like_products(product_id: str, session: DB_SESSION):
     products = await may_also_like_products_details(product_id, session)
     return  products
+
+@router.post('/reviews/create')
+async def create_reviews(session: DB_SESSION,
+                        review_details: ReviewModel,
+                        current_user: Annotated[Users, Depends(get_current_active_user)]
+                        ):
+    review = await create_review(session, review_details, current_user)
+    return ORJSONResponse({"message" : "Review created successfully", "review" : review})
