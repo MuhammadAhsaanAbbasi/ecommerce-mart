@@ -71,6 +71,21 @@ class Review(BaseIdModel, table=True):
     product_id: str = Field(foreign_key="product.id")
     user_id: int = Field(foreign_key="user.id")
 
+class ProductReviewsDetails(SQLModel):
+    review_id: str
+    rating: float
+    review: str
+    username: str
+    email: str
+    imageUrl: str
+
+class UserReviewsDetails(SQLModel):
+    review_id: str
+    rating: float
+    review: str
+    product_id: str
+    product_name: str
+
 class SizeModel(SQLModel):
     size: str
     price: int

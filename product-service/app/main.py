@@ -4,8 +4,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from .web.route import router
 from .web.csc_route import csc_router
+from .web.review_route import review_routes
 from .core.db import create_db_and_tables
-
 
 
 @asynccontextmanager 
@@ -45,6 +45,7 @@ app.add_middleware(
 
 app.router.include_router(router=router, tags=["Product Service"])
 app.router.include_router(router=csc_router, tags=["Category, Size & Gender Service!!"])
+app.router.include_router(router=review_routes, tags=["Reviews Service!!"])
 
 @app.get("/")
 def get_root():

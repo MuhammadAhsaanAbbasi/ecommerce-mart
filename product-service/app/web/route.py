@@ -1,22 +1,16 @@
 from ..service.product_service import get_all_product_details, get_specific_product_details, get_product_by_category, deleted_product, create_product, search_product_results, updated_product, get_new_arrivals_details, may_also_like_products_details
-from ..model.models import ProductBaseForm, ProductFormModel, ProductDetails, Review, ReviewModel
+from ..model.models import ProductBaseForm, ProductFormModel
 from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException
 from ..utils.admin_verify import get_current_active_admin_user
-from ..utils.user_verify import get_current_active_user
 from aiokafka import AIOKafkaProducer # type: ignore
 from typing import Annotated, Optional, List, Dict
 from ..model.authentication import Admin, Users
 from ..kafka.producer import get_kafka_producer
-from fastapi.responses import ORJSONResponse
-from ..utils.action import create_review
-from sqlalchemy.orm import joinedload
-from sqlmodel import Session, select
 from ..core.db import DB_SESSION
-from random import sample
 import json
 import uuid
 
-router = APIRouter(prefix="/api/v1/products")
+router = APIRouter(prefix="/api/v1")
 
 @router.post("/create_product")
 async def create_products(
@@ -124,11 +118,3 @@ async def delete_product(product_id:str,
 async def may_also_like_products(product_id: str, session: DB_SESSION):
     products = await may_also_like_products_details(product_id, session)
     return  products
-
-@router.post('/reviews/create')
-async def create_reviews(session: DB_SESSION,
-                        review_details: ReviewModel,
-                        current_user: Annotated[Users, Depends(get_current_active_user)]
-                        ):
-    review = await create_review(session, review_details, current_user)
-    return ORJSONResponse({"message" : "Review created successfully", "review" : review})

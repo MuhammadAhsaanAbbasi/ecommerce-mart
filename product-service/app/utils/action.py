@@ -1,4 +1,4 @@
-from ..model.models import Color, Product, ProductSize, ProductItem, Stock, ProductDetails, ProductItemDetails, SizeModelDetails, Review, ReviewModel
+from ..model.models import Color, Product, ProductSize, ProductItem, Stock, ProductDetails, ProductItemDetails, SizeModelDetails, Review, ReviewModel, ProductReviewsDetails, UserReviewsDetails
 from ..model.category_model import Category, Size, CategoryBaseModel
 from fastapi import HTTPException, UploadFile, File, Form, Depends
 from ..utils.admin_verify import get_current_active_admin_user
@@ -165,6 +165,7 @@ async def all_product_details(products: Sequence[Product], session: DB_SESSION):
 
     return all_product_detail
 
+# Create Review
 async def create_review(session: DB_SESSION,
                         review_details: ReviewModel,
                         current_user: Annotated[Users, Depends(get_current_active_user)]
@@ -179,3 +180,49 @@ async def create_review(session: DB_SESSION,
         return new_review.model_dump()
     else:
         raise HTTPException(status_code=400, detail="User already reviewed this product")
+
+# Get Product Reviews
+async def get_product_reviews_details(product_id: str, session: DB_SESSION):
+    reviews = session.exec(select(Review).where(Review.product_id == product_id)).all()
+
+    reviews_details: List[ProductReviewsDetails] = []
+
+    for review in reviews:
+        user = session.exec(select(Users).where(Users.id == review.user_id)).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        review_details = ProductReviewsDetails(
+            review_id=review.id,
+            rating=review.rating,
+            review=review.review,
+            username=user.username,
+            email=user.email,
+            imageUrl=user.imageUrl
+        )
+        reviews_details.append(review_details)
+    
+    return reviews_details
+
+# User Reviews Details
+async def get_user_reviews_details(session: DB_SESSION, 
+                                current_user: Annotated[Users, Depends(get_current_active_user)]):
+    reviews = session.exec(select(Review).where(Review.user_id == current_user.id)).all()
+
+    reviews_details: List[UserReviewsDetails] = []
+
+    for review in reviews:
+        product = session.exec(select(Product).where(Product.id == review.product_id)).first()
+        if not product:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        review_details = UserReviewsDetails(
+            review_id=review.id,
+            rating=review.rating,
+            review=review.review,
+            product_id=product.id,
+            product_name=product.product_name
+        )
+        reviews_details.append(review_details)
+    
+    return reviews_details
