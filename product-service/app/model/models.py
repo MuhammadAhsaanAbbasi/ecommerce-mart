@@ -76,7 +76,7 @@ class ProductReviewsDetails(SQLModel):
     review: str
     username: str
     email: str
-    imageUrl: Optional[str] = None  # Make imageUrl optional
+    imageUrl: Optional[str] = Field(default=None)  # Make imageUrl optional
 
 class UserReviewsDetails(SQLModel):
     review_id: str

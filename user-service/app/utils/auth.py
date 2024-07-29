@@ -206,7 +206,7 @@ def generate_otp():
 
 
 # Generate & Send Otp
-async def generate_and_send_otp(user: UserModel, session: Session, user_id: int | None = None, image_url: str | None = None):
+async def generate_and_send_otp(user: UserModel, session: Session):
     """
     Generate a random OTP using generate_otp function and that add some info of user in db and send a otp on the email.
     """
@@ -217,7 +217,6 @@ async def generate_and_send_otp(user: UserModel, session: Session, user_id: int 
     # hashed otp
     user_otp = get_value_hash(otp)
     user.hashed_password = get_value_hash(user.hashed_password)
-    user.imageUrl = image_url
     user.otp = user_otp 
     normal_user = Users(**user.model_dump())
     session.add(normal_user)
