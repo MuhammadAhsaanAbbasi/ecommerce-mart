@@ -28,11 +28,18 @@ class UserModel(SQLModel):
     username: str
     email: str
     hashed_password: str
-    phone_number: str
+    phone_number: Optional[str] = Field(default=None)
     imageUrl: Optional[str] = Field(default=None)
+    otp: Optional[str] = None
     date_of_birth: Optional[str]
     gender: Optional[UserGender]
 
+class UserInfo(SQLModel):
+    username: str
+    email: str
+    imageUrl: Optional[str] = Field(default=None)
+    date_of_birth: Optional[str]
+    gender: Optional[UserGender]
 
 # Users Model
 class Users(UserBase, table=True):

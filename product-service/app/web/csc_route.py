@@ -124,10 +124,10 @@ async def delete_size(size_id: str,
 # Color Routes
 @csc_router.post('/color/create')
 async def create_colors(color_details: Color, 
-                        current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
+                        # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
                         session: DB_SESSION):
-    if not current_admin:
-        raise HTTPException(status_code=401, detail="Unauthorized Admin")
+    # if not current_admin:
+    #     raise HTTPException(status_code=401, detail="Unauthorized Admin")
     
     color = Color(**color_details.model_dump())
     session.add(color)

@@ -30,10 +30,14 @@ async def user_consumer():
         async for msg in consumer_kafka:
             new_user = user_pb2.User()
             new_user.ParseFromString(msg.value)
-            user_data = Users(
-                username=new_user.username, email=new_user.email, hashed_password=new_user.hashed_password,
-                imageUrl=new_user.imageUrl, is_active=new_user.is_active, is_verified=new_user.is_verified, role=new_user.role
-            )
+            user_data = Users(username=new_user.username, 
+                                    email=new_user.email, 
+                                    hashed_password=new_user.hashed_password, 
+                                    imageUrl=new_user.imageUrl,
+                                    phone_number=new_user.phone_number,
+                                    date_of_birth=new_user.date_of_birth,
+                                    gender=new_user.gender,
+                                    )
             with Session(engine) as session:
                 try:
                     user = await create_user(user_data, session)

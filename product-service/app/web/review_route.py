@@ -13,13 +13,15 @@ from ..core.db import DB_SESSION
 review_routes = APIRouter(prefix="/api/v1/reviews")
 
 
+# Create Review endpoint
 @review_routes.post('/create')
-async def create_reviews(session: DB_SESSION,
-                        review_details: ReviewModel,
+async def create_reviews(review_details: ReviewModel,
+                        session: DB_SESSION,
                         current_user: Annotated[Users, Depends(get_current_active_user)]
                         ):
-    review = await create_review(session, review_details, current_user)
-    return ORJSONResponse({"message" : "Review created successfully", "review" : review})
+    review = await create_review(review_details, session, current_user)
+    return ORJSONResponse({"message": "Review created successfully", "review": review})
+
 
 @review_routes.get("/get_product_reviews/{product_id}")
 async def get_product_reviews(product_id: str, session: DB_SESSION):

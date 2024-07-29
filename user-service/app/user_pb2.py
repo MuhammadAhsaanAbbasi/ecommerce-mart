@@ -20,8 +20,8 @@ _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'user_pb2', globals())
 if _descriptor._USE_C_DESCRIPTORS == False:
 
   DESCRIPTOR._options = None
-  _USER._serialized_start=15
-  _USER._serialized_end=158
-  _EMAILUSER._serialized_start=160
-  _EMAILUSER._serialized_end=276
+  _USER._serialized_start=15 # type: ignore
+  _USER._serialized_end=158  # type: ignore
+  _EMAILUSER._serialized_start=160 # type: ignore
+  _EMAILUSER._serialized_end=276 # type: ignore
 # @@protoc_insertion_point(module_scope)

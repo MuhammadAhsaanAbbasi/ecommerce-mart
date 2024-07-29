@@ -165,9 +165,10 @@ async def all_product_details(products: Sequence[Product], session: DB_SESSION):
 
     return all_product_detail
 
-# Create Review
-async def create_review(session: DB_SESSION,
-                        review_details: ReviewModel,
+
+# Create Review function
+async def create_review(review_details: ReviewModel,
+                        session: DB_SESSION,
                         current_user: Annotated[Users, Depends(get_current_active_user)]
                         ):
     review = session.exec(select(Review).where(Review.user_id == current_user.id).where(Review.product_id == review_details.product_id)).one_or_none()
@@ -176,10 +177,10 @@ async def create_review(session: DB_SESSION,
         session.add(new_review)
         session.commit()
         session.refresh(new_review)
-
         return new_review.model_dump()
     else:
         raise HTTPException(status_code=400, detail="User already reviewed this product")
+
 
 # Get Product Reviews
 async def get_product_reviews_details(product_id: str, session: DB_SESSION):

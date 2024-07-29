@@ -46,11 +46,10 @@ Child_DIR = os.path.dirname(parent_directory)
 # Get the Chlid directory of the parent directory
 BASE_DIR = os.path.dirname(Child_DIR)
 
-
 # Define the path to the client_secret.json file
 CLIENT_SECRET_FILE = os.path.join(BASE_DIR, 'client_secret.json')
 # print(f"client file: {CLIENT_SECRET_FILE}")
-SCOPES = ['openid', 'https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile']
+SCOPES = ['openid', 'https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile', 'https://www.googleapis.com/auth/user.birthday.read', 'https://www.googleapis.com/auth/user.gender.read' ] 
 
 # Router
 router = APIRouter(prefix="/api/v1")
@@ -93,6 +92,8 @@ async def auth(request: Request, session: DB_SESSION):
         print(idinfo['name'])
         print(idinfo['email'])
         print(idinfo['picture'])
+        # print(idinfo['gender'])
+        # print(idinfo['birthday'])
         print(idinfo)
         
         user_email = idinfo['email']
@@ -102,11 +103,11 @@ async def auth(request: Request, session: DB_SESSION):
         user_picture = idinfo['picture']
 
         # Check if the user exists in your database. If the user doesn't exist, add the user to the database
-        new_google_user = await google_user(session, email=user_email, username=user_name, picture=user_picture)
-        if new_google_user is None:
-            raise HTTPException(status_code=400, detail="User not found")
+        # new_google_user = await google_user(session, email=user_email, username=user_name, picture=user_picture)
+        # if new_google_user is None:
+        #     raise HTTPException(status_code=400, detail="User not found")
         
-        return new_google_user
+        return idinfo
     except HTTPException as http_exception:
         # Log the exception for debugging
         print(f"HTTPException occurred: {http_exception.detail}")
@@ -132,7 +133,7 @@ async def sign_up(user: UserModel, session:DB_SESSION, aio_producer: Annotated[A
             raise HTTPException(status_code=400, detail="Email already exists")
     
     # Create Image Url
-    initial_letters = user.username[0:2].upper()
+    initial_letters = user.username[0:2].upper() 
     user.imageUrl = f"https://avatar.vercel.sh/{user.username}.svg?text={initial_letters}"
 
     # data produce on consumer
@@ -163,7 +164,10 @@ async def sign_up(user: UserModel, session:DB_SESSION, aio_producer: Annotated[A
 
 
 @router.post("/signup/verify")
-async def verify_sign_up_otp(user_otp: str, user: Users, session:DB_SESSION, aio_producer: Annotated[AIOKafkaProducer, Depends(get_kafka_producer)]):
+async def verify_sign_up_otp(user_otp: str, 
+                            user: Users, 
+                            session:DB_SESSION, 
+                            aio_producer: Annotated[AIOKafkaProducer, Depends(get_kafka_producer)]):
     # Verify OTP
     tokens = await verify_and_generate_tokens(user_otp, user, session, aio_producer)
     return tokens

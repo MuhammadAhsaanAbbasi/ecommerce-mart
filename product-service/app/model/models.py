@@ -59,17 +59,16 @@ class Stock(BaseIdModel, table=True):
         else:
             return "Low"
 
-class ReviewModel(BaseIdModel, table=True):
-    rating: float
+class ReviewModel(SQLModel):
+    rating: int
     review: str
-    product_id: str = Field(foreign_key="product.id")
-
+    product_id: str
 
 class Review(BaseIdModel, table=True):
-    rating: float
+    rating: int = Field(ge=1, le=5)
     review: str
     product_id: str = Field(foreign_key="product.id")
-    user_id: int = Field(foreign_key="user.id")
+    user_id: int = Field(foreign_key="users.id")
 
 class ProductReviewsDetails(SQLModel):
     review_id: str

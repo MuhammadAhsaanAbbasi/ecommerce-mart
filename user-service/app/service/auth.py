@@ -4,7 +4,7 @@ from ..setting import ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_MINUTES,
 from fastapi.security.oauth2 import OAuth2PasswordRequestForm
 from aiokafka.errors import KafkaTimeoutError # type: ignore
 from aiokafka import AIOKafkaProducer # type: ignore
-from ..model.models import Users, Token, Admin, UserBase, UserModel, UserUpdate
+from ..model.models import Users, Token, Admin, UserInfo, UserModel, UserUpdate
 from ..kafka.user_producer import get_kafka_producer
 from fastapi import Depends, HTTPException, UploadFile, File
 from ..user_pb2 import EmailUser as EmailUserProto  # type: ignore
@@ -170,14 +170,20 @@ async def login_access_token_for_admin(form_data: Annotated[OAuth2PasswordReques
 
 
 # Google user Auth
-async def google_user(session: DB_SESSION, username:str, email:str, picture:str):
-    user = session.exec(select(Users).where(Users.email == email)).first()
+async def google_user(session: DB_SESSION, userinfo: UserInfo):
+    user = session.exec(select(Users).where(Users.email == userinfo.email)).first()
     try:
         if user is None:
             password_length = 12  # You can choose the length of the password
             characters = string.ascii_letters + string.digits + string.punctuation
             random_password = ''.join(secrets.choice(characters) for i in range(password_length))
-            user_data = UserModel(username=username, email=email, hashed_password=random_password, imageUrl=picture)
+            user_data = UserModel(username=userinfo.username, 
+                                email=userinfo.email, 
+                                hashed_password=random_password, 
+                                imageUrl=userinfo.imageUrl,
+                                gender=userinfo.gender,
+                                date_of_birth=userinfo.date_of_birth
+                                )
             
             new_user = create_user(user_data, session, isGoogle=True)
             return new_user

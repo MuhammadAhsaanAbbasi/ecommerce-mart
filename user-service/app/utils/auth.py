@@ -92,7 +92,7 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], sessio
 
 # Get Current Active & Verify User
 async def get_current_active_user(current_user: Annotated[Users, Depends(get_current_user)]):
-    if current_user.is_verified:
+    if current_user.is_active:
         print(current_user.id)
         return current_user
     else:
@@ -218,9 +218,10 @@ async def generate_and_send_otp(user: UserModel, session: Session, user_id: int 
     user_otp = get_value_hash(otp)
     user.hashed_password = get_value_hash(user.hashed_password)
     user.imageUrl = image_url
-    normal_user = Users(**user.model_dump(), otp=user_otp)
+    user.otp = user_otp 
+    normal_user = Users(**user.model_dump())
     session.add(normal_user)
-    session.commit()
+    session.commit() 
     session.refresh(normal_user)
 
     try:
@@ -231,7 +232,7 @@ async def generate_and_send_otp(user: UserModel, session: Session, user_id: int 
 
     # Send OTP to user
     params = {
-        "from": "onboarding@resend.dev",
+        "from": "onboarding@resend.dev", 
         "to": ["mahsaanabbasi@gmail.com"],
         "subject": "Your OTP for sign-up",
         "html": f"<p>Your OTP is: {otp}</p>",
