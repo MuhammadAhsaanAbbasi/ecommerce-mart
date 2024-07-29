@@ -1,4 +1,4 @@
-from ..service.order_service import create_orders, get_orders_by_user, get_orders_by_id, update_orders_status, delete_orders, fetch_orders, cancel_orders_by_customer
+from ..service.order_service import create_orders, get_orders_by_user, get_orders_by_id, update_orders_status, delete_orders, fetch_orders, cancel_orders_by_customer, get_user_orders_by_status
 from ..model.order import OrderModel, Order, OrderItem, OrderStatus
 from ..kafka.producer import AIOKafkaProducer, get_kafka_producer
 from ..utils.admin_verify import get_current_active_admin_user
@@ -14,7 +14,7 @@ import json
 order_router = APIRouter(prefix="/api/v1/order")
 
 # Create Order
-@order_router.post("/create/order")
+@order_router.post("/create")
 async def create_order(
                     session: DB_SESSION,
                     order_details: OrderModel,
@@ -91,3 +91,16 @@ async def cancel_order_by_customer(
 ):
     order = await cancel_orders_by_customer(current_user, session, order_id)
     return order
+
+# User Orders on the Base of Order Status
+@order_router.get('/user_orders/{status}')
+async def user_orders(
+                    current_user: Annotated[Users, Depends(get_current_active_user)],
+                    session: DB_SESSION,
+                    status: str,
+                    page: int = 1,
+                    limit: int = 10,
+                    ):
+    offset = (page - 1) * limit
+    user_orders = await get_user_orders_by_status(current_user, session, status, offset, limit,)
+    return user_orders

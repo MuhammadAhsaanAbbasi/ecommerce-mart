@@ -31,10 +31,10 @@ class OrderModel(OrderBase):
     items: List[OrderItemBase]
 
 class OrderStatus(str, Enum):
-    processing = "Processing"
-    shipping = "Shipping"
-    delivered = "Delivered"
-    cancelled = "Cancelled"
+    processing = "processing"
+    shipping = "shipping"
+    delivered = "delivered"
+    cancelled = "cancelled"
 
 
 def calculate_delivery_date():
@@ -42,7 +42,7 @@ def calculate_delivery_date():
 
 class Order(BaseIdModel, OrderBase, table=True):
     tracking_id: Optional[str] = Field(default=uuid.uuid4().hex)
-    order_status: Optional[OrderStatus] = Field(default="Processing")
+    order_status: Optional[OrderStatus] = Field(default="processing")
     delivery_date: datetime | None = Field(default_factory=calculate_delivery_date)
     order_date: datetime | None = Field(default=datetime.now(timezone.utc))
     user_id: int = Field(foreign_key="users.id")

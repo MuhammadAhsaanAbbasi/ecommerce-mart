@@ -44,10 +44,10 @@ async def get_category(session: DB_SESSION):
     category = await get_categories(session)
     return category
 
-@csc_router.get("/category/{category_id}")
-async def get_specific_category(category_id: str, 
+@csc_router.get("/category/{category_type}")
+async def get_specific_category(category_type: str, 
                         session: DB_SESSION):
-    category = session.exec(select(Category).where(Category.id == category_id)).first()
+    category = session.exec(select(Category).where(Category.category_type == category_type)).all()
     if not category:
         raise HTTPException(status_code=404, detail="Product not found")
     return category

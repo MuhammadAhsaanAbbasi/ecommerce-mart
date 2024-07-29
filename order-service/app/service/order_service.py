@@ -307,3 +307,35 @@ async def cancel_orders_by_customer(
     except Exception as e:
         session.rollback()
         raise HTTPException(status_code=400, detail=f"Failed to cancel order: {e}")
+
+# Function to get user orders by status
+async def get_user_orders_by_status(
+                    current_user: Annotated[Users, Depends(get_current_active_user)],
+                    session: DB_SESSION,
+                    status: str,
+                    offset: int,
+                    limit: int,
+                    ):
+    # try:
+    #     order_status = OrderStatus[status]
+
+    # except KeyError:
+    #     raise HTTPException(status_code=400, detail="Invalid order status")
+
+    # if status not in OrderStatus:
+    #     raise HTTPException(status_code=400, detail="Invalid order status")
+    
+    if not Order.order_status:
+        raise HTTPException(status_code=400, detail="Order status not found")
+    
+    query = select(Order).where(Order.user_id == current_user.id).where(Order.order_status == status).offset(offset).limit(limit)
+
+    
+    orders = session.exec(query).all()
+    
+    if not orders:
+        raise HTTPException(status_code=404, detail="No orders found with the given status")
+    
+    order_details = await all_order_details(orders, session)
+    
+    return order_details
