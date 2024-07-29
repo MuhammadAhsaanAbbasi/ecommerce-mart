@@ -72,18 +72,19 @@ class Review(BaseIdModel, table=True):
 
 class ProductReviewsDetails(SQLModel):
     review_id: str
-    rating: float
+    rating: int
     review: str
     username: str
     email: str
-    imageUrl: str
+    imageUrl: Optional[str] = None  # Make imageUrl optional
 
 class UserReviewsDetails(SQLModel):
     review_id: str
-    rating: float
+    rating: int
     review: str
     product_id: str
     product_name: str
+
 
 class SizeModel(SQLModel):
     size: str
