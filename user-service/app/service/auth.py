@@ -1,4 +1,4 @@
-from ..utils.auth import authenticate_user, create_access_token, create_refresh_token, generate_and_send_otp, get_value_hash
+from ..utils.auth import authenticate_user, create_access_token, create_refresh_token, generate_and_send_otp, get_value_hash, get_verified_user
 from app.service.kong_consumer import create_consumer_in_kong, create_jwt_credentials_in_kong 
 from ..setting import ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_MINUTES, USER_SIGNUP_EMAIL_TOPIC
 from fastapi.security.oauth2 import OAuth2PasswordRequestForm
@@ -21,15 +21,24 @@ import secrets
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Verify and Generate tokens
-async def verify_and_generate_tokens(user_otp: str, user: Users, session: DB_SESSION, aio_producer: Annotated[AIOKafkaProducer, Depends(get_kafka_producer)]):
+async def verify_and_generate_tokens(
+                            token: str,
+                            user_otp: str,
+                            session:DB_SESSION, 
+                            aio_producer: Annotated[AIOKafkaProducer, Depends(get_kafka_producer)]):
     try:
         # Check if the user exists
+        user = await get_verified_user(token, session)
+
         existing_user = session.exec(select(Users).where(Users.email == user.email)).first()
         if not existing_user:
-            raise HTTPException(status_code=404, detail="User not found")
+            raise HTTPException(status_code=400, detail="User not found")
+
+        if existing_user.is_verified:
+            raise HTTPException(status_code=400, detail="User is already verified")
 
         # Verify OTP
-        valid_otp = pwd_context.verify(user_otp, existing_user.otp)
+        valid_otp = pwd_context.verify(user_otp, user.otp)
         if not valid_otp:
             raise HTTPException(status_code=400, detail="Invalid OTP")
 
@@ -39,7 +48,7 @@ async def verify_and_generate_tokens(user_otp: str, user: Users, session: DB_SES
 
         # Generate tokens
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-        access_token = create_access_token(existing_user, expires_delta=access_token_expires)
+        access_token = create_access_token(user, expires_delta=access_token_expires)
         refresh_token_expires = timedelta(minutes=float(REFRESH_TOKEN_EXPIRE_MINUTES))
         refresh_token = create_refresh_token(data={"email": user.email}, expires_delta=refresh_token_expires)
 
@@ -63,7 +72,7 @@ async def verify_and_generate_tokens(user_otp: str, user: Users, session: DB_SES
 
     except KafkaTimeoutError as e:
         print(f"Error in sending message to Kafka: {e}")
-        raise HTTPException(status_code=500, detail="Error in sending message to Kafka")
+        raise HTTPException(status_code=500, detail=f"Error in sending message to Kafka {e}")
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
         raise HTTPException(status_code=500, detail="An unexpected error occurred")
@@ -221,7 +230,7 @@ async def update_user_details(user_id: int,
             raise HTTPException(status_code=404, detail="Category not found")
 
     if not image:        
-        category_data = user_input.model_dump()
+        user_data = user_input.model_dump()
     else:
         user_image = await upload_files_in_s3(image)
         user_data = user_input.model_dump()

@@ -88,6 +88,7 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], sessio
     user = get_user(Users, email=token_data.email, session=session)
     if user is None:
         raise credentials_exception
+    user = Users(**user.__dict__)
     return user
 
 # Get Current Active & Verify User
@@ -241,3 +242,41 @@ async def generate_and_send_otp(user: UserModel, session: Session):
 
     # user_json  = dict(normal_user)
     return normal_user
+
+def create_verify_token(email: str) -> str:
+    if not isinstance(SECRET_KEY, str):
+        raise ValueError("SECRET_KEY must be a string")
+    if not isinstance(ALGORITHM, str):
+        raise ValueError("ALGORITHM must be a string")
+    
+    expire = datetime.now(timezone.utc) + timedelta(hours=3)
+    
+    payload = {
+        # "sub": user.email,
+        "username": email,
+        "exp": expire
+    }
+
+    encoded_jwt = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+# Get Current User
+async def get_verified_user(token: str, session: DB_SESSION):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: Union[str, None] = payload.get("username")
+        if email is None:
+            raise credentials_exception
+        token_data = TokenData(email=email)
+    except JWTError:
+        raise credentials_exception
+    user = get_user(Users, email=token_data.email, session=session)
+    if user is None:
+        raise credentials_exception
+    user = Users(**user.__dict__)
+    return user

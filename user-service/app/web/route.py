@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends,  Form, Request, HTTPException, status, UploadFile, File
 from ..service.auth import login_for_access_token, google_user, verify_and_generate_tokens, update_user_details
-from ..utils.auth import get_current_active_user, tokens_service, oauth2_scheme, get_current_user, get_value_hash
+from ..utils.auth import get_current_active_user, tokens_service, create_verify_token, get_current_user, get_value_hash, get_verified_user
 from ..model.models import Users, Token, UserBase, SubscribeEmail, UserModel, UserUpdate
-from fastapi.responses import RedirectResponse, JSONResponse, Response
+from fastapi.responses import RedirectResponse, ORJSONResponse
 from fastapi.security.oauth2 import OAuth2PasswordRequestForm
 from ..user_pb2 import User as UserProto  # type: ignore
 from ..kafka.user_producer import get_kafka_producer
@@ -158,18 +158,18 @@ async def sign_up(user: UserModel, session:DB_SESSION, aio_producer: Annotated[A
         print(f"Error In Print message...! {e}")
     finally:
         await aio_producer.stop()
-        return user
-    # users  =  create_user(user, session)
-    # return users
+    verify_user_token = create_verify_token(user.email)
+    return ORJSONResponse({"token": verify_user_token})
 
 
-@router.post("/signup/verify")
-async def verify_sign_up_otp(user_otp: str, 
-                            user: Users, 
+@router.post("/signup/verify/{token}")
+async def verify_sign_up_otp(
+                            token: str,
+                            user_otp: str,
                             session:DB_SESSION, 
                             aio_producer: Annotated[AIOKafkaProducer, Depends(get_kafka_producer)]):
     # Verify OTP
-    tokens = await verify_and_generate_tokens(user_otp, user, session, aio_producer)
+    tokens = await verify_and_generate_tokens(token, user_otp, session, aio_producer)
     return tokens
 
 
@@ -219,50 +219,57 @@ async def tokens_manager(
 async def read_users_me(current_user: Annotated[Users, Depends(get_current_active_user)]):
     return current_user
 
-# @router.put("/user/reset-password/{token}")
-# async def reset_password(current_user: Annotated[Users, Depends(get_current_user)], 
-#                         session: DB_SESSION,
-#                         token: str,
-#                         reset_password:str,
-#                         ):
-#     if current_user:
-#         current_user.hashed_password = get_value_hash(reset_password)
-#         session.commit()
-#         session.refresh(current_user)
-#         return {"message" : "Password Reset Successfully"}
-#     else:
-#         raise HTTPException(
-#             status_code=status.HTTP_400_BAD_REQUEST,
-#             detail="Invalid User Details & Credentials Token",
-#             headers={"WWW-Authenticate": "Bearer"},
-#         )
+@router.put("/user/reset-password/{token}")
+async def reset_password(
+                        token: str,
+                        session: DB_SESSION,
+                        current_user: Annotated[Users, Depends(get_current_user)], 
+                        reset_password:str,
+                        ):
+    user = await get_verified_user(token, session)
+    if user.id == current_user.id:
+        existing_user = session.exec(select(Users).where(Users.email == user.email)).first()
+        if not existing_user:
+            raise HTTPException(status_code=400, detail="User not found")
+        existing_user.hashed_password = get_value_hash(reset_password)
+        session.commit()
+        return ORJSONResponse({"message" : "Password Reset Successfully"})
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid User Details & Credentials Token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
-# @router.put("/user/update")
-# async def update_user(current_user: Annotated[Users, Depends(get_current_active_user)],                   
-#                     session:DB_SESSION,
-#                     user_input: Annotated[str, Form(...)],
-#                     image: Optional[UploadFile] = None,
-#                     ):
-#     """
-#     Create a new product in the database.
+@router.put("/user/update")
+async def update_user(current_user: Annotated[Users, Depends(get_current_active_user)],                   
+                    session:DB_SESSION,
+                    user_input: Annotated[str, Form(...)],
+                    image: Optional[UploadFile] = None,
+                    ):
+    """
+    Create a new product in the database.
 
-#     Args:
-#         {
-#         "username": "string",
-#         "email": "string",
-#         "date_of_birth": "string",
-#         "gender": "male",
-#         "phone_number": "string"
-#     }
-#     """
-#     try:
-#         user_dict = json.loads(user_input)
-#     except json.JSONDecodeError:
-#         raise HTTPException(status_code=400, detail="Invalid JSON data provided for product details")
+    Args:
+        {
+        "username": "string",
+        "email": "string",
+        "date_of_birth": "string",
+        "gender": "male",
+        "phone_number": "string"
+    }
+    """
+    if not current_user.id:
+        raise HTTPException(status_code=400, detail="User not authenticated")
 
-#     user_update_model = UserUpdate(**user_dict)
-#     user_details = await update_user_details(current_user.id, user_update_model, session, image) 
-#     return user_details
+    try:
+        user_dict = json.loads(user_input)
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="Invalid JSON data provided for product details")
+
+    user_update_model = UserUpdate(**user_dict)
+    user_details = await update_user_details(current_user.id, user_update_model, session, image) 
+    return user_details
 
 @router.post("/subscribe_email")
 async def  subscribe_email(subscribe:SubscribeEmail, session:DB_SESSION):
