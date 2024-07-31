@@ -11,11 +11,6 @@ client = boto3.client(
     aws_secret_access_key=AWS_SECRET_KEY,
 )
 
-# Function to check if an email is verified
-def is_email_verified(email_address: str) -> bool:
-    response = client.list_verified_email_addresses()
-    return email_address in response['VerifiedEmailAddresses']
-
 def verify_email_func(email_address: str):
     response = client.verify_email_address(
         EmailAddress=[email_address]

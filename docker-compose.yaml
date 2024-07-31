@@ -160,50 +160,50 @@ services:
 # ####################################################################################################
 
 # # order Service
-  order-service:
-    build:
-      context: ./order-service
-      dockerfile: Dockerfile
-    restart: always
-    ports:
-      - "8083:8083" 
-    volumes:
-      - ./order-service:/code  # Sync  local development directory with the container
-    depends_on:
-      - kafka
-      - postgres_db
+#   order-service:
+#     build:
+#       context: ./order-service
+#       dockerfile: Dockerfile
+#     restart: always
+#     ports:
+#       - "8083:8083" 
+#     volumes:
+#       - ./order-service:/code  # Sync  local development directory with the container
+#     depends_on:
+#       - kafka
+#       - postgres_db
 
-####################################################################################################
+# ####################################################################################################
 
-# inventory Service
-  inventory-service:
-    build:
-      context: ./inventory-service
-      dockerfile: Dockerfile
-    restart: always
-    ports:
-      - "8084:8084" 
-    volumes:
-      - ./inventory-service:/code  # Sync  local development directory with the container
-    depends_on:
-      - kafka
-      - postgres_db
+# # inventory Service
+#   inventory-service:
+#     build:
+#       context: ./inventory-service
+#       dockerfile: Dockerfile
+#     restart: always
+#     ports:
+#       - "8084:8084" 
+#     volumes:
+#       - ./inventory-service:/code  # Sync  local development directory with the container
+#     depends_on:
+#       - kafka
+#       - postgres_db
 
 ####################################################################################################
 
 # payment Service
-  payment-service:
-    build:
-      context: ./payment-service
-      dockerfile: Dockerfile
-    restart: always
-    ports:
-      - "8085:8085" 
-    volumes:
-      - ./payment-service:/code  # Sync  local development directory with the container
-    depends_on:
-      - kafka
-      - postgres_db
+  # payment-service:
+  #   build:
+  #     context: ./payment-service
+  #     dockerfile: Dockerfile
+  #   restart: always
+  #   ports:
+  #     - "8085:8085" 
+  #   volumes:
+  #     - ./payment-service:/code  # Sync  local development directory with the container
+  #   depends_on:
+  #     - kafka
+  #     - postgres_db
 
 ####################################################################################################
 

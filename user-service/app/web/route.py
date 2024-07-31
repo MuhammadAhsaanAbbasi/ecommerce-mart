@@ -52,10 +52,10 @@ CLIENT_SECRET_FILE = os.path.join(BASE_DIR, 'client_secret.json')
 SCOPES = ['openid', 'https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile', 'https://www.googleapis.com/auth/user.birthday.read', 'https://www.googleapis.com/auth/user.gender.read' ] 
 
 # Router
-router = APIRouter(prefix="/api/v1")
+router = APIRouter(prefix="/api/v1/auth")
 
 # Google Login
-@router.get("/auth/google/login")
+@router.get("/google/login")
 async def login(request:Request):
     flow = Flow.from_client_secrets_file(CLIENT_SECRET_FILE, scopes=SCOPES, redirect_uri=REDIRECT_URI)
     
@@ -70,7 +70,7 @@ async def login(request:Request):
 
 
 # Google Callback
-@router.get("/auth/google/callback")
+@router.get("/google/callback")
 async def auth(request: Request, session: DB_SESSION):
     try:
         state = request.session['state']
@@ -162,7 +162,7 @@ async def sign_up(user: UserModel, session:DB_SESSION, aio_producer: Annotated[A
     return ORJSONResponse({"token": verify_user_token})
 
 
-@router.post("/signup/verify/{token}")
+@router.post("/verify/{token}")
 async def verify_sign_up_otp(
                             token: str,
                             user_otp: str,

@@ -1,44 +1,222 @@
 from ..core.config import send_email_via_ses
 
 
-async def send_custom_notification_func(user_email: str, subject: str, message: str):
+async def send_otp_notification_func(user_email: str, subject: str, username: str, otp: int):
     custom_notification_schema = f"""
-    <html>
-    <head>
-    </head>
-    <body>
-        <main
-            style="height: 100%; padding: 2em; margin: 1em; background-color: rgb(243, 243, 243); display: flex; justify-content: center; align-items: center;">
-            <div style="width: 100%;">
-                <div style="height: 0.4px; width: 100%; margin-bottom: 10px; background-color: darkgray;">
-                </div>
-                <div style="display: flex; flex-direction: column; align-items: center; background: rgb(203,192,71); background: linear-gradient(to top, rgb(5, 35, 59)0%,rgb(30, 81, 122)60%,
-                    rgb(161, 178, 182) 100%); ">
-                    <header style="display: flex; justify-content: center;">
-                        <img src="" alt="" srcset="">
-                        <h2>
-                            E-commerce
-                        </h2>
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8" />
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+                    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+                    <title>Static Template</title>
+
+                    <link
+                    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap"
+                    rel="stylesheet"
+                    />
+                </head>
+                <body
+                    style="
+                    margin: 0;
+                    font-family: 'Poppins', sans-serif;
+                    background: #ffffff;
+                    font-size: 14px;
+                    "
+                >
+                    <div
+                    style="
+                        max-width: 680px;
+                        margin: 0 auto;
+                        padding: 45px 30px 60px;
+                        background: #f4f7ff;
+                        background-image: url('https://hrk-boutique.s3.ap-south-1.amazonaws.com/emailTemplate/pawel-czerwinski-a7rDND-ns0M-unsplash.jpg'); /* Update URL to a direct link */
+                        background-repeat: no-repeat;
+                        background-size: 800px 452px;
+                        background-position: top center;
+                        font-size: 14px;
+                    "
+                    >
+                    <header>
+                        <table style="width: 100%;">
+                        <tbody>
+                            <tr style="height: 0;">
+                            <td>
+                                <img
+                                alt=""
+                                src="https://archisketch-resources.s3.ap-northeast-2.amazonaws.com/vrstyler/1663574980688_114990/archisketch-logo"
+                                height="30px"
+                                />
+                            </td>
+                            <td style="text-align: right;">
+                                <span
+                                style="font-size: 16px; line-height: 30px; color: #000000;"
+                                >12 Nov, 2021</span
+                                >
+                            </td>
+                            </tr>
+                        </tbody>
+                        </table>
                     </header>
-                    <div style="width: 70%; display: flex; flex-direction: column; align-items: center; gap: 5px;">
+
+                    <main>
+                        <div
+                        style="
+                            margin: 0;
+                            margin-top: 70px;
+                            padding: 92px 30px 115px;
+                            background: #ffffff;
+                            border-radius: 30px;
+                            text-align: center;
+                        "
+                        >
+                            <div style="width: 100%; max-width: 489px; margin: 0 auto;">
+                            <h1
+                                style="
+                                margin: 0;
+                                font-size: 24px;
+                                font-weight: 500;
+                                color: #1f1f1f;
+                            "
+                            >
+                            Your OTP
+                            </h1>
+                            <p
+                                style="
+                                margin: 0;
+                                margin-top: 17px;
+                                font-size: 16px;
+                                font-weight: 500;
+                            "
+                            >
+                                Hey {username},
+                            </p>
+                            <p
+                                style="
+                                margin: 0;
+                                margin-top: 17px;
+                                font-weight: 500;
+                                letter-spacing: 0.56px;
+                            "
+                            >
+                                Thank you for choosing HRK Boutique. Your Account has been Registered, 
+                                Use the following OTP to complete the procedure to verify your email address.
+                                OTP is expired under
+                                <span style="font-weight: 600; color: #1f1f1f;">5 minutes</span>.
+                                Do not share this code with others, including HRK Boutique
+                                employees.
+                            </p>
+                            <p
+                                style="
+                                margin: 0;
+                                margin-top: 60px;
+                                font-size: 40px;
+                                font-weight: 600;
+                                letter-spacing: 25px;
+                                color: #ba3d4f;
+                            "
+                            >
+                                {otp}
+                            </p>
+                            </div>
+                        </div>
+
                         <p
-                            style="text-align: center; color: rgb(142, 169, 173); font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif; font-size: large; letter-spacing: 1px;">
-                        {message}
+                            style="
+                            max-width: 400px;
+                            margin: 0 auto;
+                            margin-top: 90px;
+                            text-align: center;
+                            font-weight: 500;
+                            color: #8c8c8c;
+                        "
+                        >
+                            Need help? Ask at
+                            <a
+                            href="mailto:hrkBoutique@hotmail.com"
+                            style="color: #499fb6; text-decoration: none;"
+                            >hrkBoutique@hotmail.com</a
+                            >
+                            or visit our
+                            <a
+                            href=""
+                            target="_blank"
+                            style="color: #499fb6; text-decoration: none;"
+                            >Help Center</a
+                        >
                         </p>
-                        <button style="margin: 10px; padding: 10px; border-radius: 15%; background-color: rgb(0, 0, 0);"><a
-                                href="https://www.yourwebsite.com" style="text-decoration: none; color: white;">Go to Website</a></button>
+                    </main>
+
+                    <footer
+                        style="
+                            width: 100%;
+                            max-width: 490px;
+                            margin: 20px auto 0;
+                            text-align: center;
+                            border-top: 1px solid #e6ebf1;
+                        "
+                        >
+                        <p
+                            style="
+                            margin: 0;
+                            margin-top: 40px;
+                            font-size: 16px;
+                            font-weight: 600;
+                            color: #434343;
+                        "
+                        >
+                            HRK Boutique
+                        </p>
+                        <p style="margin: 0; margin-top: 8px; color: #434343;">
+                            Address 540, City, State.
+                        </p>
+                        <div style="margin: 0; margin-top: 16px;">
+                            <a href="" target="_blank" style="display: inline-block;">
+                            <img
+                                width="36px"
+                                alt="Facebook"
+                                src="https://archisketch-resources.s3.ap-northeast-2.amazonaws.com/vrstyler/1661502815169_682499/email-template-icon-facebook"
+                            />
+                            </a>
+                            <a
+                            href=""
+                            target="_blank"
+                            style="display: inline-block; margin-left: 8px;"
+                        >
+                            <img
+                                width="36px"
+                                alt="Instagram"
+                                src="https://archisketch-resources.s3.ap-northeast-2.amazonaws.com/vrstyler/1661504218208_684135/email-template-icon-instagram"
+                            /></a>
+                            <a
+                            href=""
+                            target="_blank"
+                            style="display: inline-block; margin-left: 8px;"
+                        >
+                            <img
+                                width="36px"
+                                alt="Twitter"
+                                src="https://archisketch-resources.s3.ap-northeast-2.amazonaws.com/vrstyler/1661503043040_372004/email-template-icon-twitter"
+                            />
+                            </a>
+                            <a
+                            href=""
+                            target="_blank"
+                            style="display: inline-block; margin-left: 8px;"
+                            >
+                            <img
+                                width="36px"
+                                alt="Youtube"
+                                src="https://archisketch-resources.s3.ap-northeast-2.amazonaws.com/vrstyler/1661503195931_210869/email-template-icon-youtube"
+                            /></a>
+                        </div>
+                        <p style="margin: 0; margin-top: 16px; color: #434343;">
+                            Copyright © 2024 Company. All rights reserved.
+                        </p>
+                        </footer>
                     </div>
-                    <div style="height: 0.4px; background-color: #8BA2AC; width: 80%; margin: 5px;"></div>
-                    <footer>
-                        <p style="color: rgb(142, 169, 173);">
-                            © copyright 2024 - 2026
-                        </p>
-                    </footer>
-                </div>
-            </div>
-        </main>
-    </body>
-    </html>
+                    </body>
+                </html>
     """
     response = await send_email_via_ses(
         user_email, custom_notification_schema, subject=subject)
