@@ -1,11 +1,14 @@
 from ..core.config import send_email_via_ses
-
+from datetime import datetime, timedelta
+from ..schemas.user_emails import verified_notification_schema
+from ..schemas.product_email import product_created_schema
+from .date import today_date
 
 async def send_otp_notification_func(user_email: str, subject: str, username: str, otp: int):
-    custom_notification_schema = f"""
+    otp_notification_schema = f"""
                 <!DOCTYPE html>
                 <html lang="en">
-                <head>
+                <head> 
                     <meta charset="UTF-8" />
                     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
                     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
@@ -51,7 +54,7 @@ async def send_otp_notification_func(user_email: str, subject: str, username: st
                             <td style="text-align: right;">
                                 <span
                                 style="font-size: 16px; line-height: 30px; color: #000000;"
-                                >12 Nov, 2021</span
+                                >{today_date}</span
                                 >
                             </td>
                             </tr>
@@ -219,5 +222,5 @@ async def send_otp_notification_func(user_email: str, subject: str, username: st
                 </html>
     """
     response = await send_email_via_ses(
-        user_email, custom_notification_schema, subject=subject)
+        user_email, product_created_schema, subject=subject)
     return response
