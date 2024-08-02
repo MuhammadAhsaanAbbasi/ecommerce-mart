@@ -7,7 +7,7 @@ from aiokafka import AIOKafkaConsumer # type: ignore
 from aiokafka.errors import KafkaConnectionError # type: ignore
 from fastapi import HTTPException
 # from ..schemas.user_emails import email_signup
-from app.model.models import EmailUser as EmailUserModel
+from app.model.authentication import EmailUser as EmailUserModel
 from app.setting import USER_SIGNUP_EMAIL_TOPIC
 from sqlmodel import Session
 from ..core.db import DB_SESSION, engine

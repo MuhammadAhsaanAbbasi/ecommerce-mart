@@ -87,6 +87,7 @@ async def create_product(
         product = Product(
             product_name=product_details.product_name,
             product_desc=product_details.product_desc,
+            featured=product_details.featured,
             category_id=product_details.category_id,
             product_item=product_item_tables
         )
@@ -99,6 +100,7 @@ async def create_product(
         product_proto = ProductFormModelProto(
             product_name=product.product_name,
             product_desc=product.product_desc,
+            featured=product.featured,
             category_id=product.category_id,
             product_item=[
                 ProductItemFormModelProto(
@@ -362,10 +364,10 @@ async def updated_product(product_id:str,
 
 # delete product
 async def deleted_product(product_id: str,
-                        current_admin: Annotated[Admin, Depends(get_current_active_admin_user)], 
+                        # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)], 
                         session: DB_SESSION):
-    if not current_admin:
-        raise HTTPException(status_code=404, detail="Admin not found")
+    # if not current_admin:
+    #     raise HTTPException(status_code=404, detail="Admin not found")
     
     product = session.exec(select(Product).where(Product.id == product_id)).first()
     if not product:

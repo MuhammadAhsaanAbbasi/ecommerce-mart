@@ -1,7 +1,7 @@
 from ..core.config import send_email_via_ses
 from datetime import datetime, timedelta
 # from ..schemas.user_emails import verified_notification_schema
-# from ..schemas.product_email import product_created_schema
+from ..schemas.product_email import product_schema
 from .date import today_date
 
 async def send_otp_notification_func(user_email: str, subject: str, username: str, otp: int):
@@ -221,6 +221,11 @@ async def send_otp_notification_func(user_email: str, subject: str, username: st
                     </body>
                 </html>
     """
+    schema = product_schema(product_name="Paithani Saree",
+                            product_description="This is a paithaniee Saree",
+                            product_price=1000,
+                            product_image="https://res.cloudinary.com/dw51hrvbj/image/upload/v1721879945/odo3jdcrkqpevd4m9lvg.webp"
+                            )
     response = await send_email_via_ses(
-        user_email, otp_notification_schema, subject=subject)
+        user_email, schema, subject=subject)
     return response

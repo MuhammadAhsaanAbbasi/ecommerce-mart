@@ -15,6 +15,7 @@ message ProductItemFormModel {
 message ProductFormModel {
     string product_name = 1;
     string product_desc = 2;
-    string category_id = 3;
+    bool featured = 3;
+    string category_id = 4;
     repeated ProductItemFormModel product_item = 5;
 }

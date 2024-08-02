@@ -109,9 +109,10 @@ async def update_product(product_id:str,
 @router.delete("/delete_product/{product_id}")
 async def delete_product(product_id:str, 
                         session: DB_SESSION,
-                        current_admin: Annotated[Admin, Depends(get_current_active_admin_user)]
+                        # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)]
                         ):
-    product = await deleted_product(product_id, current_admin, session)
+    # product = await deleted_product(product_id, current_admin, session)
+    product = await deleted_product(product_id, session)
     return product
 
 @router.get("/may-also-like/{product_id}")

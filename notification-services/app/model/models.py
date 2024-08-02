@@ -1,18 +1,7 @@
 from sqlmodel import SQLModel, Field,Relationship
 from typing import Optional, Union, List
 from pydantic import BaseModel, EmailStr
-from .base import BaseIdModel
-
-class EmailUser(BaseModel):
-    username: str
-    email: str
-    imageUrl: str
-    is_active: bool
-    is_verified: bool
-    role: str
-
-class SubscribeEmail(BaseIdModel, table=True):
-    email: str = Field(index=True)
+# from .base import BaseIdModel
 
 class SizeModel(SQLModel):
     size: str
