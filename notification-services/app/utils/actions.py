@@ -1,7 +1,7 @@
 from ..core.config import send_email_via_ses
 from datetime import datetime, timedelta
-from ..schemas.user_emails import verified_notification_schema
-from ..schemas.product_email import product_created_schema
+# from ..schemas.user_emails import verified_notification_schema
+# from ..schemas.product_email import product_created_schema
 from .date import today_date
 
 async def send_otp_notification_func(user_email: str, subject: str, username: str, otp: int):
@@ -222,5 +222,5 @@ async def send_otp_notification_func(user_email: str, subject: str, username: st
                 </html>
     """
     response = await send_email_via_ses(
-        user_email, product_created_schema, subject=subject)
+        user_email, otp_notification_schema, subject=subject)
     return response

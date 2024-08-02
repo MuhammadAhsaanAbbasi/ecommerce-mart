@@ -5,6 +5,15 @@ from datetime import datetime
 from enum import Enum
 import uuid
 
+class EmailUser(BaseModel):
+    username: str
+    email: str
+    imageUrl: str
+    is_active: bool
+    is_verified: bool
+    role: str
+
+
 class BaseIdModel(SQLModel):
     id: int | None = Field(default=None, primary_key=True)
     created_at: datetime | None = Field(default_factory=datetime.now)
@@ -12,6 +21,8 @@ class BaseIdModel(SQLModel):
         default_factory=datetime.utcnow, sa_column_kwargs={"onupdate": datetime.now}
     )
 
+class SubscribeEmail(BaseIdModel, table=True):
+    email: str = Field(index=True)
 
 class UserBase(BaseIdModel):
     kid: Optional[str] = Field(default=uuid.uuid4().hex)

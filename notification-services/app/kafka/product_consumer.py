@@ -33,7 +33,6 @@ async def product_consumer():
                 product_name=product_proto.product_name,
                 product_desc=product_proto.product_desc,
                 category_id=product_proto.category_id,
-                gender_id=product_proto.gender_id,
                 product_item=[
                     ProductItemFormModel(
                         color=item.color,
@@ -48,6 +47,10 @@ async def product_consumer():
             )
 
             print(f"Product Form Model: {product_form}")
+            print(f"Product Form Image: {product_form.product_item[0].image_url}")
+            print(f"Product Form Prize: {product_form.product_item[0].sizes[0].price}")
+
+            email_sent = await send_product_email(product_form)
 
     except KafkaConnectionError as e:
         print(f"Error connecting to Kafka: {e}")

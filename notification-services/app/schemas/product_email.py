@@ -1,6 +1,7 @@
 from ..utils.date import today_date
 
-product_created_schema = f"""
+def product_schema(product_name: str, product_description: str, product_price: int, product_image: str):
+    product_created_schema = f"""
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -33,28 +34,50 @@ product_created_schema = f"""
             background-position: top center;
             font-size: 14px;
         }}
-        .header-table {{
+        .header_table {{
             width: 100%;
         }}
-        .main-content {{
+        .main_content {{
             margin-top: 70px;
             padding: 20px;
             background: #ffffff;
             border-radius: 30px;
             text-align: center;
         }}
-        .grid-container {{
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
+        .product_container {{
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
             gap: 10px;
             padding: 10px;
         }}
-        .grid-item {{
-            padding: 10px;
-        }}
-        .grid-item img {{
-            width: 150px;
+        .product_container img {{
+            width: 200px;
             height: auto;
+            border-radius: 10px;
+        }}
+        .product_details {{
+            text-align: left;
+            padding: 20px;
+            gap: 10px;
+        }}
+        .product_details h2 {{
+            font-size: 25px;
+            font-weight: 600;
+        }}
+        .product_details p {{
+            font-size: 20px;
+            font-weight: 400;
+        }}
+        .v_button {{
+            background-color: #2196F3;
+            color: #fff;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 4px;
+            display: inline-block;
+            margin-top: 10px;
         }}
         .footer {{
             width: 100%;
@@ -66,22 +89,12 @@ product_created_schema = f"""
         .footer img {{
             width: 36px;
         }}
-        @media screen and (max-width: 768px) {{
-            .grid-container {{
-                grid-template-columns: repeat(2, 1fr);
-            }}
-        }}
-        @media screen and (max-width: 480px) {{
-            .grid-container {{
-                grid-template-columns: 1fr;
-            }}
-        }}
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <table class="header-table">
+            <table class="header_table"> 
                 <tbody>
                     <tr style="height: 0;">
                         <td>
@@ -101,58 +114,39 @@ product_created_schema = f"""
             </table>
         </header>
         <main>
-            <div class="main-content">
+            <div class="main_content">
+                <h1 style="font-size: 40px; font-weight: 600; color: Black;">New Arrival</h1>
+                <div class="product_container">
+                    <img src={product_image} alt="Product" title="Product"/>
+                    <div class="product_details display: flex; flex-direction: column; align-items: flex-start; text-align: left; width: 100%;">
+                        <h2>{product_name}</h2>
+                        <p>{product_description}</p>
+                        <p>{product_price}</p>
+                        <div>
+                            <a href="https://hrk-boutique.com/products/" target="_blank" class="v_button">
+                                <span><strong>Quick view</strong></span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
                 <div class="grid-container">
                     <div class="grid-item">
-                        <img align="center" border="0" src="https://hrk-boutique.s3.ap-south-1.amazonaws.com/emailTemplate/image-17.png" alt="Icon" title="Icon"/>
+                        <img src="https://hrk-boutique.s3.ap-south-1.amazonaws.com/emailTemplate/image-17.png" alt="Icon" title="Icon"/>
                         <h4><strong>FREE SHIPPING</strong></h4>
                         <p>on order over $150.00</p>
                     </div>
                     <div class="grid-item">
-                        <img align="center" border="0" src="https://hrk-boutique.s3.ap-south-1.amazonaws.com/emailTemplate/image-7.png" alt="Icon" title="Icon"/>
+                        <img src="https://hrk-boutique.s3.ap-south-1.amazonaws.com/emailTemplate/image-7.png" alt="Icon" title="Icon"/>
                         <h4><strong>FREE RETURNS</strong></h4>
                         <p>free 90 days return</p>
                     </div>
                     <div class="grid-item">
-                        <img align="center" border="0" src="https://hrk-boutique.s3.ap-south-1.amazonaws.com/emailTemplate/image-6.png" alt="Icon" title="Icon"/>
+                        <img src="https://hrk-boutique.s3.ap-south-1.amazonaws.com/emailTemplate/image-6.png" alt="Icon" title="Icon"/>
                         <h4><strong>MEMBER DISCOUNT</strong></h4>
                         <p>free register</p>
                     </div>
                 </div>
-                <h4><strong>FEATURED PRODUCTS</strong></h4>
-                <div class="grid-container">
-                    <div class="grid-item">
-                        <img align="center" border="0" src="https://hrk-boutique.s3.ap-south-1.amazonaws.com/emailTemplate/image-20.jpeg" alt="Product" title="Product"/>
-                        <h4><strong>Grouped Product</strong></h4>
-                        <p>$500.00</p>
-                        <div align="center">
-                            <a href="https://unlayer.com/" target="_blank" class="v-button">
-                                <span><strong>Quick view</strong></span>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="grid-item">
-                        <img align="center" border="0" src="https://hrk-boutique.s3.ap-south-1.amazonaws.com/emailTemplate/image-8.jpeg" alt="Product" title="Product"/>
-                        <h4><strong>Premium Quality</strong></h4>
-                        <p>$600.00</p>
-                        <div align="center">
-                            <a href="https://unlayer.com/" target="_blank" class="v-button">
-                                <span><strong>Quick view</strong></span>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="grid-item">
-                        <img align="center" border="0" src="https://hrk-boutique.s3.ap-south-1.amazonaws.com/emailTemplate/image-13.jpeg" alt="Product" title="Product"/>
-                        <h4><strong>Simple product</strong></h4>
-                        <p>$450.00</p>
-                        <div align="center">
-                            <a href="https://unlayer.com/" target="_blank" class="v-button">
-                                <span><strong>Quick view</strong></span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                <p style="max-width: 400px; margin: 0 auto; margin-top: 90px; text-align: center; font-weight: 500; color: #8c8c8c;">
+                <p style="max-width: 400px; margin: 0 auto; margin-top: 50px; text-align: center; font-weight: 500; color: #8c8c8c;">
                     Need help? Ask at
                     <a href="mailto:hrkBoutique@hotmail.com" style="color: #499fb6; text-decoration: none;">hrkBoutique@hotmail.com</a>
                     or visit our
