@@ -1,6 +1,6 @@
 from ..utils.auth import authenticate_user, create_access_token, create_refresh_token, generate_and_send_otp, get_value_hash, get_verified_user
 from app.service.kong_consumer import create_consumer_in_kong, create_jwt_credentials_in_kong 
-from ..setting import ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_MINUTES, USER_SIGNUP_EMAIL_TOPIC
+from ..setting import ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_MINUTES, USER_SIGNUP_VERIFY_TOPIC
 from fastapi.security.oauth2 import OAuth2PasswordRequestForm
 from aiokafka.errors import KafkaTimeoutError # type: ignore
 from aiokafka import AIOKafkaProducer # type: ignore
@@ -67,7 +67,7 @@ async def verify_and_generate_tokens(
         print(f"Serialized data: {serialized_user}")
 
         # Produce message to Kafka
-        await aio_producer.send_and_wait(topic=USER_SIGNUP_EMAIL_TOPIC, value=serialized_user)
+        await aio_producer.send_and_wait(topic=USER_SIGNUP_VERIFY_TOPIC, value=serialized_user)
         print("Message sent to Kafka topic")
 
     except KafkaTimeoutError as e:

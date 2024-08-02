@@ -8,10 +8,9 @@ from aiokafka.errors import KafkaConnectionError # type: ignore
 from fastapi import HTTPException
 # from ..schemas.user_emails import email_signup
 from app.model.authentication import EmailUser as EmailUserModel
-from app.setting import USER_SIGNUP_EMAIL_TOPIC
-from sqlmodel import Session
-from ..core.db import DB_SESSION, engine
-import resend # type: ignore 
+from ..schemas.user_emails import verified_user_schema 
+from app.setting import USER_SIGNUP_VERIFY_TOPIC
+from ..core.config import send_email_via_ses
 
 ###################################################################################################################
 async def get_kafka_consumer(topics: list[str]) -> AIOKafkaConsumer:
@@ -27,7 +26,7 @@ async def get_kafka_consumer(topics: list[str]) -> AIOKafkaConsumer:
 ###################################################################################################################
 
 async def user_consumer():
-    consumer_kafka = await get_kafka_consumer([USER_SIGNUP_EMAIL_TOPIC])
+    consumer_kafka = await get_kafka_consumer([USER_SIGNUP_VERIFY_TOPIC])
     try:
         async for msg in consumer_kafka:
             new_user = user_pb2.EmailUser()  # Correct instantiation
@@ -41,18 +40,12 @@ async def user_consumer():
                 role=new_user.role
             )
             print(f"User Data: {user_data}")
-            # try:
-            #     # Send OTP to user
-            #     params = {
-            #         "from": "onboarding@resend.dev",
-            #         "to": [user_data.email],  # Use user email dynamically
-            #         "subject": "Congratulations! Email",
-            #         "html": f"<p>Congratulations on successfully verifying your email address. We are thrilled to have you with us!</p>",
-            #     }
-            #     response = resend.Emails.send(params)
-            #     print(response)
-            # except HTTPException as e:
-            #     print(e)
+            try:
+                schema = verified_user_schema(user_data.username)
+                send_email = await send_email_via_ses(user_email="", body=schema, subject="User Verified Email")
+                print(f"Send Email: {send_email}")
+            except HTTPException as e:
+                print(e)
     except KafkaConnectionError as e:
         print(f"Error connecting to Kafka: {e}")
     finally:

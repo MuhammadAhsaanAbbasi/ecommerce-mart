@@ -1,6 +1,7 @@
 from ..utils.date import today_date
 
-verified_notification_schema = f"""
+def verified_user_schema(user_name:str):
+    verified_notification_schema = f"""
                 <!DOCTYPE html>
                 <html lang="en">
                 <head> 
@@ -82,7 +83,7 @@ verified_notification_schema = f"""
                                 color: #1f1f1f;
                             "
                             >
-                            Hey User
+                            Hey {user_name}
                             </h1>
                             <p
                                 style="
@@ -195,7 +196,9 @@ verified_notification_schema = f"""
                     </div>
                     </body>
                 </html>
-    """
+        """
+    return verified_notification_schema
+
 
 # ============================================================================================================
 
