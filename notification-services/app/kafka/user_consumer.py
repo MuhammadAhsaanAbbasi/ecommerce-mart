@@ -1,18 +1,16 @@
-from app import user_pb2 # Ensure this is the correct path to your generated file
-
-# Other necessary imports
-import requests
-from typing import Annotated
-from aiokafka import AIOKafkaConsumer # type: ignore
+from app.model.authentication import EmailUser as EmailUserModel, Otp
 from aiokafka.errors import KafkaConnectionError # type: ignore
-from fastapi import HTTPException
-# from ..schemas.user_emails import email_signup
-from app.model.authentication import EmailUser as EmailUserModel
+from app.setting import USER_SIGNUP_VERIFY_TOPIC, OTP_TOPIC
 from ..schemas.user_emails import verified_user_schema 
-from app.setting import USER_SIGNUP_VERIFY_TOPIC
+from ..utils.actions import send_otp_notification_func
+from aiokafka import AIOKafkaConsumer # type: ignore
 from ..core.config import send_email_via_ses
+from app import user_pb2 # type: ignore
+from fastapi import HTTPException
 
-###################################################################################################################
+
+################################################################################################################
+
 async def get_kafka_consumer(topics: list[str]) -> AIOKafkaConsumer:
     consumer_kafka = AIOKafkaConsumer(
         *topics,
@@ -23,9 +21,33 @@ async def get_kafka_consumer(topics: list[str]) -> AIOKafkaConsumer:
     await consumer_kafka.start()
     return consumer_kafka
 
-###################################################################################################################
+################################################################################################################
 
-async def user_consumer():
+async def user_signup_consumer():
+    consumer_kafka = await get_kafka_consumer([OTP_TOPIC])
+    try:
+        async for msg in consumer_kafka:
+            new_user = user_pb2.Otp()  # Correct instantiation
+            new_user.ParseFromString(msg.value)
+            user_data = Otp(
+                email=new_user.email,
+                token=new_user.token,
+                otp=new_user.otp,
+            )
+            print(f"User Data: {user_data}")
+            try:
+                send_email = await send_otp_notification_func(user_email=user_data.email, otp=user_data.otp, token=user_data.token, subject="OTP Notification")
+                print(f"Send Email: {send_email}")
+            except HTTPException as e:
+                print(e)
+    except KafkaConnectionError as e:
+        print(f"Error connecting to Kafka: {e}")
+    finally:
+        await consumer_kafka.stop()
+
+################################################################################################################
+
+async def user_verified_consumer():
     consumer_kafka = await get_kafka_consumer([USER_SIGNUP_VERIFY_TOPIC])
     try:
         async for msg in consumer_kafka:

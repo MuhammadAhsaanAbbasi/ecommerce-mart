@@ -1,6 +1,7 @@
 from ..utils.date import today_date
 
-order_created_schema = f"""
+def order_schema():
+    order_created_schema = f"""
                 <!DOCTYPE html>
                 <html lang="en">
                 <head> 
@@ -205,7 +206,9 @@ order_created_schema = f"""
                     </div>
                     </body>
                 </html>
-    """
+        """
+    return order_created_schema
+
 
 # ============================================================================================================
 

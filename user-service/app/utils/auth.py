@@ -1,4 +1,4 @@
-from ..setting import ALGORITHM, SECRET_KEY, ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_MINUTES, RESEND_API_KEY
+from ..setting import ALGORITHM, SECRET_KEY, ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_MINUTES
 from app.service.kong_consumer import create_consumer_in_kong, create_jwt_credentials_in_kong 
 from ..model.models import Users, TokenData, Admin, UserBase, UserModel
 from fastapi.security.oauth2 import OAuth2PasswordBearer
@@ -9,12 +9,8 @@ from ..core.db import DB_SESSION
 from sqlmodel import select, Session
 from typing import Annotated, Union, Optional
 from passlib.context import CryptContext
-import resend # type: ignore 
 import numpy as np
 import json
-
-# Set your API key
-resend.api_key = RESEND_API_KEY
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -230,18 +226,7 @@ async def generate_and_send_otp(user: UserModel, session: Session):
     except HTTPException as e:
             raise HTTPException(status_code=500, detail=f"Error creating JWT credentials in Kong: {e}")
 
-    # Send OTP to user
-    params = {
-        "from": "onboarding@resend.dev", 
-        "to": ["mahsaanabbasi@gmail.com"],
-        "subject": "Your OTP for sign-up",
-        "html": f"<p>Your OTP is: {otp}</p>",
-    }
-    response = resend.Emails.send(params)
-    print(response)
-
-    # user_json  = dict(normal_user)
-    return normal_user
+    return otp
 
 def create_verify_token(email: str) -> str:
     if not isinstance(SECRET_KEY, str):

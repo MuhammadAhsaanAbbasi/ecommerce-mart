@@ -71,3 +71,8 @@ class Token(SQLModel):
 class TokenData(BaseModel):
     username: str | None = None
     email: str | None = None
+
+class Otp(SQLModel):
+    email: str
+    token: str
+    otp: str

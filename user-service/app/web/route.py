@@ -126,7 +126,8 @@ async def auth(request: Request, session: DB_SESSION):
 
 # Sign-up Routes
 @router.post("/signup")
-async def sign_up(user: UserModel, session:DB_SESSION, aio_producer: Annotated[AIOKafkaProducer, Depends(get_kafka_producer)]):
+async def sign_up(user: UserModel, session:DB_SESSION, 
+                aio_producer: Annotated[AIOKafkaProducer, Depends(get_kafka_producer)]):
     # Check the value on db
     existing_user  = session.exec(select(Users).where(Users.email == user.email)).first()
     if existing_user:
@@ -135,6 +136,8 @@ async def sign_up(user: UserModel, session:DB_SESSION, aio_producer: Annotated[A
     # Create Image Url
     initial_letters = user.username[0:2].upper() 
     user.imageUrl = f"https://avatar.vercel.sh/{user.username}.svg?text={initial_letters}"
+
+    verify_user_token = create_verify_token(user.email)
 
     # data produce on consumer
     try:
@@ -145,6 +148,7 @@ async def sign_up(user: UserModel, session:DB_SESSION, aio_producer: Annotated[A
                                     phone_number=user.phone_number,
                                     date_of_birth=user.date_of_birth,
                                     gender=user.gender,
+                                    token=verify_user_token
                                     )
         print(f"Todo Protobuf: {user_protobuf}")
 
@@ -158,7 +162,6 @@ async def sign_up(user: UserModel, session:DB_SESSION, aio_producer: Annotated[A
         print(f"Error In Print message...! {e}")
     finally:
         await aio_producer.stop()
-    verify_user_token = create_verify_token(user.email)
     return ORJSONResponse({"token": verify_user_token})
 
 

@@ -106,8 +106,8 @@ async def create_user(user_details: UserModel, session: DB_SESSION, isGoogle: bo
             raise HTTPException(status_code=500, detail=f"Error creating JWT credentials in Kong: {e}")
         return {"detail": "User created successfully"}
 
-    await generate_and_send_otp(user_details, session)
-    return {"detail": "OTP sent successfully"}
+    otp = await generate_and_send_otp(user_details, session)
+    return {"detail": "OTP sent successfully", "otp": otp}
 
 # Create Admin 
 def create_admin(user: Admin, session: DB_SESSION):

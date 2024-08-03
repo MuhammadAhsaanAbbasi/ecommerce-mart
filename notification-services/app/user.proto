@@ -8,3 +8,9 @@ message EmailUser {
     bool is_verified = 5;
     string role = 6;
 }
+
+message Otp {
+    string email = 1;
+    string token = 2;
+    string otp = 3;
+}

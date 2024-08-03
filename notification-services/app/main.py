@@ -4,23 +4,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from .web.routes  import router
 from .core.db import create_db_and_tables
-from .kafka.user_consumer import user_consumer
-from .kafka.product_consumer import product_consumer
-from .kafka.inventory_consumer import product_item_consumer
-# from .model.models import Users
-import asyncio
+from .service.notification_service import task_initiators
 
-
-async def task_initiator():
-    asyncio.create_task(user_consumer())
-    asyncio.create_task(product_consumer())
-    asyncio.create_task(product_item_consumer())
 
 @asynccontextmanager 
 async def life_span(app: FastAPI):
     print("Hello World..!!!")
     create_db_and_tables()
-    await task_initiator()
+    await task_initiators()
     yield
 
 

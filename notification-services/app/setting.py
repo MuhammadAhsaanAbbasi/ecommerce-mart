@@ -19,6 +19,8 @@ PRODUCT_TOPIC = config("PRODUCT_TOPIC", cast=str)
 
 INVENTORY_TOPIC = config("INVENTORY_TOPIC", cast=str)
 
+ORDER_TOPIC = config("ORDER_TOPIC", cast=str)
+
 DOMAIN_NAME = config("DOMAIN_NAME", cast=str)
 AWS_REGION = config("AWS_REGION", cast=str)
 AWS_ACCESS_KEY = config("AWS_ACCESS_KEY", cast=str)
