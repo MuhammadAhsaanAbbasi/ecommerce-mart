@@ -10,5 +10,5 @@ router = APIRouter(prefix="/api/v1")
 
 @router.get("/custom-notifications")
 async def custom_notification(user_email: str):
-    response = await send_otp_notification_func(user_email, "OTP Notification", f"This is a OTP notification,", otp=89344)
+    response = await send_otp_notification_func(user_email=user_email, subject="OTP Notification", token=f"This is a OTP notification,", otp="89344")
     return response

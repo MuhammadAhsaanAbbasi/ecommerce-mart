@@ -52,3 +52,16 @@ class Order(BaseIdModel, OrderBase, table=True):
 class OrderItem(BaseIdModel, OrderItemBase, table=True):
     order_id: str = Field(foreign_key="order.id") 
     order: Optional["Order"] = Relationship(back_populates="order_items")
+
+class OrderItemDetails(SQLModel):
+    product_name: str
+    product_image_url: str
+    product_color: str
+    product_size: str
+    quantity: int
+    price: int
+
+
+class OrderDetails(OrderBase):
+    order_id: str
+    order_items: List[OrderItemDetails]
