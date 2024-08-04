@@ -64,7 +64,7 @@ async def user_verified_consumer():
             print(f"User Data: {user_data}")
             try:
                 schema = verified_user_schema(user_data.username)
-                send_email = await send_email_via_ses(user_email="", body=schema, subject="User Verified Email")
+                send_email = await send_email_via_ses(user_email=user_data.email, body=schema, subject="User Verified Email")
                 print(f"Send Email: {send_email}")
             except HTTPException as e:
                 print(e)

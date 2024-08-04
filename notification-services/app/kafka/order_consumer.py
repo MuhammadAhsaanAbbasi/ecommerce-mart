@@ -1,12 +1,13 @@
 from app.model.authentication import EmailUser as EmailUserModel, Otp
-from aiokafka.errors import KafkaConnectionError # type: ignore
-from app.setting import ORDER_TOPIC
-from ..schemas.user_emails import verified_user_schema 
 from ..model.order import OrderModel, OrderItemBase, OrderPayment
+from aiokafka.errors import KafkaConnectionError # type: ignore 
+from ..service.order_service import send_order_confirmation_email
 from aiokafka import AIOKafkaConsumer # type: ignore
-from ..core.config import send_email_via_ses
 from app import order_pb2 # type: ignore
+from app.setting import ORDER_TOPIC
 from fastapi import HTTPException
+from sqlmodel import Session
+from ..core.db import engine
 
 
 ################################################################################################################
@@ -16,7 +17,6 @@ async def get_kafka_consumer(topics: list[str]) -> AIOKafkaConsumer:
         *topics,
         group_id="ecommerce-mart",
         bootstrap_servers="kafka:19092",
-        auto_offset_reset="earliest",
     )
     await consumer_kafka.start()
     return consumer_kafka
@@ -57,12 +57,12 @@ async def order_consumer():
             print(f"User Id: {user_id}")
             print(f"Order Id: {order_id}")
 
-            # with Session(engine) as session:
-            #     try:
-            #         order = await create_order(order_model, order_id, user_id, session)
-            #         print(f"Created Order: {order}")
-            #     except HTTPException as e:
-            #         print(f"Error creating user: {e.detail}")
+            with Session(engine) as session:
+                try:
+                    order = await send_order_confirmation_email(order_model, user_id, order_id, session)
+                    print(f"Created Order: {order}")
+                except HTTPException as e:
+                    print(f"Error creating user: {e.detail}")
 
     except KafkaConnectionError as e:
         print(f"Error connecting to Kafka: {e}")

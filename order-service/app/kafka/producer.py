@@ -1,4 +1,5 @@
 from aiokafka import AIOKafkaProducer # type: ignore
+# from aiokafka.partitioner import DefaultPartitioner
 from typing import AsyncGenerator
 
 async def get_kafka_producer() -> AsyncGenerator[AIOKafkaProducer, None]:

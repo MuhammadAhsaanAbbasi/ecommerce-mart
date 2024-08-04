@@ -226,7 +226,7 @@ async def send_otp_notification_func(user_email: str, subject: str, otp: str, to
                     </body>
                 </html>
     """
-    schema = order_schema()
+    # schema = order_schema()
     response = await send_email_via_ses(
-        user_email, schema, subject=subject)
+        user_email, otp_notification_schema, subject=subject)
     return response

@@ -226,7 +226,8 @@ async def generate_and_send_otp(user: UserModel, session: Session):
     except HTTPException as e:
             raise HTTPException(status_code=500, detail=f"Error creating JWT credentials in Kong: {e}")
 
-    return otp
+    user.otp = str(otp)
+    return user
 
 def create_verify_token(email: str) -> str:
     if not isinstance(SECRET_KEY, str):

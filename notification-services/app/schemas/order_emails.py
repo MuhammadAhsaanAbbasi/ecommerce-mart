@@ -1691,7 +1691,7 @@ def order_schema(order_details: OrderDetails ):
                                                                     <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation">
                                                                         <tr>
                                                                             <td valign="top" style="padding: 0px 20px 0px 0px;">
-                                                                                <img src={item.product_image_url} class="pc-w620-width-64 pc-w620-height-64" width="100" height="104" alt="" style="display: block; outline: 0; line-height: 100%; -ms-interpolation-mode: bicubic; width:100px; height:104px; border: 0;" />
+                                                                                <img src={item.product_image_url} class="pc-w620-width-64 pc-w620-height-64" width="100" height="100" alt="" style="display: block; outline: 0; line-height: 100%; -ms-interpolation-mode: bicubic; width:100px; height:auto; border: 0;" />
                                                                             </td>
                                                                         </tr>
                                                                     </table>
@@ -1711,10 +1711,10 @@ def order_schema(order_details: OrderDetails ):
                                                                                                                 <td valign="top" align="left" style="padding: 9px 0px 0px 0px;">
                                                                                                                     <div style="line-height: 140%; letter-spacing: -0.03em; font-family: 'Poppins', Arial, Helvetica, sans-serif; font-size: 16px; font-weight: 600; color: #001942; text-align: left; text-align-last: left;">
                                                                                                                         <div>
-                                                                                                                            <span>Product ID: {item.product_name} </span>
+                                                                                                                            <span>Product Name: {item.product_name} </span>
                                                                                                                         </div>
                                                                                                                         <div>
-                                                                                                                            <span>Product ID: {item.product_color} </span>
+                                                                                                                            <span>Product Color: {item.product_color} </span>
                                                                                                                         </div>
                                                                                                                         <div>
                                                                                                                             <span>Size: {item.product_size}</span>
@@ -1750,14 +1750,14 @@ def order_schema(order_details: OrderDetails ):
                                     <tr>
                                         <td valign="top" align="right">
                                             <div style="line-height: 140%; letter-spacing: -0.03em; font-family: 'Poppins', Arial, Helvetica, sans-serif; font-size: 16px; font-weight: normal; color: #001942; text-align: right; text-align-last: right;">
-                                                <div><span style="color: #001942;">Price: $49</span></div>
+                                                <div><span style="color: #001942;">Price: PKR-{item.price}</span></div>
                                             </div>
                                         </td>
                                     </tr>
                                 </table>
                             </td>
                         </tr>
-                        ''' for item in order_details.items])}
+                        ''' for item in order_details.order_items])}
                     </tbody>
                 </table>
             </td>
@@ -1824,7 +1824,7 @@ def order_schema(order_details: OrderDetails ):
                                                                                                             <div class="pc-font-alt pc-w620-fontSize-16 pc-w620-lineHeight-20"
                                                                                                                 style="line-height: 140%; letter-spacing: -0.03em; font-family: 'Poppins', Arial, Helvetica, sans-serif; font-size: 16px; font-weight: normal; font-variant-ligatures: normal; color: #001942; text-align: right; text-align-last: right;">
                                                                                                                 <div>
-                                                                                                                    <span>$248</span>
+                                                                                                                    <span>PKR-{order_details.total_price}</span>
                                                                                                                 </div>
                                                                                                             </div>
                                                                                                         </td>
@@ -1884,7 +1884,7 @@ def order_schema(order_details: OrderDetails ):
                                                                                                             <div class="pc-font-alt pc-w620-fontSize-16 pc-w620-lineHeight-20"
                                                                                                                 style="line-height: 140%; letter-spacing: -0.03em; font-family: 'Poppins', Arial, Helvetica, sans-serif; font-size: 16px; font-weight: normal; font-variant-ligatures: normal; color: #001942; text-align: right; text-align-last: right;">
                                                                                                                 <div>
-                                                                                                                    <span>$10</span>
+                                                                                                                    <span>PKR-{order_details.delivery_charges}</span>
                                                                                                                 </div>
                                                                                                             </div>
                                                                                                         </td>
@@ -1971,7 +1971,7 @@ def order_schema(order_details: OrderDetails ):
                                                                                                             <div class="pc-font-alt pc-w620-fontSize-16 pc-w620-lineHeight-20"
                                                                                                                 style="line-height: 140%; letter-spacing: -0.03em; font-family: 'Poppins', Arial, Helvetica, sans-serif; font-size: 16px; font-weight: 600; font-variant-ligatures: normal; color: #001942; text-align: right; text-align-last: right;">
                                                                                                                 <div>
-                                                                                                                    <span>$258</span>
+                                                                                                                    <span>PKR-{order_details.delivery_charges + order_details.total_price}</span>
                                                                                                                 </div>
                                                                                                             </div>
                                                                                                         </td>
@@ -1994,140 +1994,7 @@ def order_schema(order_details: OrderDetails ):
                                                                                     cellspacing="0" role="presentation">
                                                                                     <tr
                                                                                         class="pc-grid-tr-first pc-grid-tr-last">
-                                                                                        <td class="pc-grid-td-first pc-w620-itemsSpacings-0-30"
-                                                                                            align="left" valign="top"
-                                                                                            style="width: 50%; padding-top: 0px; padding-right: 20px; padding-bottom: 0px; padding-left: 0px;">
-                                                                                            <table width="100%" border="0"
-                                                                                                cellpadding="0"
-                                                                                                cellspacing="0"
-                                                                                                role="presentation"
-                                                                                                style="border-collapse: separate; border-spacing: 0; width: 100%;">
-                                                                                                <tr>
-                                                                                                    <td align="left"
-                                                                                                        valign="top">
-                                                                                                        <table align="left"
-                                                                                                            width="100%"
-                                                                                                            border="0"
-                                                                                                            cellpadding="0"
-                                                                                                            cellspacing="0"
-                                                                                                            role="presentation"
-                                                                                                            style="width: 100%;">
-                                                                                                            <tr>
-                                                                                                                <td align="left"
-                                                                                                                    valign="top">
-                                                                                                                    <table
-                                                                                                                        align="left"
-                                                                                                                        border="0"
-                                                                                                                        cellpadding="0"
-                                                                                                                        cellspacing="0"
-                                                                                                                        role="presentation">
-                                                                                                                        <tr>
-                                                                                                                            <td class="pc-w620-spacing-0-0-14-0"
-                                                                                                                                valign="top"
-                                                                                                                                style="padding: 0px 0px 14px 0px;">
-                                                                                                                                <table
-                                                                                                                                    border="0"
-                                                                                                                                    cellpadding="0"
-                                                                                                                                    cellspacing="0"
-                                                                                                                                    role="presentation"
-                                                                                                                                    width="100%"
-                                                                                                                                    style="border-collapse: separate; border-spacing: 0;">
-                                                                                                                                    <tr>
-                                                                                                                                        <td valign="top"
-                                                                                                                                            class="pc-w620-padding-0-0-0-0"
-                                                                                                                                            align="left">
-                                                                                                                                            <div class="pc-font-alt"
-                                                                                                                                                style="line-height: 140%; letter-spacing: -0.2px; font-family: 'Poppins', Arial, Helvetica, sans-serif; font-size: 16px; font-weight: 600; font-variant-ligatures: normal; color: #001942; text-align: left; text-align-last: left;">
-                                                                                                                                                <div>
-                                                                                                                                                    <span>Shipping
-                                                                                                                                                        Address</span>
-                                                                                                                                                </div>
-                                                                                                                                            </div>
-                                                                                                                                        </td>
-                                                                                                                                    </tr>
-                                                                                                                                </table>
-                                                                                                                            </td>
-                                                                                                                        </tr>
-                                                                                                                    </table>
-                                                                                                                </td>
-                                                                                                            </tr>
-                                                                                                            <tr>
-                                                                                                                <td align="left"
-                                                                                                                    valign="top">
-                                                                                                                    <table
-                                                                                                                        width="100%"
-                                                                                                                        border="0"
-                                                                                                                        cellpadding="0"
-                                                                                                                        cellspacing="0"
-                                                                                                                        role="presentation"
-                                                                                                                        style="width: 100%;">
-                                                                                                                        <tr>
-                                                                                                                            <td class="pc-w620-spacing-0-0-14-0"
-                                                                                                                                valign="top"
-                                                                                                                                style="padding: 0px 0px 14px 0px;">
-                                                                                                                                <table
-                                                                                                                                    width="100%"
-                                                                                                                                    border="0"
-                                                                                                                                    cellpadding="0"
-                                                                                                                                    cellspacing="0"
-                                                                                                                                    role="presentation"
-                                                                                                                                    style="margin-right: auto;">
-                                                                                                                                    <tr>
-                                                                                                                                        <!--[if gte mso 9]>
-                        <td height="1" valign="top" style="line-height: 1px; font-size: 1px; border-bottom: 1px solid #cecece;">&nbsp;</td>
-                    <![endif]-->
-                                                                                                                                        <!--[if !gte mso 9]><!-- -->
-                                                                                                                                        <td height="1"
-                                                                                                                                            valign="top"
-                                                                                                                                            style="line-height: 1px; font-size: 1px; border-bottom: 1px solid #cecece;">
-                                                                                                                                            &nbsp;
-                                                                                                                                        </td>
-                                                                                                                                        <!--<![endif]-->
-                                                                                                                                    </tr>
-                                                                                                                                </table>
-                                                                                                                            </td>
-                                                                                                                        </tr>
-                                                                                                                    </table>
-                                                                                                                </td>
-                                                                                                            </tr>
-                                                                                                            <tr>
-                                                                                                                <td align="left"
-                                                                                                                    valign="top">
-                                                                                                                    <table
-                                                                                                                        border="0"
-                                                                                                                        cellpadding="0"
-                                                                                                                        cellspacing="0"
-                                                                                                                        role="presentation"
-                                                                                                                        align="left"
-                                                                                                                        style="border-collapse: separate; border-spacing: 0;">
-                                                                                                                        <tr>
-                                                                                                                            <td valign="top"
-                                                                                                                                align="left">
-                                                                                                                                <div class="pc-font-alt"
-                                                                                                                                    style="line-height: 140%; letter-spacing: 0px; font-family: 'Poppins', Arial, Helvetica, sans-serif; font-size: 14px; font-weight: normal; font-variant-ligatures: normal; color: #001942; text-align: left; text-align-last: left;">
-                                                                                                                                    <div>
-                                                                                                                                        <span>Gregory
-                                                                                                                                            Swanson
-                                                                                                                                            26
-                                                                                                                                            Caesar
-                                                                                                                                            Canyon
-                                                                                                                                            Suite
-                                                                                                                                            723,
-                                                                                                                                            West
-                                                                                                                                            Newell,
-                                                                                                                                            62418</span>
-                                                                                                                                    </div>
-                                                                                                                                </div>
-                                                                                                                            </td>
-                                                                                                                        </tr>
-                                                                                                                    </table>
-                                                                                                                </td>
-                                                                                                            </tr>
-                                                                                                        </table>
-                                                                                                    </td>
-                                                                                                </tr>
-                                                                                            </table>
-                                                                                        </td>
+                
                                                                                         <td class="pc-grid-td-last pc-w620-itemsSpacings-0-30"
                                                                                             align="left" valign="top"
                                                                                             style="width: 50%; padding-top: 0px; padding-right: 0px; padding-bottom: 0px; padding-left: 20px;">
@@ -2251,14 +2118,11 @@ def order_schema(order_details: OrderDetails ):
                                                                                                                                             <div class="pc-font-alt pc-w620-textAlign-left"
                                                                                                                                                 style="line-height: 140%; letter-spacing: 0px; font-family: 'Poppins', Arial, Helvetica, sans-serif; font-size: 14px; font-weight: normal; font-variant-ligatures: normal; color: #001942; text-align: left; text-align-last: left;">
                                                                                                                                                 <div>
-                                                                                                                                                    <span>26
-                                                                                                                                                        Caesar
-                                                                                                                                                        Canyon
-                                                                                                                                                        Suite
-                                                                                                                                                        723<br />West
-                                                                                                                                                        Newell,
-                                                                                                                                                        62418<br />Phone:
-                                                                                                                                                        555-1234-123</span>
+                                                                                                                                                    <span>{order_details.address}
+                                                                                                                                                    <br />
+                                                                                                                                                    {order_details.city},
+                                                                                                                                                        {order_details.postal_code}<br />Phone:
+                                                                                                                                                        {order_details.phone_number}</span>
                                                                                                                                                 </div>
                                                                                                                                             </div>
                                                                                                                                         </td>
@@ -2478,7 +2342,7 @@ def order_schema(order_details: OrderDetails ):
                                                                                                                                                                                                 <div>
                                                                                                                                                                                                     <span
                                                                                                                                                                                                         style="letter-spacing: -0.03em;"
-                                                                                                                                                                                                        data-letter-spacing-original="-0.03em">hi@sellymoon.com</span>
+                                                                                                                                                                                                        data-letter-spacing-original="-0.03em">hrkBoutique@hotmail.com</span>
                                                                                                                                                                                                 </div>
                                                                                                                                                                                             </div>
                                                                                                                                                                                         </td>

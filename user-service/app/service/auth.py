@@ -1,12 +1,13 @@
 from ..utils.auth import authenticate_user, create_access_token, create_refresh_token, generate_and_send_otp, get_value_hash, get_verified_user
 from app.service.kong_consumer import create_consumer_in_kong, create_jwt_credentials_in_kong 
 from ..setting import ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_MINUTES, USER_SIGNUP_VERIFY_TOPIC
+from ..model.models import Users, Token, Admin, UserInfo, UserModel, UserUpdate
 from fastapi.security.oauth2 import OAuth2PasswordRequestForm
 from aiokafka.errors import KafkaTimeoutError # type: ignore
 from aiokafka import AIOKafkaProducer # type: ignore
-from ..model.models import Users, Token, Admin, UserInfo, UserModel, UserUpdate
 from ..kafka.user_producer import get_kafka_producer
 from fastapi import Depends, HTTPException, UploadFile, File
+from fastapi.responses import ORJSONResponse
 from ..user_pb2 import EmailUser as EmailUserProto  # type: ignore
 from fastapi.responses import RedirectResponse
 from passlib.context import CryptContext
@@ -107,7 +108,7 @@ async def create_user(user_details: UserModel, session: DB_SESSION, isGoogle: bo
         return {"detail": "User created successfully"}
 
     otp = await generate_and_send_otp(user_details, session)
-    return {"detail": "OTP sent successfully", "otp": otp}
+    return otp
 
 # Create Admin 
 def create_admin(user: Admin, session: DB_SESSION):

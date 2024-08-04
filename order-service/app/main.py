@@ -1,11 +1,13 @@
-from fastapi import FastAPI
+from aiokafka.admin import AIOKafkaAdminClient, NewTopic # type: ignore
 from starlette.middleware.sessions import SessionMiddleware
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
-from .web.cart_routes  import router
 from .web.order_routes  import order_router
 from .core.db import create_db_and_tables
 from .kafka.order import order_consumer
+from .web.cart_routes  import router
+from .setting import ORDER_TOPIC
+from fastapi import FastAPI
 from .model.order import *
 from .model.cart import *
 import asyncio

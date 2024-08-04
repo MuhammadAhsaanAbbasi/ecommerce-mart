@@ -64,4 +64,5 @@ class OrderItemDetails(SQLModel):
 
 class OrderDetails(OrderBase):
     order_id: str
+    delivery_charges: int = 1000
     order_items: List[OrderItemDetails]

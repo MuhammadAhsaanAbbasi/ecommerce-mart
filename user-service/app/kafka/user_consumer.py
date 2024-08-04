@@ -5,7 +5,7 @@ from fastapi import HTTPException
 from app.service.auth import create_user
 from app.model.models import Users
 from app.setting import USER_SIGNUP_TOPIC, OTP_TOPIC
-from app.kafka.user_producer import aio_producer
+from app.kafka.user_producer import AIOKafkaProducer
 from app import user_pb2
 from ..user_pb2 import Otp as OtpProto  # type: ignore
 from sqlmodel import Session
@@ -44,6 +44,9 @@ async def user_consumer():
                     user = await create_user(user_data, session)
                     print(f"Created user: {user.otp}") 
 
+                    producer = AIOKafkaProducer(bootstrap_servers='kafka:19092')
+                    await producer.start()
+
                     try:
                         otp_protobuf = OtpProto(
                                                 email=user_data.email,
@@ -57,11 +60,13 @@ async def user_consumer():
                         print(f"Serialized data: {serialized_otp}")
 
                         # Produce message
-                        await aio_producer.send_and_wait(topic=OTP_TOPIC, value=serialized_otp)
+                        
+
+                        await producer.send_and_wait(topic=OTP_TOPIC, value=serialized_otp)
                     except KafkaTimeoutError as e:
                         print(f"Error In Print message...! {e}")
                     finally:
-                        await aio_producer.stop()
+                        await producer.stop()
 
                 except HTTPException as e:
                     print(f"Error creating user: {e.detail}")
