@@ -17,6 +17,7 @@ async def get_kafka_consumer(topics: list[str]) -> AIOKafkaConsumer:
         *topics,
         group_id="ecommerce-mart",
         bootstrap_servers="kafka:19092",
+        auto_offset_reset="earliest",
     )
     await consumer_kafka.start()
     return consumer_kafka
