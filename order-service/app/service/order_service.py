@@ -164,13 +164,13 @@ async def get_orders_by_id(
 
 # Update Order Status
 async def update_orders_status(
-                    current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
+                    # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
                     session: DB_SESSION,
                     order_id: str,
                     order_status: OrderStatus
                     ):
-    if not current_admin:
-        raise HTTPException(status_code=404, detail="Admin not found")
+    # if not current_admin:
+    #     raise HTTPException(status_code=404, detail="Admin not found")
 
     try:
         # Retrieve the order by order_id

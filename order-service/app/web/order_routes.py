@@ -64,12 +64,13 @@ async def get_order_by_id(
 # Update Order Status
 @order_router.put("/update/order_status/{order_id}")
 async def update_order_status(
-                    current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
+                    # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
                     session: DB_SESSION,
                     order_id: str,
                     order_status: OrderStatus
 ):
-    order = await update_orders_status(current_admin, session, order_id, order_status )
+    # order = await update_orders_status(current_admin, session, order_id, order_status )
+    order = await update_orders_status(session, order_id, order_status )
     return order
 
 # Delete Order By Admin
