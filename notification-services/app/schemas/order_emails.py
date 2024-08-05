@@ -750,7 +750,8 @@ def order_schema(order_details: OrderDetails ):
                                                                                                                                 align="left"
                                                                                                                                 valign="top"
                                                                                                                                 style="padding: 0px 0px 0px 0px;">
-                                                                                                                                <img src="https://cloudfilesdm.com/postcards/6bcf4080513af0370392a31b2b1e5af4.png"
+                                                                                                                                <!-- LOGO -->
+                                                                                                                                <img src="https://cloudfilesdm.com/postcards/6bcf4080513af0370392a31b2b1e5af4.png" 
                                                                                                                                     class="pc-w620-width-136 pc-w620-height-auto pc-w620-align-center"
                                                                                                                                     width="134"
                                                                                                                                     height="26"
@@ -2682,6 +2683,7 @@ def order_schema(order_details: OrderDetails ):
                                                                         <tr>
                                                                             <td align="center" valign="top"
                                                                                 style="padding: 0px 0px 12px 0px;">
+                                                                                <!-- Footer Logo -->
                                                                                 <img src="https://cloudfilesdm.com/postcards/ebe8030dba901967d43e7fbf28bab58f.png"
                                                                                     class="" width="135" height="26" alt=""
                                                                                     style="display: block; outline: 0; line-height: 100%; -ms-interpolation-mode: bicubic; object-fit: contain; width:135px; height: auto; max-width: 100%; border: 0;" />
@@ -3851,6 +3853,7 @@ def order_shipping_schema(order_details: OrderDetails ):
                                                                                                                                 align="left"
                                                                                                                                 valign="top"
                                                                                                                                 style="padding: 0px 0px 0px 0px;">
+                                                                                                                                <!-- LOGO -->
                                                                                                                                 <img src="https://cloudfilesdm.com/postcards/6bcf4080513af0370392a31b2b1e5af4.png"
                                                                                                                                     class="pc-w620-width-136 pc-w620-height-auto pc-w620-align-center"
                                                                                                                                     width="134"
@@ -4146,10 +4149,8 @@ def order_shipping_schema(order_details: OrderDetails ):
                                                                                                                                             <div class="pc-font-alt pc-w620-fontSize-32px pc-w620-lineHeight-32"
                                                                                                                                                 style="line-height: 100%; letter-spacing: -0.03em; font-family: 'Poppins', Arial, Helvetica, sans-serif; font-size: 40px; font-weight: 600; font-variant-ligatures: normal; color: #001942; text-align: center; text-align-last: center;">
                                                                                                                                                 <div>
-                                                                                                                                                    <span>Thanks
-                                                                                                                                                        for
-                                                                                                                                                        the
-                                                                                                                                                        Order</span>
+                                                                                                                                                    <span>Order
+                                                                                                                                                        Shipped</span>
                                                                                                                                                 </div>
                                                                                                                                             </div>
                                                                                                                                         </td>
@@ -4371,7 +4372,7 @@ def order_shipping_schema(order_details: OrderDetails ):
                                                                                                                                         <td valign="top"
                                                                                                                                             align="center">
                                                                                                                                             <div class="pc-font-alt pc-w620-fontSize-14px"
-                                                                                                                                                style="line-height: 133%; letter-spacing: -0.2px; font-family: 'Poppins', Arial, Helvetica, sans-serif; font-size: 14px; font-weight: normal; font-variant-ligatures: normal; color: #0067ff; text-align: center; text-align-last: center;">
+                                                                                                                                                style="line-height: 133%; letter-spacing: -0.2px; font-family: 'Poppins', Arial, Helvetica, sans-serif; font-size: 14px; font-weight: normal; font-variant-ligatures: normal; text-align: center; text-align-last: center;">
                                                                                                                                                 <div>
                                                                                                                                                     <span>Confirmed</span>
                                                                                                                                                 </div>
@@ -4522,7 +4523,7 @@ def order_shipping_schema(order_details: OrderDetails ):
                                                                                                                                         <td valign="top"
                                                                                                                                             align="center">
                                                                                                                                             <div class="pc-font-alt pc-w620-fontSize-14px"
-                                                                                                                                                style="line-height: 133%; letter-spacing: -0.2px; font-family: 'Poppins', Arial, Helvetica, sans-serif; font-size: 14px; font-weight: normal; font-variant-ligatures: normal; color: #53627a; text-align: center; text-align-last: center;">
+                                                                                                                                                style="line-height: 133%; letter-spacing: -0.2px; font-family: 'Poppins', Arial, Helvetica, sans-serif; font-size: 14px; font-weight: normal; font-variant-ligatures: normal; color: #0067ff; text-align: center; text-align-last: center;">
                                                                                                                                                 <div>
                                                                                                                                                     <span>Shipping</span>
                                                                                                                                                 </div>
@@ -5783,6 +5784,7 @@ def order_shipping_schema(order_details: OrderDetails ):
                                                                         <tr>
                                                                             <td align="center" valign="top"
                                                                                 style="padding: 0px 0px 12px 0px;">
+                                                                                <!-- Footer Logo -->
                                                                                 <img src="https://cloudfilesdm.com/postcards/ebe8030dba901967d43e7fbf28bab58f.png"
                                                                                     class="" width="135" height="26" alt=""
                                                                                     style="display: block; outline: 0; line-height: 100%; -ms-interpolation-mode: bicubic; object-fit: contain; width:135px; height: auto; max-width: 100%; border: 0;" />
@@ -6952,6 +6954,7 @@ def order_cancelled_schema(order_details: OrderDetails ):
                                                                                                                                 align="left"
                                                                                                                                 valign="top"
                                                                                                                                 style="padding: 0px 0px 0px 0px;">
+                                                                                                                                <!-- LOGO -->
                                                                                                                                 <img src="https://cloudfilesdm.com/postcards/6bcf4080513af0370392a31b2b1e5af4.png"
                                                                                                                                     class="pc-w620-width-136 pc-w620-height-auto pc-w620-align-center"
                                                                                                                                     width="134"
@@ -7247,10 +7250,8 @@ def order_cancelled_schema(order_details: OrderDetails ):
                                                                                                                                             <div class="pc-font-alt pc-w620-fontSize-32px pc-w620-lineHeight-32"
                                                                                                                                                 style="line-height: 100%; letter-spacing: -0.03em; font-family: 'Poppins', Arial, Helvetica, sans-serif; font-size: 40px; font-weight: 600; font-variant-ligatures: normal; color: #001942; text-align: center; text-align-last: center;">
                                                                                                                                                 <div>
-                                                                                                                                                    <span>Thanks
-                                                                                                                                                        for
-                                                                                                                                                        the
-                                                                                                                                                        Order</span>
+                                                                                                                                                    <span>Order
+                                                                                                                                                        Cancelled</span>
                                                                                                                                                 </div>
                                                                                                                                             </div>
                                                                                                                                         </td>
@@ -8884,6 +8885,7 @@ def order_cancelled_schema(order_details: OrderDetails ):
                                                                         <tr>
                                                                             <td align="center" valign="top"
                                                                                 style="padding: 0px 0px 12px 0px;">
+                                                                                <!-- Footer Logo -->
                                                                                 <img src="https://cloudfilesdm.com/postcards/ebe8030dba901967d43e7fbf28bab58f.png"
                                                                                     class="" width="135" height="26" alt=""
                                                                                     style="display: block; outline: 0; line-height: 100%; -ms-interpolation-mode: bicubic; object-fit: contain; width:135px; height: auto; max-width: 100%; border: 0;" />
@@ -10053,6 +10055,7 @@ def order_delivered_schema(order_details: OrderDetails ):
                                                                                                                                 align="left"
                                                                                                                                 valign="top"
                                                                                                                                 style="padding: 0px 0px 0px 0px;">
+                                                                                                                                <!-- LOGO -->
                                                                                                                                 <img src="https://cloudfilesdm.com/postcards/6bcf4080513af0370392a31b2b1e5af4.png"
                                                                                                                                     class="pc-w620-width-136 pc-w620-height-auto pc-w620-align-center"
                                                                                                                                     width="134"
@@ -10348,10 +10351,8 @@ def order_delivered_schema(order_details: OrderDetails ):
                                                                                                                                             <div class="pc-font-alt pc-w620-fontSize-32px pc-w620-lineHeight-32"
                                                                                                                                                 style="line-height: 100%; letter-spacing: -0.03em; font-family: 'Poppins', Arial, Helvetica, sans-serif; font-size: 40px; font-weight: 600; font-variant-ligatures: normal; color: #001942; text-align: center; text-align-last: center;">
                                                                                                                                                 <div>
-                                                                                                                                                    <span>Thanks
-                                                                                                                                                        for
-                                                                                                                                                        the
-                                                                                                                                                        Order</span>
+                                                                                                                                                    <span>Order
+                                                                                                                                                        Delivered</span>
                                                                                                                                                 </div>
                                                                                                                                             </div>
                                                                                                                                         </td>
@@ -11985,6 +11986,7 @@ def order_delivered_schema(order_details: OrderDetails ):
                                                                         <tr>
                                                                             <td align="center" valign="top"
                                                                                 style="padding: 0px 0px 12px 0px;">
+                                                                                <!-- Footer Logo -->
                                                                                 <img src="https://cloudfilesdm.com/postcards/ebe8030dba901967d43e7fbf28bab58f.png"
                                                                                     class="" width="135" height="26" alt=""
                                                                                     style="display: block; outline: 0; line-height: 100%; -ms-interpolation-mode: bicubic; object-fit: contain; width:135px; height: auto; max-width: 100%; border: 0;" />
@@ -12403,3 +12405,11 @@ def order_delivered_schema(order_details: OrderDetails ):
 
 # ============================================================================================================
 # ============================================================================================================
+
+from enum import Enum
+
+# Schema Dictonary 
+class Schema(str, Enum):
+    shipping = order_shipping_schema
+    delivered = order_delivered_schema
+    cancelled = order_cancelled_schema
