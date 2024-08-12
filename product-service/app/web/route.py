@@ -43,16 +43,6 @@ async def create_products(
     # product = await create_product(aio_producer, session, product_details_model, images)
     return {"message": "Create Product Successfully!", "data": product}
 
-@router.get("/get_all_products")
-async def get_all_product(session: DB_SESSION,
-                            page: int = 1, 
-                            page_size: int = 16, 
-                            sort_by: str = 'created_at', 
-                            sort_order: str = 'desc'
-                        ):
-    products = await get_all_product_details(session, page, page_size, sort_by, sort_order )
-    return products
-
 # specific_product details
 @router.get("/specific_product/{product_id}")
 async def specific_product_details(product_id: str, session: DB_SESSION):
@@ -66,15 +56,18 @@ async def search_product(input:str, session: DB_SESSION):
     return products
 
 # Products By Category
-@router.get("/product_by_category/{category}")
-async def product_by_category(category:str, 
+@router.get("/get_products/{input}")
+async def product_by_category(input:str, 
                             session: DB_SESSION,
                             page: int = 1, 
                             page_size: int = 16, 
                             sort_by: str = 'created_at', 
                             sort_order: str = 'desc',
                             ):
-    products = await get_product_by_category(category, session, page, page_size, sort_by, sort_order)
+    if input == 'all':
+        products = await get_all_product_details(session, page, page_size, sort_by, sort_order)
+    else:
+        products = await get_product_by_category(input, session, page, page_size, sort_by, sort_order)
     return products
 
 @router.get('/new_arrivals')
