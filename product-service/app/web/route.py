@@ -43,17 +43,20 @@ async def create_products(
     # product = await create_product(aio_producer, session, product_details_model, images)
     return {"message": "Create Product Successfully!", "data": product}
 
+
 # specific_product details
 @router.get("/specific_product/{product_id}")
 async def specific_product_details(product_id: str, session: DB_SESSION):
     product = await get_specific_product_details(product_id, session)
     return product
 
+
 # search_product_results 
 @router.get("/search_product/{input}")
 async def search_product(input:str, session: DB_SESSION):
     products = await search_product_results(input, session)
     return products
+
 
 # Products By Category
 @router.get("/get_products/{input}")
@@ -66,19 +69,12 @@ async def product_by_category(input:str,
                             ):
     if input == 'all':
         products = await get_all_product_details(session, page, page_size, sort_by, sort_order)
+    elif input == "new-arrivals":
+        products = await get_new_arrivals_details(session, page, page_size, sort_by, sort_order)
     else:
         products = await get_product_by_category(input, session, page, page_size, sort_by, sort_order)
     return products
 
-@router.get('/new_arrivals')
-async def new_arrivals(session: DB_SESSION,
-                        page: int = 1, 
-                        page_size: int = 16,
-                        sort_by: str = 'created_at', 
-                        sort_order: str = 'desc', 
-                        ):
-    products = await get_new_arrivals_details(session, page, page_size, sort_by, sort_order)
-    return products
 
 # Update Product
 @router.put("/update_product/{product_id}")
@@ -98,6 +94,7 @@ async def update_product(product_id:str,
     # product = await updated_product(product_id, product_input, session)
     return product
 
+
 # Deleted Products
 @router.delete("/delete_product/{product_id}")
 async def delete_product(product_id:str, 
@@ -108,6 +105,7 @@ async def delete_product(product_id:str,
     # product = await deleted_product(product_id, session)
     return product
 
+#  You May Also Like Products
 @router.get("/may-also-like/{product_id}")
 async def may_also_like_products(product_id: str, session: DB_SESSION):
     products = await may_also_like_products_details(product_id, session)
