@@ -44,6 +44,7 @@ async def get_category(session: DB_SESSION):
     category = await get_categories(session)
     return category
 
+# Category Types
 @csc_router.get("/category/{category_type}")
 async def get_specific_category(category_type: str, 
                         session: DB_SESSION):
@@ -52,6 +53,7 @@ async def get_specific_category(category_type: str,
         raise HTTPException(status_code=404, detail="Product not found")
     return category
 
+# Update Category
 @csc_router.put("/update_category/{category_id}")
 async def update_category(category_id: str, 
                         session: DB_SESSION,
