@@ -1,20 +1,21 @@
 from ..utils.action import create_categories, get_categories, create_sizes, get_sizies, update_categories, update_color
 from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException
-from ..model.category_model import Category, Size, CategoryBaseModel
+from ..model.category_model import Category, Size, CategoryBaseModel, CategoryType
 from ..utils.admin_verify import get_current_active_admin_user
 from ..model.authentication import Admin
 from ..model.models import Color
 from ..core.db import DB_SESSION
-from typing import Annotated, Optional
+from typing import Annotated, Optional, List
 from sqlmodel import select
 import json
+import random
 
 csc_router = APIRouter(prefix="/api/v1/csc")
 
 # Category Routes
 @csc_router.post("/category/create") 
 async def create_category(
-                        current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
+                        # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
                         session: DB_SESSION,
                         category_input: Annotated[str, Form(...)],
                         category_image: UploadFile = File(...),
@@ -35,8 +36,8 @@ async def create_category(
         raise HTTPException(status_code=400, detail="Invalid JSON data provided for product details")
 
     category_base_model = CategoryBaseModel(**category_dict)
-    category = await create_categories(category_base_model, current_admin, session, category_image)
-    # category = await create_categories(category_base_model, session, category_image)
+    # category = await create_categories(category_base_model, current_admin, session, category_image)
+    category = await create_categories(category_base_model, session, category_image)
     return {"message": "Create Product Category Successfully!", "data" : category}
 
 @csc_router.get("/categories/all")
@@ -52,6 +53,36 @@ async def get_specific_category(category_type: str,
     if not category:
         raise HTTPException(status_code=404, detail="Product not found")
     return category
+
+@csc_router.get("/shuffles/categories/", response_model=List[Category])
+async def get_shuffle_categories(
+                                session: DB_SESSION,
+                                limit: int = 2,
+                                ):
+    # Fetch categories by type and convert to lists
+    formal_categories = list(session.exec(select(Category).where(Category.category_type == CategoryType.formal)).all())
+    casual_categories = list(session.exec(select(Category).where(Category.category_type == CategoryType.casual)).all())
+    luxury_categories = list(session.exec(select(Category).where(Category.category_type == CategoryType.luxury)).all())
+
+    # Ensure there are at least 2 categories of each type
+    if len(formal_categories) < 2 or len(casual_categories) < 2 or len(luxury_categories) < 2:
+        raise HTTPException(status_code=404, detail="Not enough categories of each type to perform shuffle")
+
+    # Shuffle and select 2 categories from each type
+    random.sample(formal_categories, min(len(formal_categories), 3))
+    random.sample(casual_categories, min(len(casual_categories), 3))
+    random.sample(luxury_categories, min(len(luxury_categories), 3))
+
+    selected_categories = (
+        formal_categories[:limit] +
+        casual_categories[:limit] +
+        luxury_categories[:limit]
+    )
+
+    # Shuffle the combined list
+    random.shuffle(selected_categories)
+
+    return selected_categories
 
 # Update Category
 @csc_router.put("/update_category/{category_id}")

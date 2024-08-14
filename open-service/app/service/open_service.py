@@ -1,18 +1,14 @@
 # type: ignore
 from ..model.product import Product, ProductItem, ProductSize, Stock, SizeModel, ProductItemFormModel, ProductFormModel, Size
-from ..model.order import Order, OrderItem, OrderItemDetail, OrderDetail
 from openai.types.shared_params.function_definition import FunctionDefinition
-from ..utils.admin_verify import get_current_active_admin_user
-from ..utils.actions import all_product_details, single_product_details
-from ..utils.user_verify import get_current_active_user
-from fastapi import Depends, HTTPException, Query
-from ..model.authentication import Users, Admin
-from typing import Annotated, Optional, List, Sequence
-from ..core.db import DB_SESSION
-from openai.types.chat import ChatCompletionMessage
-from ..setting import OPENAI_API_KEY
-from datetime import datetime, timedelta
+from ..model.order import Order, OrderItem, OrderItemDetail, OrderDetail
+from ..utils.actions import single_product_details
 from dotenv import load_dotenv, find_dotenv
+from fastapi import Depends, HTTPException
+from ..model.authentication import Users
+from datetime import datetime, timedelta
+from ..setting import OPENAI_API_KEY
+from ..core.db import DB_SESSION
 from sqlmodel import select
 from openai import OpenAI
 import json
@@ -20,32 +16,6 @@ import json
 _ = load_dotenv(find_dotenv())
 
 client: OpenAI = OpenAI()
-
-# get all product details
-async def get_all_product_details(session: DB_SESSION,
-                                page: int, 
-                                page_size: int, 
-                                sort_by: str, 
-                                sort_order: str
-                                ):
-    offset = (page - 1) * page_size
-    query = select(Product)
-
-    # Apply sorting
-    if sort_order.lower() == 'desc':
-        query = query.order_by(getattr(Product, sort_by).desc())
-    else:
-        query = query.order_by(getattr(Product, sort_by).asc())
-
-    # Apply pagination
-    query = query.offset(offset).limit(page_size)
-    
-    # Execute the query
-    products = session.exec(query).all()
-
-    product_details = await all_product_details(products, session)
-
-    return product_details
 
 async def get_features_product(session: DB_SESSION,
                                 page: int, 
@@ -149,7 +119,7 @@ async def get_orders_by_tracking_id(
 async def get_openai_shop_assistant(input: str, session: DB_SESSION):
     get_all_product_details_tool: FunctionDefinition = {
                 "name": "single_product_details",
-                "description": "Get all product details & Product Description",
+                "description": "Get All details of Product like product name, description, product colors & sizes of each color.",
                 "parameters": {
                     "type": "object",
                     "properties": {

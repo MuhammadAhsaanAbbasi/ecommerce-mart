@@ -11,11 +11,11 @@ from sqlmodel import select
 
 # Create Categories
 async def create_categories(category_input: CategoryBaseModel,
-                            current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
+                            # current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
                             session: DB_SESSION,
                             image: UploadFile = File(...)):
-    if not current_admin:
-        raise HTTPException(status_code=401, detail="Unauthorized Admin")
+    # if not current_admin:x``
+    #     raise HTTPException(status_code=401, detail="Unauthorized Admin")
     category_image = await upload_files_in_s3(image)
     category = Category(**category_input.model_dump(), category_image=category_image)
     session.add(category)
