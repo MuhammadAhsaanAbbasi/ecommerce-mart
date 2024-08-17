@@ -10,9 +10,9 @@ from ..core.db import DB_SESSION
 import json
 import uuid
 
-router = APIRouter(prefix="/api/v1")
+router = APIRouter(prefix="/api/v1/product")
 
-@router.post("/create_product")
+@router.post("/create")
 async def create_products(
     current_admin: Annotated[Admin, Depends(get_current_active_admin_user)], 
     aio_producer: Annotated[AIOKafkaProducer, Depends(get_kafka_producer)],
@@ -45,21 +45,21 @@ async def create_products(
 
 
 # specific_product details
-@router.get("/specific_product/{product_id}")
+@router.get("/specific/{product_id}")
 async def specific_product_details(product_id: str, session: DB_SESSION):
     product = await get_specific_product_details(product_id, session)
     return product
 
 
 # search_product_results 
-@router.get("/search_product/{input}")
+@router.get("/search/{input}")
 async def search_product(input:str, session: DB_SESSION):
     products = await search_product_results(input, session)
     return products
 
 
 # Products By Category
-@router.get("/get_products/{input}")
+@router.get("/gets/{input}")
 async def product_by_category(input:str, 
                             session: DB_SESSION,
                             page: int = 1, 
@@ -77,7 +77,7 @@ async def product_by_category(input:str,
 
 
 # Update Product
-@router.put("/update_product/{product_id}")
+@router.put("/update/{product_id}")
 async def update_product(product_id:str,
                         product_input: ProductBaseForm,
                         session: DB_SESSION,
@@ -96,7 +96,7 @@ async def update_product(product_id:str,
 
 
 # Deleted Products
-@router.delete("/delete_product/{product_id}")
+@router.delete("/delete/{product_id}")
 async def delete_product(product_id:str, 
                         session: DB_SESSION,
                         current_admin: Annotated[Admin, Depends(get_current_active_admin_user)]

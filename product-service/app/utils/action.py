@@ -3,7 +3,7 @@ from ..model.category_model import Category, Size, CategoryBaseModel
 from fastapi import HTTPException, UploadFile, File, Form, Depends
 from ..utils.admin_verify import get_current_active_admin_user
 from ..utils.user_verify import get_current_active_user
-from typing import List, Sequence, Annotated, Optional
+from typing import List, Sequence, Annotated, Optional, Union, Dict, Any
 from ..core.config import upload_files_in_s3
 from ..model.authentication import Admin, Users
 from ..core.db import DB_SESSION
@@ -77,7 +77,8 @@ async def get_sizies(session: DB_SESSION):
 async def update_color(color_id: str,
                         color_details: Color,
                         current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],
-                        session: DB_SESSION):
+                        session: DB_SESSION
+                        ):
     if not current_admin:
         raise HTTPException(status_code=401, detail="Unauthorized Admin")
     
@@ -113,55 +114,67 @@ async def search_algorithm_by_category_type(product_id: str, session: DB_SESSION
     categories = session.exec(select(Category).where(Category.category_type == category.category_type)).all()
     return categories
 
-async def all_product_details(products: Sequence[Product], session: DB_SESSION):
+async def all_product_details(products: Sequence[Product], session: DB_SESSION,
+                            search: bool = False):
+    product_items_table: List[ProductItemDetails] = []
     all_product_detail = []
 
-    for product in products:
-        product_items = session.exec(select(ProductItem).where(ProductItem.product_id == product.id)).all()
-        product_items_table: List[ProductItemDetails] = []
+    if search:
+        for product in products:
+            product_items = product.product_item
+            product_details = {
+                "product_id": product.id,
+                "product_name": product.product_name,
+                "product_desc": product.product_desc,
+                "product_image": product_items[0].image_url if product_items else None,
+            }
+            all_product_detail.append(product_details)
+    else:
+        for product in products:
+            product_items = product.product_item
+            for item in product_items:
+                product_sizes = item.sizes
+                product_sizes_table: List[SizeModelDetails] = []
 
-        for item in product_items:
-            product_sizes = session.exec(select(ProductSize).where(ProductSize.product_item_id == item.id)).all()
-            product_sizes_table: List[SizeModelDetails] = []
+                for product_size in product_sizes:
+                    size = session.exec(select(Size).where(Size.id == product_size.size)).first()
+                    if not size:
+                        raise HTTPException(status_code=404, detail="Size not found")
+                    stock = session.exec(select(Stock).where(Stock.product_size_id == product_size.id)).first()
+                    if stock and stock.stock > 0:
+                        size_model = SizeModelDetails(
+                                product_size_id=product_size.id,
+                                size=size.size,
+                                price=product_size.price,
+                                stock=stock.stock
+                            )
+                        product_sizes_table.append(size_model)
 
-            for product_size in product_sizes:
-                size = session.exec(select(Size).where(Size.id == product_size.size)).first()
-                if not size:
-                    raise HTTPException(status_code=404, detail="Size not found")
-                stock = session.exec(select(Stock).where(Stock.product_size_id == product_size.id)).first()
-                if stock and stock.stock > 0:
-                    size_model = SizeModelDetails(
-                        product_size_id=product_size.id,
-                        size=size.size,
-                        price=product_size.price,
-                        stock=stock.stock
-                    )
-                    product_sizes_table.append(size_model)
+                if product_sizes_table:
+                    color = session.exec(select(Color).where(Color.id == item.color)).first()
+                    if not color:
+                        raise HTTPException(status_code=404, detail="Color not found")
 
-            if product_sizes_table:
-                color = session.exec(select(Color).where(Color.id == item.color)).first()
-                if not color:
-                    raise HTTPException(status_code=404, detail="Color not found")
+                    product_item_model = ProductItemDetails(
+                            product_item_id=item.id,
+                            color_name=color.color_name,
+                            color_value=color.color_value,
+                            color=item.color,
+                            image_url=item.image_url,
+                            sizes=product_sizes_table
+                        )
+                    product_items_table.append(product_item_model)
 
-                product_item_model = ProductItemDetails(
-                    product_item_id=item.id,
-                    color_name=color.color_name,
-                    color_value=color.color_value,
-                    color=item.color,
-                    image_url=item.image_url,
-                    sizes=product_sizes_table
-                )
-                product_items_table.append(product_item_model)
-
-        product_details = ProductDetails(
-            product_id=product.id,
-            product_name=product.product_name,
-            product_desc=product.product_desc,
-            featured=product.featured,
-            category_id=product.category_id,
-            product_item=product_items_table
-        )
-        all_product_detail.append(product_details)
+            if product_items_table:
+                product_details = ProductDetails(
+                        product_id=product.id,
+                        product_name=product.product_name,
+                        product_desc=product.product_desc,
+                        featured=product.featured,
+                        category_id=product.category_id,
+                        product_item=product_items_table
+                    ) # type: ignore
+                all_product_detail.append(product_details)
 
     return all_product_detail
 

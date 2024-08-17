@@ -125,7 +125,7 @@ async def delete_category(category_id: str,
 
     return {"message": "Delete Product Category Successfully!"}
 
-# Size Routes
+# Size Routes 
 @csc_router.post("/size")
 async def create_size(size_input: Size, 
                     current_admin: Annotated[Admin, Depends(get_current_active_admin_user)],

@@ -241,6 +241,9 @@ async def search_product_results(input: str, session: DB_SESSION):
 
     # Search for products that start with the input
     products = session.exec(select(Product).where(Product.product_name.startswith(input))).all()
+
+    if not products:
+        products = []
     
     # Collect unique product IDs
     category_product_ids = {product.id for product in category_products if product.id is not None}
@@ -252,10 +255,9 @@ async def search_product_results(input: str, session: DB_SESSION):
     # Fetch the unique products from the database
     unique_products = session.exec(select(Product).where(Product.id.in_(unique_product_ids))).all() # type: ignore
 
-    product_details = await all_product_details(unique_products, session)
+    product_details = await all_product_details(unique_products, session, search=True)
 
     return product_details
-
 
 # get product by category
 async def get_product_by_category(catogery:str, 
