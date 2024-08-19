@@ -433,3 +433,34 @@ async def may_also_like_products_details(product_id: str, session: DB_SESSION):
     else:
         products = []
         return products
+
+async def get_features_product(session: DB_SESSION,
+                                page: int, 
+                                page_size: int, 
+                                sort_by: str, 
+                                sort_order: str
+                                ):
+    offset = (page - 1) * page_size
+    # Get all features Product which create 14 days ago from now
+    
+    if not Product.created_at:
+        raise HTTPException(status_code=400, detail="Products date not found")
+
+    query = select(Product).where(Product.featured == True)
+
+    # Apply sorting
+    if sort_order.lower() == 'desc':
+        query = query.order_by(getattr(Product, sort_by).desc())
+    else:
+        query = query.order_by(getattr(Product, sort_by).asc())
+
+    # Apply pagination
+    query = query.offset(offset).limit(page_size)
+    
+    # Execute the query
+    products = session.exec(query).all()
+    if not products:
+        raise HTTPException(status_code=404, detail="No featured products found")
+
+    product_details = await all_product_details(products, session)
+    return product_details

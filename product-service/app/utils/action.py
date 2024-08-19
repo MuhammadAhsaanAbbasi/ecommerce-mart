@@ -116,7 +116,6 @@ async def search_algorithm_by_category_type(product_id: str, session: DB_SESSION
 
 async def all_product_details(products: Sequence[Product], session: DB_SESSION,
                             search: bool = False):
-    product_items_table: List[ProductItemDetails] = []
     all_product_detail = []
 
     if search:
@@ -132,6 +131,7 @@ async def all_product_details(products: Sequence[Product], session: DB_SESSION,
     else:
         for product in products:
             product_items = product.product_item
+            product_items_table: List[ProductItemDetails] = []
             for item in product_items:
                 product_sizes = item.sizes
                 product_sizes_table: List[SizeModelDetails] = []

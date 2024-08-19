@@ -10,7 +10,7 @@ import random
 
 router = APIRouter(prefix="/api/v1")
 
-@router.get('/featured/products')
+@router.get('/products/featured/')
 async def get_featured_products(session: DB_SESSION,
                             page: int = 1, 
                             page_size: int = 16, 

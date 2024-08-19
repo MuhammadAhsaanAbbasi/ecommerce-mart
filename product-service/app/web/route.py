@@ -1,4 +1,4 @@
-from ..service.product_service import get_all_product_details, get_specific_product_details, get_product_by_category, deleted_product, create_product, search_product_results, updated_product, get_new_arrivals_details, may_also_like_products_details
+from ..service.product_service import get_all_product_details, get_specific_product_details, get_product_by_category, deleted_product, create_product, search_product_results, updated_product, get_new_arrivals_details, may_also_like_products_details, get_features_product
 from ..model.models import ProductBaseForm, ProductFormModel
 from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException
 from ..utils.admin_verify import get_current_active_admin_user
@@ -48,6 +48,18 @@ async def create_products(
 @router.get("/specific/{product_id}")
 async def specific_product_details(product_id: str, session: DB_SESSION):
     product = await get_specific_product_details(product_id, session)
+    return product
+
+
+# Featured Product
+@router.get('/featured')
+async def get_featured_products(session: DB_SESSION,
+                            page: int = 1, 
+                            page_size: int = 16, 
+                            sort_by: str = 'created_at', 
+                            sort_order: str = 'desc'
+                        ):
+    product = await get_features_product(session, page, page_size, sort_by, sort_order )
     return product
 
 
