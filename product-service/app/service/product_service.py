@@ -165,48 +165,53 @@ async def get_specific_product_details(product_id: str, session: DB_SESSION):
 
     category_name = category.category_name if category else product.category_id
 
-    product_items = session.exec(select(ProductItem).where(ProductItem.product_id == product.id)).all()
+    product_items = product.product_item
     product_items_table: List[ProductItemDetails] = []
-
     for item in product_items:
-            product_sizes = session.exec(select(ProductSize).where(ProductSize.product_item_id == item.id)).all()
-            product_sizes_table: List[SizeModelDetails] = []
+        product_sizes = item.sizes
+        product_sizes_table: List[SizeModelDetails] = []
 
-            for product_size in product_sizes:
-                size = session.exec(select(Size).where(Size.id == product_size.size)).first()
-                if not size:
-                    raise HTTPException(status_code=404, detail="Size not found")
-                stock = session.exec(select(Stock).where(Stock.product_size_id == product_size.id)).first()
-                if stock and stock.stock > 0:
-                    size_model = SizeModelDetails(
-                        size=size.size,
-                        price=product_size.price,
-                        stock=stock.stock
-                    )
-                    product_sizes_table.append(size_model)
-            
-            if product_sizes_table:
-                color = session.exec(select(Color).where(Color.id == item.color)).first()
-                if not color:
-                    raise HTTPException(status_code=404, detail="Color not found")
-                product_item_model = ProductItemDetails(
-                    color_name=color.color_name,
-                    color_value=color.color_value,
-                    image_url=item.image_url,
-                    sizes=product_sizes_table
-                )
-                product_items_table.append(product_item_model)
+        for product_size in product_sizes:
+            size = session.exec(select(Size).where(Size.id == product_size.size)).first()
+            if not size:
+                raise HTTPException(status_code=404, detail="Size not found")
+            stock = session.exec(select(Stock).where(Stock.product_size_id == product_size.id)).first()
+            if stock and stock.stock > 0:
+                size_model = SizeModelDetails(
+                                product_size_id=product_size.id,
+                                size=size.size,
+                                price=product_size.price,
+                                stock=stock.stock
+                            )
+                product_sizes_table.append(size_model)
+
+        if product_sizes_table:
+            color = session.exec(select(Color).where(Color.id == item.color)).first()
+            if not color:
+                raise HTTPException(status_code=404, detail="Color not found")
+
+            product_item_model = ProductItemDetails(
+                            product_item_id=item.id,
+                            color_name=color.color_name,
+                            color_value=color.color_value,
+                            color=item.color,
+                            image_url=item.image_url,
+                            sizes=product_sizes_table
+                        )
+            product_items_table.append(product_item_model)
 
     product_details = ProductDetails(
+            product_id=product.id,
             product_name=product.product_name,
             product_desc=product.product_desc,
+            featured=product.featured,
             category_id=category_name,
             product_item=product_items_table
         )
 
     print(f"product_details: {product_details}")
 
-    return {"data": product_details}
+    return product_details
 
 
 # search_product_results
