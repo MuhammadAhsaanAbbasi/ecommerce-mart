@@ -97,19 +97,19 @@ async def get_transaction(transaction_id: str,
 
     return transaction_details
 
-@router.get("/transaction/order/{order_id}")
-async def get_transaction_by_order(order_id: str, session: DB_SESSION,
-                                current_admin: Annotated[Admin, Depends(get_current_active_admin_user)]):
-    if not current_admin:
-        raise HTTPException(status_code=403, detail="Unauthorized access")
+# @router.get("/transaction/order/{order_id}")
+# async def get_transaction_by_order(order_id: str, session: DB_SESSION,
+#                                 current_admin: Annotated[Admin, Depends(get_current_active_admin_user)]):
+#     if not current_admin:
+#         raise HTTPException(status_code=403, detail="Unauthorized access")
     
-    transaction = session.exec(select(Transaction).where(Transaction.order_id == order_id)).first()
-    if not transaction:
-        raise HTTPException(status_code=404, detail="Transaction not found")
+#     transaction = session.exec(select(Transaction).where(Transaction.order_id == order_id)).first()
+#     if not transaction:
+#         raise HTTPException(status_code=404, detail="Transaction not found")
     
-    transaction_details = await get_transaction_details(transaction, session)
+#     transaction_details = await get_transaction_details(transaction, session)
 
-    return transaction_details
+#     return transaction_details
 
 
 @router.post("/transaction/refund/{transaction_id}")
