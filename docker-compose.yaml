@@ -176,34 +176,34 @@ services:
 # ####################################################################################################
 
 # # inventory Service
-#   inventory-service:
-#     build:
-#       context: ./inventory-service
-#       dockerfile: Dockerfile
-#     restart: always
-#     ports:
-#       - "8084:8084" 
-#     volumes:
-#       - ./inventory-service:/code  # Sync  local development directory with the container
-#     depends_on:
-#       - kafka
-#       - postgres_db
+  inventory-service:
+    build:
+      context: ./inventory-service
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "8084:8084" 
+    volumes:
+      - ./inventory-service:/code  # Sync  local development directory with the container
+    depends_on:
+      - kafka
+      - postgres_db
 
 ####################################################################################################
 
 # payment Service
-  # payment-service:
-  #   build:
-  #     context: ./payment-service
-  #     dockerfile: Dockerfile
-  #   restart: always
-  #   ports:
-  #     - "8085:8085" 
-  #   volumes:
-  #     - ./payment-service:/code  # Sync  local development directory with the container
-  #   depends_on:
-  #     - kafka
-  #     - postgres_db
+  payment-service:
+    build:
+      context: ./payment-service
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "8085:8085" 
+    volumes:
+      - ./payment-service:/code  # Sync  local development directory with the container
+    depends_on:
+      - kafka
+      - postgres_db
 
 ####################################################################################################
 
@@ -224,34 +224,34 @@ services:
 # ####################################################################################################
 
 # # # open Service
-#   open-service:
-#     build:
-#       context: ./open-service
-#       dockerfile: Dockerfile
-#     restart: always
-#     ports:
-#       - "8087:8087" 
-#     volumes:
-#       - ./open-service:/code  # Sync  local development directory with the container
-#     depends_on:
-#       - kafka
-#       - postgres_db
+  # open-service:
+  #   build:
+  #     context: ./open-service
+  #     dockerfile: Dockerfile
+  #   restart: always
+  #   ports:
+  #     - "8087:8087" 
+  #   volumes:
+  #     - ./open-service:/code  # Sync  local development directory with the container
+  #   depends_on:
+  #     - kafka
+  #     - postgres_db
 
 # ####################################################################################################
 
 # # # Assistant Service
-#   assistant-service:
-#     build:
-#       context: ./assistant-service
-#       dockerfile: Dockerfile
-#     restart: always
-#     ports:
-#       - "8088:8088" 
-#     volumes:
-#       - ./assistant-service:/code  # Sync  local development directory with the container
-#     depends_on:
-#       - kafka
-#       - postgres_db
+  # assistant-service:
+  #   build:
+  #     context: ./assistant-service
+  #     dockerfile: Dockerfile
+  #   restart: always
+  #   ports:
+  #     - "8088:8088" 
+  #   volumes:
+  #     - ./assistant-service:/code  # Sync  local development directory with the container
+  #   depends_on:
+  #     - kafka
+  #     - postgres_db
 
 ####################################################################################################
 
