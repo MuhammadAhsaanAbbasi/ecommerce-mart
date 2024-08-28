@@ -2,7 +2,7 @@ from app.model.authentication import EmailUser as EmailUserModel, Otp
 from aiokafka.errors import KafkaConnectionError # type: ignore
 from app.setting import USER_SIGNUP_VERIFY_TOPIC, OTP_TOPIC
 from ..schemas.user_emails import verified_user_schema 
-from ..utils.actions import send_otp_notification_func
+from ..schemas.user_emails import send_otp_notification_func
 from aiokafka import AIOKafkaConsumer # type: ignore
 from ..core.config import send_email_via_ses
 from app import user_pb2 # type: ignore
@@ -36,7 +36,7 @@ async def user_signup_consumer():
             )
             print(f"User Data: {user_data}")
             try:
-                send_email = await send_otp_notification_func(user_email=user_data.email, otp=user_data.otp, token=user_data.token, subject="OTP Notification")
+                send_email = await send_otp_notification_func(user_email='mahsaanabbasi@gmail.com', otp=user_data.otp, token=user_data.token, subject="OTP Notification")
                 print(f"Send Email: {send_email}")
             except HTTPException as e:
                 print(e)

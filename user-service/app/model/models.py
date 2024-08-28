@@ -30,7 +30,6 @@ class UserModel(SQLModel):
     hashed_password: str
     phone_number: Optional[str] = Field(default=None)
     imageUrl: Optional[str] = Field(default=None)
-    otp: Optional[str] = None
     date_of_birth: Optional[str]
     gender: Optional[UserGender]
 
