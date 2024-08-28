@@ -5,7 +5,6 @@ message User {
     string email = 2;
     string hashed_password = 3;
     string imageUrl = 4;
-    string phone_number = 5;
     string date_of_birth = 6;
     string gender = 7;
     string token = 8;

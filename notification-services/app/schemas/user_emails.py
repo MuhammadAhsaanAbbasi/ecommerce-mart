@@ -44,7 +44,7 @@ def verified_user_schema(user_name:str):
                             <td>
                                 <img
                                 alt=""
-                                src="https://archisketch-resources.s3.ap-northeast-2.amazonaws.com/vrstyler/1663574980688_114990/archisketch-logo"
+                                src="https://hrk-boutique.s3.ap-south-1.amazonaws.com/emailTemplate/hrk_boutique.png"
                                 height="30px"
                                 />
                             </td>
@@ -247,7 +247,7 @@ def update_user_schema(user_name:str):
                             <td>
                                 <img
                                 alt=""
-                                src="https://archisketch-resources.s3.ap-northeast-2.amazonaws.com/vrstyler/1663574980688_114990/archisketch-logo"
+                                src="https://hrk-boutique.s3.ap-south-1.amazonaws.com/emailTemplate/hrk_boutique.png"
                                 height="30px"
                                 />
                             </td>
@@ -449,7 +449,7 @@ async def send_otp_notification_func(user_email: str, subject: str, otp: str, to
                             <td>
                                 <img
                                 alt=""
-                                src="https://archisketch-resources.s3.ap-northeast-2.amazonaws.com/vrstyler/1663574980688_114990/archisketch-logo"
+                                src="https://hrk-boutique.s3.ap-south-1.amazonaws.com/emailTemplate/hrk_boutique.png"
                                 height="30px"
                                 />
                             </td>
@@ -679,7 +679,7 @@ async def send_reset_password_notification_func(user_email: str, subject: str, t
                             <td>
                                 <img
                                 alt=""
-                                src="https://archisketch-resources.s3.ap-northeast-2.amazonaws.com/vrstyler/1663574980688_114990/archisketch-logo"
+                                src="https://hrk-boutique.s3.ap-south-1.amazonaws.com/emailTemplate/hrk_boutique.png"
                                 height="30px"
                                 />
                             </td>
@@ -738,7 +738,7 @@ async def send_reset_password_notification_func(user_email: str, subject: str, t
                                 <span style="font-weight: 600; color: #1f1f1f;">Do not share Your Passwords with others.</span>.
                                 & Try to Don't Forget Your Password Again.
                                 <span style="font-size: 20px; font-weight: 800; color: #1f1f1f;">
-                                    <a href="https://hrk-boutique.com/auth/reset-password?token={token}" target="_blank" class="v_button">
+                                    <a href="https://hrk-boutique.com/auth/reset-password/{token}" target="_blank" class="v_button">
                                             Click Here to Reset Password
                                     </a>
                                 </span>.

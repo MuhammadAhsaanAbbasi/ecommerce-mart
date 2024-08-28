@@ -28,14 +28,14 @@ class UserModel(SQLModel):
     username: str
     email: str
     hashed_password: str
-    phone_number: Optional[str] = Field(default=None)
     imageUrl: Optional[str] = Field(default=None)
     date_of_birth: Optional[str]
     gender: Optional[UserGender]
 
+
 class UserInfo(SQLModel):
     username: str
-    email: str
+    email: str 
     imageUrl: Optional[str] = Field(default=None)
     date_of_birth: Optional[str]
     gender: Optional[UserGender]
@@ -44,7 +44,6 @@ class UserInfo(SQLModel):
 class Users(UserBase, table=True):
     date_of_birth: Optional[str]
     gender: Optional[UserGender]
-    phone_number: Optional[str] = Field(default=None, index=True)
     role: Optional[str] = Field(default="user")
 
 

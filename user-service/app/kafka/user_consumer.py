@@ -20,7 +20,7 @@ async def get_kafka_consumer(topics: list[str]) -> AIOKafkaConsumer:
         auto_offset_reset="earliest",
     )
     await consumer_kafka.start()
-    return consumer_kafka
+    return consumer_kafka 
 
 ###################################################################################################################
 
@@ -35,7 +35,6 @@ async def user_consumer():
                                     email=new_user.email, 
                                     hashed_password=new_user.hashed_password, 
                                     imageUrl=new_user.imageUrl,
-                                    phone_number=new_user.phone_number,
                                     date_of_birth=new_user.date_of_birth,
                                     gender=new_user.gender,
                                     )

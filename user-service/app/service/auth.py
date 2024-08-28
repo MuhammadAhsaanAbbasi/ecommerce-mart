@@ -7,9 +7,8 @@ from aiokafka.errors import KafkaTimeoutError # type: ignore
 from aiokafka import AIOKafkaProducer # type: ignore
 from ..kafka.user_producer import get_kafka_producer
 from fastapi import Depends, HTTPException, UploadFile, File
-from fastapi.responses import ORJSONResponse
 from ..user_pb2 import EmailUser as EmailUserProto  # type: ignore
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, ORJSONResponse
 from passlib.context import CryptContext
 from typing import Annotated, Optional
 from sqlmodel import select
@@ -18,6 +17,7 @@ from ..core.config import upload_files_in_s3
 from datetime import timedelta
 import string
 import secrets
+
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -35,8 +35,8 @@ async def verify_and_generate_tokens(
         if not existing_user:
             raise HTTPException(status_code=400, detail="User not found")
 
-        if existing_user.is_verified:
-            raise HTTPException(status_code=400, detail="User is already verified")
+        # if existing_user.is_verified:
+        #     raise HTTPException(status_code=400, detail="User is already verified")
 
         # Verify OTP
         valid_otp = pwd_context.verify(user_otp, user.otp)
@@ -81,13 +81,13 @@ async def verify_and_generate_tokens(
         await aio_producer.stop()
 
     # Return tokens
-    return {
+    return ORJSONResponse({
         "access_token": access_token,
         "token_type": "bearer",
         "access_expires_in": int(access_token_expires.total_seconds()),
         "refresh_token_expires_in": int(refresh_token_expires.total_seconds()),
         "refresh_token": refresh_token,
-    }
+    })
 
 #  Create user 
 async def create_user(user_details: UserModel, session: DB_SESSION, isGoogle: bool = False):

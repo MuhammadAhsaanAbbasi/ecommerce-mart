@@ -9,28 +9,11 @@ from ..utils.actions import generate_otp
 from sqlmodel import select
 from ..core.db import DB_SESSION
 
-router = APIRouter(prefix="/api/v1")
+router = APIRouter(prefix="/api/v1/notification")
 
-@router.get("/custom-notifications")
-async def custom_notification(
-                            session: DB_SESSION,
-                            current_user: Annotated[Users, Depends(get_current_active_user)],
-                            otp_email: bool = False,
-                            ):
-    verify_user_token = create_verify_token(current_user.email)
-    if otp_email:
-        otp = generate_otp()
-
-        existing_user = session.exec(select(Users).where(Users.email == current_user.email)).first()
-        if not existing_user:
-            raise HTTPException(status_code=404, detail="User not found")
-
-        existing_user.otp = otp
-        session.commit()
-        session.refresh(existing_user)
-
-        response = await send_otp_notification_func(user_email=current_user.email, subject="OTP Notification", token=verify_user_token, otp="89344")
-        return response
-    else:
-        response = await send_reset_password_notification_func(user_email=current_user.email, subject="Reset Password Notification", token=verify_user_token)
-        return response
+@router.post("/reset_password")
+async def custom_notification(email: str):
+    verify_user_token = create_verify_token(email)
+    response = await send_reset_password_notification_func(user_email=email, subject="Reset Password Notification", token=verify_user_token)
+    print(response)
+    return response

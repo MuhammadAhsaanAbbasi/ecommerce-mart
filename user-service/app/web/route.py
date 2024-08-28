@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends,  Form, Request, HTTPException, status, UploadFile, File
 from ..service.auth import login_for_access_token, google_user, verify_and_generate_tokens, update_user_details
 from ..utils.auth import get_current_active_user, tokens_service, create_verify_token, get_current_user, get_value_hash, get_verified_user
-from ..model.models import Users, Token, UserBase, SubscribeEmail, UserModel, UserUpdate
+from ..model.models import Users, Token, SubscribeEmail, UserModel, UserUpdate
 from fastapi.responses import RedirectResponse, ORJSONResponse
 from fastapi.security.oauth2 import OAuth2PasswordRequestForm
 from ..user_pb2 import User as UserProto  # type: ignore
@@ -145,7 +145,6 @@ async def sign_up(user: UserModel, session:DB_SESSION,
                                     email=user.email, 
                                     hashed_password=user.hashed_password, 
                                     imageUrl=user.imageUrl,
-                                    phone_number=user.phone_number,
                                     date_of_birth=user.date_of_birth,
                                     gender=user.gender,
                                     token=verify_user_token
@@ -226,23 +225,15 @@ async def read_users_me(current_user: Annotated[Users, Depends(get_current_activ
 async def reset_password(
                         token: str,
                         session: DB_SESSION,
-                        current_user: Annotated[Users, Depends(get_current_user)], 
                         reset_password:str,
                         ):
     user = await get_verified_user(token, session)
-    if user.id == current_user.id:
-        existing_user = session.exec(select(Users).where(Users.email == user.email)).first()
-        if not existing_user:
-            raise HTTPException(status_code=400, detail="User not found")
-        existing_user.hashed_password = get_value_hash(reset_password)
-        session.commit()
-        return ORJSONResponse({"message" : "Password Reset Successfully"})
-    else:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid User Details & Credentials Token",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+    existing_user = session.exec(select(Users).where(Users.email == user.email)).first()
+    if not existing_user:
+        raise HTTPException(status_code=400, detail="User not found")
+    existing_user.hashed_password = get_value_hash(reset_password)
+    session.commit()
+    return ORJSONResponse({"message" : "Password Reset Successfully"})
 
 @router.put("/user/update")
 async def update_user(current_user: Annotated[Users, Depends(get_current_active_user)],                   
