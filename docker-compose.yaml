@@ -176,50 +176,50 @@ services:
 # ####################################################################################################
 
 # # inventory Service
-  inventory-service:
-    build:
-      context: ./inventory-service
-      dockerfile: Dockerfile
-    restart: always
-    ports:
-      - "8084:8084" 
-    volumes:
-      - ./inventory-service:/code  # Sync  local development directory with the container
-    depends_on:
-      - kafka
-      - postgres_db
+  # inventory-service:
+  #   build:
+  #     context: ./inventory-service
+  #     dockerfile: Dockerfile
+  #   restart: always
+  #   ports:
+  #     - "8084:8084" 
+  #   volumes:
+  #     - ./inventory-service:/code  # Sync  local development directory with the container
+  #   depends_on:
+  #     - kafka
+  #     - postgres_db
 
 ####################################################################################################
 
 # payment Service
-  payment-service:
-    build:
-      context: ./payment-service
-      dockerfile: Dockerfile
-    restart: always
-    ports:
-      - "8085:8085" 
-    volumes:
-      - ./payment-service:/code  # Sync  local development directory with the container
-    depends_on:
-      - kafka
-      - postgres_db
+  # payment-service:
+  #   build:
+  #     context: ./payment-service
+  #     dockerfile: Dockerfile
+  #   restart: always
+  #   ports:
+  #     - "8085:8085" 
+  #   volumes:
+  #     - ./payment-service:/code  # Sync  local development directory with the container
+  #   depends_on:
+  #     - kafka
+  #     - postgres_db
 
 ####################################################################################################
 
 # # notification Service
-  notification-service:
-    build:
-      context: ./notification-services
-      dockerfile: Dockerfile
-    restart: always
-    ports:
-      - "8086:8086" 
-    volumes:
-      - ./notification-services:/code  # Sync  local development directory with the container
-    depends_on:
-      - kafka
-      - postgres_db
+  # notification-service:
+  #   build:
+  #     context: ./notification-services
+  #     dockerfile: Dockerfile
+  #   restart: always
+  #   ports:
+  #     - "8086:8086" 
+  #   volumes:
+  #     - ./notification-services:/code  # Sync  local development directory with the container
+  #   depends_on:
+  #     - kafka
+  #     - postgres_db
 
 # ####################################################################################################
 
